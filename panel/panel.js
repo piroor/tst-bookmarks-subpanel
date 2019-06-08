@@ -4,6 +4,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
+
 const mOpenedFolders = new Set();
 
 function buildFolder(folder, options = {}) {
@@ -64,7 +66,7 @@ function buildBookmark(bookmark, options = {}) {
   label.dataset.url   = bookmark.url;
   item.classList.add('bookmark');
 
-  if (!/^(https?|ftp|moz-extension):/.test(bookmark.url))
+  if (!LOADABLE_URL_MATCHER.test(bookmark.url))
     item.classList.add('unavailable');
 
   return item;
@@ -163,10 +165,19 @@ window.addEventListener('mouseup', event => {
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
   if (item.classList.contains('folder')) {
-    item.classList.toggle('collapsed');
-    if (!item.classList.contains('collapsed') &&
-        item.lastChild.localName != 'ul') {
-      buildChildren(item);
+    if (accel) {
+      const urls = item.raw.children.map(item => item.url).filter(url => url && LOADABLE_URL_MATCHER.test(url));
+      browser.runtime.sendMessage({
+        type: 'open',
+        urls
+      });
+    }
+    else {
+      item.classList.toggle('collapsed');
+      if (!item.classList.contains('collapsed') &&
+          item.lastChild.localName != 'ul') {
+        buildChildren(item);
+      }
     }
     return;
   }
