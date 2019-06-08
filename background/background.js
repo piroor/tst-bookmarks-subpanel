@@ -43,5 +43,22 @@ browser.runtime.onMessage.addListener((message, _sender) => {
   switch (message.type) {
     case 'get-all':
       return browser.bookmarks.getTree();
+
+    case 'open':
+      (async () => {
+        const window = await browser.windows.getCurrent({ populate: true });
+        let index   = window.tabs.length;
+        let isFirst = true;
+        for (const url of message.urls) {
+          browser.tabs.create({
+            active: !message.background && isFirst,
+            url,
+            index
+          });
+          isFirst = false;
+          index++;
+        }
+      })();
+      break;
   }
 });
