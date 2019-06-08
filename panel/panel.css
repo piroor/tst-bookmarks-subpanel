@@ -1,0 +1,120 @@
+/*
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+*/
+
+:root {
+  background: -moz-field;
+  color: -moz-fieldText;
+  cursor: default;
+  font-size: small;
+}
+
+:root,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  margin: 0;
+  max-width: 100%;
+  padding: 0;
+  width: 100%;
+}
+
+li {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  color: inherit;
+  display: block;
+  overflow: hidden;
+  position: relative;
+  text-decoration: none;
+  text-overflow: ".."; /* ellipsis */
+  white-space: pre;
+}
+
+.row:hover,
+.row:hover * {
+  color: ButtonText;
+  background: ThreeDFace;
+}
+
+.row.active,
+.row.active * {
+  color: InactiveCaptionText;
+  background: InactiveCaption;
+}
+
+.row.active:focus,
+.row.active:focus * {
+  color: HighlightText;
+  background: Highlight;
+}
+
+.folder > .row {
+  margin-left: -1em;
+}
+
+.bookmark > .row {
+  cursor: pointer;
+}
+
+.bookmark.unavailable > .row {
+  cursor: default;
+}
+
+.bookmark.unavailable > .row > * {
+  opacity: 0.65;
+}
+
+.separator > .row {
+  border-top: 1px solid;
+}
+
+.collapsed ul {
+  display: none;
+}
+
+.twisty {
+  background: none;
+  border: none;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.label::before,
+.twisty::before {
+  background: currentColor no-repeat center / 100%;
+  color: inherit;
+  content: "";
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  margin-right: 0.25em;
+  mask: url("/resources/Globe.svg") no-repeat center / 100%;
+  max-height: 1em;
+  max-width: 1em;
+  width: 1em;
+}
+
+.folder > .row > .label::before {
+  mask-image: url("/resources/Folder.svg");
+}
+
+.twisty::before {
+  font-size: 80%;
+  mask-image: url("/resources/ArrowheadDown.svg");
+}
+
+.folder.collapsed > .row > .twisty::before {
+  font-size: 80%;
+  mask-image: url("/resources/ArrowheadRight.svg");
+}
