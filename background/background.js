@@ -12,7 +12,7 @@ async function registerToTST() {
     let result = await browser.runtime.sendMessage(TST_ID, {
       type: 'register-self',
       name: browser.i18n.getMessage('extensionName'),
-      // icons: browser.runtime.getManifest().icons,
+      icons: browser.runtime.getManifest().icons,
       subPanel: {
         title: 'Bookmarks',
         url:   `moz-extension://${location.host}/panel/panel.html`
