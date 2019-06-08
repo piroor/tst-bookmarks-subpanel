@@ -65,21 +65,24 @@ browser.runtime.sendMessage({ type: 'get-all' }).then(rootItems => {
   buildItems(rootItems[0].children, document.getElementById('root'));
 });
 
-document.addEventListener('mousedown', event => {
-  if (!event.target.dataset ||
-      !event.target.dataset.id)
+window.addEventListener('mousedown', event => {
+  let target = event.target;
+  if (target.nodeType != Node.ELEMENT_NODE)
+    target = target.parentNode;
+  target = target && target.closest('li');
+  if (!target ||
+      !target.dataset ||
+      !target.dataset.id)
     return;
 
   if (event.button == 2 ||
       (event.button == 0 &&
        event.ctrlKey)) {
     browser.runtime.sendMessage('treestyletab@piro.sakura.ne.jp', {
-      type:       'try-override-context',
+      type:       'set-override-context',
       context:    'bookmark',
-      bookmarkId: event.target.dataset.id
+      bookmarkId: target.dataset.id
     });
-    event.stopPropagation();
-    event.preventDefault();
     return;
   }
 }, { capture: true });
