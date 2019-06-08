@@ -6,10 +6,16 @@
 
 function buildFolder(folder) {
   const item = document.createElement('li');
-  item.appendChild(document.createTextNode(folder.title));
-  item.setAttribute('title', folder.title);
-  item.dataset.id    = folder.id;
-  item.dataset.title = folder.title;
+  const row = item.appendChild(document.createElement('span'));
+  row.classList.add('row');
+  row.setAttribute('title', folder.title);
+  const twisty = row.appendChild(document.createElement('button'));
+  twisty.classList.add('twisty');
+  const label = row.appendChild(document.createElement('span'));
+  label.classList.add('item-label');
+  label.appendChild(document.createTextNode(folder.title));
+  label.dataset.id    = folder.id;
+  label.dataset.title = folder.title;
   item.classList.add('folder');
   item.appendChild(document.createElement('ul'));
   return item;
@@ -17,14 +23,17 @@ function buildFolder(folder) {
 
 function buildBookmark(bookmark) {
   const item = document.createElement('li');
-  //const link = item.appendChild(document.createElement('a'));
-  item.appendChild(document.createTextNode(bookmark.title));
-  //link.setAttribute('href', bookmark.url);
-  //link.setAttribute('target', '_blank');
-  item.setAttribute('title', bookmark.title);
-  item.dataset.id    = bookmark.id;
-  item.dataset.title = bookmark.title;
-  item.dataset.url   = bookmark.url;
+  const row = item.appendChild(document.createElement('span'));
+  row.classList.add('row');
+  const label = row.appendChild(document.createElement('span'));
+  label.classList.add('item-label');
+  //const icon = label.appendChild(document.createElement('img'));
+  //icon.src = bookmark.favIconUrl;
+  label.appendChild(document.createTextNode(bookmark.title));
+  label.setAttribute('title', `${bookmark.title}\n${bookmark.url}`);
+  label.dataset.id    = bookmark.id;
+  label.dataset.title = bookmark.title;
+  label.dataset.url   = bookmark.url;
   item.classList.add('bookmark');
   return item;
 }
@@ -69,7 +78,7 @@ window.addEventListener('mousedown', event => {
   let target = event.target;
   if (target.nodeType != Node.ELEMENT_NODE)
     target = target.parentNode;
-  target = target && target.closest('li');
+  target = target && target.closest('.item-label');
   if (!target ||
       !target.dataset ||
       !target.dataset.id)

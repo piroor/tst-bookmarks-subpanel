@@ -10,6 +10,9 @@
   "background": {
     "page": "/background/background.html"
   },
+  "icons": {
+    "16": "/resources/Bookmark.svg"
+  },
   "default_locale": "en",
   "applications": {
     "gecko": {
