@@ -64,3 +64,22 @@ function buildItems(items, container) {
 browser.runtime.sendMessage({ type: 'get-all' }).then(rootItems => {
   buildItems(rootItems[0].children, document.getElementById('root'));
 });
+
+document.addEventListener('mousedown', event => {
+  if (!event.target.dataset ||
+      !event.target.dataset.id)
+    return;
+
+  if (event.button == 2 ||
+      (event.button == 0 &&
+       event.ctrlKey)) {
+    browser.runtime.sendMessage('treestyletab@piro.sakura.ne.jp', {
+      type:       'try-override-context',
+      context:    'bookmark',
+      bookmarkId: event.target.dataset.id
+    });
+    event.stopPropagation();
+    event.preventDefault();
+    return;
+  }
+}, { capture: true });
