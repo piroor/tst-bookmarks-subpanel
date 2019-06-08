@@ -127,6 +127,10 @@ window.addEventListener('mousedown', event => {
 
   mLastMouseDownTarget = item.raw.id;
 
+  clearActive();
+  item.firstChild.classList.add('active');
+  item.firstChild.focus();
+
   // We need to cancel mousedown to block the "auto scroll" behavior
   // of Firefox itself.
   event.stopPropagation();
@@ -157,10 +161,6 @@ window.addEventListener('mouseup', event => {
   }
 
   mLastMouseDownTarget = null;
-
-  clearActive();
-  item.firstChild.classList.add('active');
-  item.firstChild.focus();
 
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
