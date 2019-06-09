@@ -9,7 +9,17 @@ module.exports = {
   },
 
   'env': {
+    'browser': true,
+    'es6': true,
     'webextensions': true,
+  },
+
+  'settings': {
+    'import/resolver': {
+      'babel-module': {
+        'root': ['./'],
+      }
+    }
   },
 
   'rules': {
