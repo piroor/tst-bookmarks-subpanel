@@ -7,10 +7,11 @@
 
 export const TST_ID = 'treestyletab@piro.sakura.ne.jp';
 
-export const COMMAND_GET_CONFIG = 'get-config';
-export const COMMAND_SET_CONFIG = 'set-config';
+export const COMMAND_GET_CONFIGS = 'get-configs';
+export const COMMAND_SET_CONFIGS = 'set-configs';
 
 export const COMMAND_GET_ALL = 'get-all';
 export const COMMAND_OPEN    = 'open';
+export const COMMAND_LOAD    = 'load';
 
 export const NOTIFY_READY = 'ready';

@@ -10,6 +10,8 @@ import Configs from '/extlib/Configs.js';
 import * as Constants from './constants.js';
 
 export const configs = new Configs({
+  loadToCurrentTab: true,
+  loadInBackground: true,
   openedFolders: []
 }, {
   localKeys: []

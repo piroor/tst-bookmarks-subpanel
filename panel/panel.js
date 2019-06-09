@@ -10,6 +10,7 @@ import * as Constants from '/common/constants.js';
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
 let mOpenedFolders = new Set();
+let configs = {};
 
 function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
@@ -109,9 +110,10 @@ function updateFolderOpenState(item) {
   else
     mOpenedFolders.add(item.raw.id);
   browser.runtime.sendMessage({
-    type:  Constants.COMMAND_SET_CONFIG,
-    key:   'openedFolders',
-    value: Array.from(mOpenedFolders)
+    type:   Constants.COMMAND_SET_CONFIGS,
+    values: {
+      openedFolders: Array.from(mOpenedFolders)
+    }
   });
   if (!item.classList.contains('collapsed') &&
       item.lastChild.localName != 'ul') {
@@ -126,16 +128,22 @@ async function init() {
   if (mInitiaized)
     return;
   try {
-    const [rootItems, openedFolders] = await Promise.all([
+    const [rootItems] = await Promise.all([
       browser.runtime.sendMessage({
         type: Constants.COMMAND_GET_ALL
       }),
-      browser.runtime.sendMessage({
-        type: Constants.COMMAND_GET_CONFIG,
-        key:  'openedFolders'
-      })
+      (async () => {
+        configs = await browser.runtime.sendMessage({
+          type: Constants.COMMAND_GET_CONFIGS,
+          keys: [
+            'openedFolders',
+            'loadToCurrentTab',
+            'loadInBackground'
+          ]
+        });
+      })()
     ]);
-    mOpenedFolders = new Set(openedFolders);
+    mOpenedFolders = new Set(configs.openedFolders);
     buildItems(rootItems[0].children, document.getElementById('root'));
     mInitiaized = true;
   }
@@ -218,7 +226,7 @@ window.addEventListener('mouseup', event => {
     if (accel) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && LOADABLE_URL_MATCHER.test(url));
       browser.runtime.sendMessage({
-        type: 'open',
+        type: Constants.COMMAND_OPEN,
         urls
       });
     }
@@ -231,11 +239,17 @@ window.addEventListener('mouseup', event => {
 
   if (item.classList.contains('bookmark') &&
       !item.classList.contains('unavailable')) {
-    browser.runtime.sendMessage({
-      type:       'open',
-      urls:       [item.raw.url],
-      background: accel
-    });
+    if (configs.loadToCurrentTab)
+      browser.runtime.sendMessage({
+        type: Constants.COMMAND_LOAD,
+        url:  item.raw.url
+      });
+    else
+      browser.runtime.sendMessage({
+        type:       Constants.COMMAND_OPEN,
+        urls:       [item.raw.url],
+        background: configs.loadInBackground ? !accel : accel
+      });
     return;
   }
 });

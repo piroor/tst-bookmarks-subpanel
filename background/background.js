@@ -45,13 +45,33 @@ registerToTST();
 
 function onMessage(message, _sender) {
   switch (message.type) {
-    case Constants.COMMAND_SET_CONFIG:
-      configs[message.key] = message.value;
-    case Constants.COMMAND_GET_CONFIG:
-      return Promise.resolve(configs[message.key]);
+    case Constants.COMMAND_GET_CONFIGS: {
+      const values = {};
+      for (const key of message.keys) {
+        values[key] = configs[key];
+      }
+      return Promise.resolve(values);
+    }
+
+    case Constants.COMMAND_SET_CONFIGS: {
+      for (const key of Object.keys(message.values)) {
+        configs[key] = message.values[key];
+      }
+      return Promise.resolve(true);
+    }
 
     case Constants.COMMAND_GET_ALL:
       return browser.bookmarks.getTree();
+
+    case Constants.COMMAND_LOAD:
+      (async () => {
+        const window    = await browser.windows.getCurrent({ populate: true });
+        const activeTab = window.tabs.find(tab => tab.active);
+        browser.tabs.update(activeTab.id, {
+          url: message.url
+        });
+      })();
+      break;
 
     case Constants.COMMAND_OPEN:
       (async () => {
