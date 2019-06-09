@@ -24,4 +24,4 @@ update_extlib:
 install_extlib:
 	rm -f extlib/*.js
 	cp submodules/webextensions-lib-configs/Configs.js extlib/; echo 'export default Configs;' >> extlib/Configs.js
-	cp submodules/webextensions-lib-configs/Options.js extlib/; echo 'export default Options;' >> extlib/Options.js
+	cp submodules/webextensions-lib-options/Options.js extlib/; echo 'export default Options;' >> extlib/Options.js
