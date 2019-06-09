@@ -1,0 +1,3 @@
+[submodule "submodules/webextensions-lib-configs"]
+	path = submodules/webextensions-lib-configs
+	url = https://github.com/piroor/webextensions-lib-configs.git
