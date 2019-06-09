@@ -239,7 +239,7 @@ window.addEventListener('mouseup', event => {
 
   if (item.classList.contains('bookmark') &&
       !item.classList.contains('unavailable')) {
-    if (configs.loadToCurrentTab)
+    if (configs.loadToCurrentTab != accel)
       browser.runtime.sendMessage({
         type: Constants.COMMAND_LOAD,
         url:  item.raw.url
@@ -248,7 +248,7 @@ window.addEventListener('mouseup', event => {
       browser.runtime.sendMessage({
         type:       Constants.COMMAND_OPEN,
         urls:       [item.raw.url],
-        background: configs.loadInBackground ? !accel : accel
+        background: configs.loadInBackground ? !event.shiftKey : event.shiftKey
       });
     return;
   }

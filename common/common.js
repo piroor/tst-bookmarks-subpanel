@@ -11,7 +11,7 @@ import * as Constants from './constants.js';
 
 export const configs = new Configs({
   loadToCurrentTab: true,
-  loadInBackground: true,
+  loadInBackground: false,
   openedFolders: []
 }, {
   localKeys: []
