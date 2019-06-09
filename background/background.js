@@ -13,7 +13,7 @@ import * as Constants from '/common/constants.js';
 
 async function registerToTST() {
   try {
-    let result = await browser.runtime.sendMessage(Constants.TST_ID, {
+    await browser.runtime.sendMessage(Constants.TST_ID, {
       type: 'register-self',
       name: browser.i18n.getMessage('extensionName'),
       icons: browser.runtime.getManifest().icons,
