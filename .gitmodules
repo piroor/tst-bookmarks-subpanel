@@ -4,3 +4,6 @@
 [submodule "submodules/webextensions-lib-options"]
 	path = submodules/webextensions-lib-options
 	url = https://github.com/piroor/webextensions-lib-options.git
+[submodule "submodules/webextensions-lib-l10n"]
+	path = submodules/webextensions-lib-l10n
+	url = https://github.com/piroor/webextensions-lib-l10n.git
