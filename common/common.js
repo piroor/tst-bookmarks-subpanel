@@ -8,8 +8,9 @@
 import Configs from '/extlib/Configs.js';
 
 export const configs = new Configs({
-  loadToCurrentTab: true,
-  loadInBackground: false,
+  openInTabAlways: false,
+  openAsActiveTab: true,
+
   openedFolders: []
 }, {
   localKeys: []
