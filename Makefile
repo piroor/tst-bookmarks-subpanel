@@ -4,7 +4,7 @@ all: xpi
 
 xpi: update_extlib install_extlib
 	rm -f ./*.xpi
-	zip -r -0 tst-bookmarks-subpanel.xpi manifest.json _locales common options background panel -x '*/.*' >/dev/null 2>/dev/null
+	zip -r -0 tst-bookmarks-subpanel.xpi manifest.json _locales common options background panel extlib -x '*/.*' >/dev/null 2>/dev/null
 
 update_extlib:
 	git submodule update --init
