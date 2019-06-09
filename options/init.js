@@ -11,7 +11,7 @@ import {
 import Options from '/extlib/Options.js';
 import '/extlib/l10n.js';
 
-const options = new Options(configs);
+/*const options = */new Options(configs);
 
 /*
 function onConfigChanged(key) {
