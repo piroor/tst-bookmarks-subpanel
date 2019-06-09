@@ -5,7 +5,8 @@
   "author": "YUKI \"Piro\" Hiroshi",
   "description": "__MSG_extensionDescription__",
   "permissions": [
-    "bookmarks"
+    "bookmarks",
+    "storage"
   ],
   "background": {
     "page": "/background/background.html"

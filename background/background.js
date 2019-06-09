@@ -5,11 +5,15 @@
 */
 'use strict';
 
-const TST_ID = 'treestyletab@piro.sakura.ne.jp';
+import {
+  configs
+} from '/common/common.js';
+
+import * as Constants from '/common/constants.js';
 
 async function registerToTST() {
   try {
-    let result = await browser.runtime.sendMessage(TST_ID, {
+    let result = await browser.runtime.sendMessage(Constants.TST_ID, {
       type: 'register-self',
       name: browser.i18n.getMessage('extensionName'),
       icons: browser.runtime.getManifest().icons,
@@ -26,7 +30,7 @@ async function registerToTST() {
 
 browser.runtime.onMessageExternal.addListener((message, sender) => {
   switch (sender.id) {
-    case TST_ID:
+    case Constants.TST_ID:
       switch (message.type) {
         case 'ready':
           registerToTST();
@@ -39,12 +43,17 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 registerToTST();
 
 
-browser.runtime.onMessage.addListener((message, _sender) => {
+function onMessage(message, _sender) {
   switch (message.type) {
-    case 'get-all':
+    case Constants.COMMAND_SET_CONFIG:
+      configs[message.key] = message.value;
+    case Constants.COMMAND_GET_CONFIG:
+      return Promise.resolve(configs[message.key]);
+
+    case Constants.COMMAND_GET_ALL:
       return browser.bookmarks.getTree();
 
-    case 'open':
+    case Constants.COMMAND_OPEN:
       (async () => {
         const window = await browser.windows.getCurrent({ populate: true });
         let index   = window.tabs.length;
@@ -61,4 +70,11 @@ browser.runtime.onMessage.addListener((message, _sender) => {
       })();
       break;
   }
+}
+
+configs.$loaded.then(() => {
+  browser.runtime.onMessage.addListener(onMessage);
+  browser.runtime.sendMessage({
+    type: Constants.NOTIFY_READY
+  });
 });

@@ -3,10 +3,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
+'use strict';
+
+import * as Constants from '/common/constants.js';
 
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
-const mOpenedFolders = new Set();
+let mOpenedFolders = new Set();
 
 function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
@@ -100,9 +103,56 @@ function buildItems(items, container, options = {}) {
   }
 }
 
-browser.runtime.sendMessage({ type: 'get-all' }).then(rootItems => {
-  buildItems(rootItems[0].children, document.getElementById('root'));
+function updateFolderOpenState(item) {
+  if (item.classList.contains('collapsed'))
+    mOpenedFolders.delete(item.raw.id);
+  else
+    mOpenedFolders.add(item.raw.id);
+  browser.runtime.sendMessage({
+    type:  Constants.COMMAND_SET_CONFIG,
+    key:   'openedFolders',
+    value: Array.from(mOpenedFolders)
+  });
+  if (!item.classList.contains('collapsed') &&
+      item.lastChild.localName != 'ul') {
+    buildChildren(item);
+  }
+}
+
+
+let mInitiaized = false;
+
+async function init() {
+  if (mInitiaized)
+    return;
+  try {
+    const [rootItems, openedFolders] = await Promise.all([
+      browser.runtime.sendMessage({
+        type: Constants.COMMAND_GET_ALL
+      }),
+      browser.runtime.sendMessage({
+        type: Constants.COMMAND_GET_CONFIG,
+        key:  'openedFolders'
+      })
+    ]);
+    mOpenedFolders = new Set(openedFolders);
+    buildItems(rootItems[0].children, document.getElementById('root'));
+    mInitiaized = true;
+  }
+  catch(_error) {
+  }
+}
+
+init();
+
+browser.runtime.onMessage.addListener((message, _sender) => {
+  switch (message.type) {
+    case Constants.NOTIFY_READY:
+      init();
+      break
+  }
 });
+
 
 function clearActive() {
   for (const node of document.querySelectorAll('.active')) {
@@ -139,7 +189,7 @@ window.addEventListener('mousedown', event => {
   if (event.button == 2 ||
       (event.button == 0 &&
        event.ctrlKey)) {
-    browser.runtime.sendMessage('treestyletab@piro.sakura.ne.jp', {
+    browser.runtime.sendMessage(Constants.TST_ID, {
       type:       'set-override-context',
       context:    'bookmark',
       bookmarkId: item.raw.id
@@ -174,10 +224,7 @@ window.addEventListener('mouseup', event => {
     }
     else {
       item.classList.toggle('collapsed');
-      if (!item.classList.contains('collapsed') &&
-          item.lastChild.localName != 'ul') {
-        buildChildren(item);
-      }
+      updateFolderOpenState(item);
     }
     return;
   }
