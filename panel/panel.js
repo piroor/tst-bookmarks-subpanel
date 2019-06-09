@@ -9,8 +9,12 @@ import * as Constants from '/common/constants.js';
 
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
-let mOpenedFolders = new Set();
 let configs = {};
+
+
+/* buiding bookmarks tree UI */
+
+let mOpenedFolders = new Set();
 
 function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
@@ -122,6 +126,8 @@ function updateFolderOpenState(item) {
 }
 
 
+/* initializing */
+
 let mInitiaized = false;
 
 async function init() {
@@ -153,14 +159,8 @@ async function init() {
 
 init();
 
-browser.runtime.onMessage.addListener((message, _sender) => {
-  switch (message.type) {
-    case Constants.NOTIFY_READY:
-      init();
-      break
-  }
-});
 
+/* event handling */
 
 function clearActive() {
   for (const node of document.querySelectorAll('.active')) {
@@ -251,5 +251,13 @@ window.addEventListener('mouseup', event => {
         background: configs.openAsActiveTab ? event.shiftKey : !event.shiftKey
       });
     return;
+  }
+});
+
+browser.runtime.onMessage.addListener((message, _sender) => {
+  switch (message.type) {
+    case Constants.NOTIFY_READY:
+      init();
+      break
   }
 });
