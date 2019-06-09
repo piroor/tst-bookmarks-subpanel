@@ -13,5 +13,7 @@ export const configs = new Configs({
 
   openedFolders: []
 }, {
-  localKeys: []
+  localKeys: [
+    'openedFolders'
+  ]
 });
