@@ -42,6 +42,22 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 
 registerToTST();
 
+configs.$loaded.then(() => {
+  browser.runtime.onMessage.addListener(onMessage);
+  broadcastMessage({
+    type: Constants.NOTIFY_READY
+  });
+});
+
+configs.$addObserver(key => {
+  const values = {};
+  values[key] = configs[key];
+  broadcastMessage({
+    type: Constants.NOTIFY_UPDATED_CONFIGS,
+    values
+  });
+});
+
 
 function onMessage(message, _sender) {
   switch (message.type) {
@@ -117,13 +133,6 @@ function broadcastMessage(message) {
     connection.postMessage(message);
   }
 }
-
-configs.$loaded.then(() => {
-  browser.runtime.onMessage.addListener(onMessage);
-  broadcastMessage({
-    type: Constants.NOTIFY_READY
-  });
-});
 
 browser.bookmarks.onCreated.addListener((id, bookmark) => {
   broadcastMessage({

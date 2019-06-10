@@ -293,6 +293,12 @@ function onOneWayMessage(message) {
       init();
       break
 
+    case Constants.NOTIFY_UPDATED_CONFIGS:
+      for (const key of Object.keys(message.values)) {
+        configs[key] = message.values[key];
+      }
+      break;
+
     case Constants.NOTIFY_CREATED: {
       mRawItemsById.set(message.id, message.bookmark);
       const parentRawItem = mRawItemsById.get(message.bookmark.parentId);
