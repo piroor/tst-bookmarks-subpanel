@@ -355,6 +355,9 @@ async function onOneWayMessage(message) {
       if (newParentRawItem)
         newParentRawItem.children.splice(message.moveInfo.index, 0, rawItem);
 
+      rawItem.parentId = message.moveInfo.parentId;
+      rawItem.index    = message.moveInfo.index;
+
       const item = mItemsById.get(message.id);
       if (!item)
         return;
