@@ -139,6 +139,9 @@ async function init() {
   if (mInitiaized)
     return;
   try {
+    // runtime.onMessage listener registerad at a restricted page (like this
+    // subpanel page) won't receive messages from the background page, so
+    // we need to use connection instead.
     mConnection = browser.runtime.connect({
       name: `panel:${Date.now()}`
     });
@@ -283,6 +286,7 @@ window.addEventListener('scroll', () => {
   });
 });
 
+// handling of messages sent from the background page
 function onOneWayMessage(message) {
   switch (message.type) {
     case Constants.NOTIFY_READY:

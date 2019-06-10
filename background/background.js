@@ -97,6 +97,10 @@ function onOneWayMessage(message) {
 }
 
 
+// runtime.onMessage listeners registered at subpanels won't receive
+// any message from this background page, so we need to use connections
+// instead, to send messages from this background page to subpanel pages.
+
 const mConnections = new Set();
 
 browser.runtime.onConnect.addListener(port => {
