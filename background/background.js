@@ -10,6 +10,7 @@ import {
 } from '/common/common.js';
 
 import * as Constants from '/common/constants.js';
+import * as ContextMenu from './context-menu.js';
 
 async function registerToTST() {
   try {
@@ -47,6 +48,7 @@ configs.$loaded.then(() => {
   broadcastMessage({
     type: Constants.NOTIFY_READY
   });
+  ContextMenu.init();
 });
 
 configs.$addObserver(key => {

@@ -4,6 +4,21 @@
 
   "blankTitle": { "message": "(no title)" },
 
+  "menu_open_label": { "message": "&Open" },
+  "menu_openTab_label": { "message": "Open in a Ne&w Tab" },
+  "menu_openWindow_label": { "message": "Open in &New Window" },
+  "menu_openPrivateWindow_label": { "message": "Open in New &Private Window" },
+  "menu_openAllInTabs_label": { "message": "&Open All in Tabs" },
+  "menu_createBookmark_label": { "message": "New &Bookmark…" },
+  "menu_createFolder_label": { "message": "New &Folder…" },
+  "menu_createSeparator_label": { "message": "New &Separator…" },
+  "menu_cut_label": { "message": "Cu&t" },
+  "menu_copy_label": { "message": "&Copy" },
+  "menu_paste_label": { "message": "&Paste" },
+  "menu_delete_label": { "message": "&Delete" },
+  "menu_sortByName_label": { "message": "So&rt By Name" },
+  "menu_properties_label": { "message": "Propert&ies" },
+
   "config_openInTabDefault_label": { "message": "Open in new tab by default" },
   "config_openInTabAlways_label": { "message": "Open in new tab always" },
   "config_openAsActiveTab_label": { "message": "Activate opened tab always" }

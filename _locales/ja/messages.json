@@ -4,6 +4,21 @@
 
   "blankTitle": { "message": "(タイトルなし)" },
 
+  "menu_open_label": { "message": "開く(&O)" },
+  "menu_openTab_label": { "message": "新しいタブで開く(&W)" },
+  "menu_openWindow_label": { "message": "新しいウィンドウで開く(&N)" },
+  "menu_openPrivateWindow_label": { "message": "新しいプライベートウィンドウで開く(&P)" },
+  "menu_openAllInTabs_label": { "message": "タブですべて開く(&O)" },
+  "menu_createBookmark_label": { "message": "新しいブックマーク(&B)..." },
+  "menu_createFolder_label": { "message": "新しいフォルダー(&F)..." },
+  "menu_createSeparator_label": { "message": "新しい区切り(&S)..." },
+  "menu_cut_label": { "message": "切り取り(&T)" },
+  "menu_copy_label": { "message": "コピー(&C)" },
+  "menu_paste_label": { "message": "貼り付け(&P)" },
+  "menu_delete_label": { "message": "削除(&D)" },
+  "menu_sortByName_label": { "message": "名前順に並べ替える(&R)" },
+  "menu_properties_label": { "message": "プロパティ(&I)" },
+
   "config_openInTabDefault_label": { "message": "通常の操作で新しいタブを開く" },
   "config_openInTabAlways_label": { "message": "常に新しいタブで開く" },
   "config_openAsActiveTab_label": { "message": "開いたタブを常にアクティブにする" }
