@@ -340,7 +340,7 @@ async function onOneWayMessage(message) {
       if (parentRawItem)
         parentRawItem.children.splice(message.removeInfo.index, 1);
 
-      mRawItemsById.delete(message.id);
+      deleteRawItem(rawItem);
 
       const item = mItemsById.get(message.id);
       if (!item)
@@ -394,6 +394,15 @@ async function onOneWayMessage(message) {
     }; break
   }
 }
+
+function deleteRawItem(rawItem) {
+  mRawItemsById.delete(rawItem.id);
+  if (rawItem.children)
+    for (const child of rawItem.children) {
+      deleteRawItem(child);
+    }
+}
+
 
 // drag and drop
 const TYPE_BOOKMARK_ITEM = 'application/x-tst-bookmarks-subpanel-bookmark-item';
