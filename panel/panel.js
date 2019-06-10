@@ -246,6 +246,9 @@ window.addEventListener('mousedown', event => {
 // We need to handle mouseup instead of click to bypass the "auto scroll"
 // behavior of Firefox itself.
 window.addEventListener('mouseup', event => {
+  if (event.button == 2)
+    return;
+
   const item = getItemFromEvent(event);
   if (!item)
     return;
