@@ -75,7 +75,15 @@ li {
 }
 
 .separator > .row {
+  padding-bottom: 0.4em;
+  padding-top: 0.4em;
+}
+
+.separator > .row::before {
   border-top: 1px solid;
+  content: " ";
+  display: block;
+  font-size: 1px;
 }
 
 .collapsed ul {

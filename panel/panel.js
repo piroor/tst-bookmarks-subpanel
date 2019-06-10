@@ -89,7 +89,7 @@ function buildSeparator(separator, options = {}) {
   item.raw = separator;
   item.level = options.level || 0;
   const row = buildRow(item);
-  row.classList.add('separator');
+  item.classList.add('separator');
   mItemsById.set(separator.id, item);
   return item;
 }
