@@ -84,26 +84,26 @@ async function onOneWayMessage(message) {
     }
 
     case Constants.COMMAND_LOAD: {
-        const window    = await browser.windows.getCurrent({ populate: true });
-        const activeTab = window.tabs.find(tab => tab.active);
-        browser.tabs.update(activeTab.id, {
-          url: message.url
-        });
+      const window    = await browser.windows.getCurrent({ populate: true });
+      const activeTab = window.tabs.find(tab => tab.active);
+      browser.tabs.update(activeTab.id, {
+        url: message.url
+      });
     }; break;
 
     case Constants.COMMAND_OPEN: {
-        const window = await browser.windows.getCurrent({ populate: true });
-        let index   = window.tabs.length;
-        let isFirst = true;
-        for (const url of message.urls) {
-          browser.tabs.create({
-            active: !message.background && isFirst,
-            url,
-            index
-          });
-          isFirst = false;
-          index++;
-        }
+      const window = await browser.windows.getCurrent({ populate: true });
+      let index   = window.tabs.length;
+      let isFirst = true;
+      for (const url of message.urls) {
+        browser.tabs.create({
+          active: !message.background && isFirst,
+          url,
+          index
+        });
+        isFirst = false;
+        index++;
+      }
     }; break;
 
     case Constants.COMMAND_CREATE: {
@@ -129,12 +129,12 @@ async function onOneWayMessage(message) {
     }; break;
 
     case Constants.COMMAND_COPY: {
-        const destination = {
-          parentId: message.destination.parentId
-        };
-        if (message.destination.index >= 0)
-          destination.index = message.destination.index;
-        copyItem(message.id, destination);
+      const destination = {
+        parentId: message.destination.parentId
+      };
+      if (message.destination.index >= 0)
+        destination.index = message.destination.index;
+      copyItem(message.id, destination);
     }; break;
   }
 }
