@@ -8,5 +8,5 @@ This is a Firefox addon providing the "Bookmarks" subpanel for Tree Style Tab.
 
 * Impossible to drag anything from elsewhere to the bookmarks subpanel.
 * Impossible to drag bookmarks from the bookmarks subpanel to TST's sidebar.
-* Impossible to open native context menu directly on macOS directly. You always need to do Control-click twice. This is due to a restriction of WebExtensions API.
+* Impossible to open native context menu on bookmarks, and extra context menu items added by bookmark related addons are unavailable. This is due to a restriction of WebExtensions API.
 * All bookmarks are shown with same icon. This is due to a restriction of WebExtensions API.
