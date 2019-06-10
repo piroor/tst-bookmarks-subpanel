@@ -31,7 +31,7 @@ function buildFolder(folder, options = {}) {
   twisty.classList.add('twisty');
   const label = row.appendChild(document.createElement('span'));
   label.classList.add('label');
-  label.appendChild(document.createTextNode(folder.title));
+  label.appendChild(document.createTextNode(folder.title || browser.i18n.getMessage('blankTitle')));
   item.classList.add('folder');
 
   if (mOpenedFolders.has(folder.id)) {
@@ -76,7 +76,7 @@ function buildBookmark(bookmark, options = {}) {
   label.classList.add('label');
   //const icon = label.appendChild(document.createElement('img'));
   //icon.src = bookmark.favIconUrl;
-  label.appendChild(document.createTextNode(bookmark.title));
+  label.appendChild(document.createTextNode(bookmark.title || browser.i18n.getMessage('blankTitle')));
   label.setAttribute('title', `${bookmark.title}\n${bookmark.url}`);
   item.classList.add('bookmark');
 
