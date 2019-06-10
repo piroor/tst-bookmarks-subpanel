@@ -16,3 +16,6 @@ export const COMMAND_LOAD    = 'load';
 
 export const NOTIFY_READY = 'ready';
 export const NOTIFY_REMOVED = 'removed';
+export const NOTIFY_MOVED   = 'moved';
+export const NOTIFY_CHANGED = 'changed';
+//export const NOTIFY_CHILDREN_REORDERED = 'children-reordered';

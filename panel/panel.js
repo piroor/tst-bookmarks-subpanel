@@ -29,8 +29,6 @@ function buildFolder(folder, options = {}) {
   const label = row.appendChild(document.createElement('span'));
   label.classList.add('label');
   label.appendChild(document.createTextNode(folder.title));
-  label.dataset.id    = folder.id;
-  label.dataset.title = folder.title;
   item.classList.add('folder');
 
   if (mOpenedFolders.has(folder.id)) {
@@ -72,9 +70,6 @@ function buildBookmark(bookmark, options = {}) {
   //icon.src = bookmark.favIconUrl;
   label.appendChild(document.createTextNode(bookmark.title));
   label.setAttribute('title', `${bookmark.title}\n${bookmark.url}`);
-  label.dataset.id    = bookmark.id;
-  label.dataset.title = bookmark.title;
-  label.dataset.url   = bookmark.url;
   item.classList.add('bookmark');
 
   if (!LOADABLE_URL_MATCHER.test(bookmark.url))
@@ -288,6 +283,33 @@ function onOneWayMessage(message) {
       const parentItem = mItemsById.get(message.removeInfo.parentId);
       if (parentItem)
         parentItem.raw.children.splice(message.removeInfo.index, 1);
+    }; break
+
+    case Constants.NOTIFY_MOVED: {
+      const item = mItemsById.get(message.id);
+      if (!item)
+        return;
+      item.parentNode.removeChild(item);
+      const oldParentItem = mItemsById.get(message.moveInfo.oldParentId);
+      if (oldParentItem)
+        oldParentItem.raw.children.splice(message.moveInfo.oldIndex, 1);
+      const newParentItem = mItemsById.get(message.moveInfo.parentId);
+      if (newParentItem) {
+        newParentItem.raw.children.splice(message.moveInfo.index, 0, item.raw);
+        buildChildren(newParentItem, { force: true });
+      }
+    }; break
+
+    case Constants.NOTIFY_CHANGED: {
+      const item = mItemsById.get(message.id);
+      if (!item)
+        return;
+      for (const property of Object.keys(message.changeInfo)) {
+        item.raw[property] = message.changeInfo[property];
+      }
+      const label = item.querySelector('.label');
+      if (message.changeInfo.title)
+        label.textContent = message.changeInfo.title;
     }; break
   }
 }

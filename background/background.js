@@ -128,3 +128,29 @@ browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
     removeInfo
   });
 });
+
+browser.bookmarks.onMoved.addListener((id, moveInfo) => {
+  broadcastMessage({
+    type: Constants.NOTIFY_MOVED,
+    id,
+    moveInfo
+  });
+});
+
+browser.bookmarks.onChanged.addListener((id, changeInfo) => {
+  broadcastMessage({
+    type: Constants.NOTIFY_CHANGED,
+    id,
+    changeInfo
+  });
+});
+
+/* not implemented yet on Firefox
+browser.bookmarks.onChildrenReordered.addListener((id, changeInfo) => {
+  broadcastMessage({
+    type: Constants.NOTIFY_CHILDREN_REORDERED,
+    id,
+    reorderInfo
+  });
+});
+*/
