@@ -238,11 +238,7 @@ window.addEventListener('mousedown', event => {
   if (event.button == 2 ||
       (event.button == 0 &&
        event.ctrlKey)) {
-    browser.runtime.sendMessage(Constants.TST_ID, {
-      type:       'set-override-context',
-      context:    'bookmark',
-      bookmarkId: item.raw.id
-    });
+    // context menu
     return;
   }
 }, { capture: true });
