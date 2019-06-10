@@ -144,6 +144,7 @@ async function init() {
           keys: [
             'openedFolders',
             'openInTabAlways',
+            'scrollPosition',
             'openAsActiveTab'
           ]
         });
@@ -151,6 +152,7 @@ async function init() {
     ]);
     mOpenedFolders = new Set(configs.openedFolders);
     buildItems(rootItems[0].children, document.getElementById('root'));
+    window.scrollTo(0, configs.scrollPosition);
     mInitiaized = true;
   }
   catch(_error) {
@@ -252,6 +254,15 @@ window.addEventListener('mouseup', event => {
       });
     return;
   }
+});
+
+window.addEventListener('scroll', () => {
+  browser.runtime.sendMessage({
+    type:   Constants.COMMAND_SET_CONFIGS,
+    values: {
+      scrollPosition: window.scrollY
+    }
+  });
 });
 
 browser.runtime.onMessage.addListener((message, _sender) => {

@@ -11,6 +11,7 @@ export const configs = new Configs({
   openInTabAlways: false,
   openAsActiveTab: true,
 
+  scrollPosition: 0,
   openedFolders: []
 }, {
   localKeys: [
