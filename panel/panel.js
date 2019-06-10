@@ -10,11 +10,13 @@ import * as Constants from '/common/constants.js';
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
 let configs = {};
+let mConnection = null;
 
 
 /* buiding bookmarks tree UI */
 
 let mOpenedFolders = new Set();
+const mItemsById = new Map();
 
 function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
@@ -38,6 +40,7 @@ function buildFolder(folder, options = {}) {
     item.classList.add('collapsed');
   }
 
+  mItemsById.set(folder.id, item);
   return item;
 }
 
@@ -77,6 +80,7 @@ function buildBookmark(bookmark, options = {}) {
   if (!LOADABLE_URL_MATCHER.test(bookmark.url))
     item.classList.add('unavailable');
 
+  mItemsById.set(bookmark.id, item);
   return item;
 }
 
@@ -86,6 +90,7 @@ function buildSeparator(separator, options = {}) {
   item.level = options.level || 0;
   const row = buildRow(item);
   row.classList.add('separator');
+  mItemsById.set(separator.id, item);
   return item;
 }
 
@@ -113,7 +118,7 @@ function updateFolderOpenState(item) {
     mOpenedFolders.delete(item.raw.id);
   else
     mOpenedFolders.add(item.raw.id);
-  browser.runtime.sendMessage({
+  mConnection.postMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
       openedFolders: Array.from(mOpenedFolders)
@@ -134,6 +139,10 @@ async function init() {
   if (mInitiaized)
     return;
   try {
+    mConnection = browser.runtime.connect({
+      name: `panel:${Date.now()}`
+    });
+    mConnection.onMessage.addListener(onOneWayMessage);
     const [rootItems] = await Promise.all([
       browser.runtime.sendMessage({
         type: Constants.COMMAND_GET_ALL
@@ -227,7 +236,7 @@ window.addEventListener('mouseup', event => {
   if (item.classList.contains('folder')) {
     if (accel) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && LOADABLE_URL_MATCHER.test(url));
-      browser.runtime.sendMessage({
+      mConnection.postMessage({
         type: Constants.COMMAND_OPEN,
         urls
       });
@@ -242,12 +251,12 @@ window.addEventListener('mouseup', event => {
   if (item.classList.contains('bookmark') &&
       !item.classList.contains('unavailable')) {
     if (configs.openInTabAlways == accel)
-      browser.runtime.sendMessage({
+      mConnection.postMessage({
         type: Constants.COMMAND_LOAD,
         url:  item.raw.url
       });
     else
-      browser.runtime.sendMessage({
+      mConnection.postMessage({
         type:       Constants.COMMAND_OPEN,
         urls:       [item.raw.url],
         background: configs.openAsActiveTab ? event.shiftKey : !event.shiftKey
@@ -257,7 +266,7 @@ window.addEventListener('mouseup', event => {
 });
 
 window.addEventListener('scroll', () => {
-  browser.runtime.sendMessage({
+  mConnection.postMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
       scrollPosition: window.scrollY
@@ -265,10 +274,20 @@ window.addEventListener('scroll', () => {
   });
 });
 
-browser.runtime.onMessage.addListener((message, _sender) => {
+function onOneWayMessage(message) {
   switch (message.type) {
     case Constants.NOTIFY_READY:
       init();
       break
+
+    case Constants.NOTIFY_REMOVED: {
+      const item = mItemsById.get(message.id);
+      if (!item)
+        return;
+      item.parentNode.removeChild(item);
+      const parentItem = mItemsById.get(message.removeInfo.parentId);
+      if (parentItem)
+        parentItem.raw.children.splice(message.removeInfo.index, 1);
+    }; break
   }
-});
+}

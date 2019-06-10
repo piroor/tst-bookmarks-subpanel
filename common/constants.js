@@ -15,3 +15,4 @@ export const COMMAND_OPEN    = 'open';
 export const COMMAND_LOAD    = 'load';
 
 export const NOTIFY_READY = 'ready';
+export const NOTIFY_REMOVED = 'removed';

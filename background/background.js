@@ -53,15 +53,19 @@ function onMessage(message, _sender) {
       return Promise.resolve(values);
     }
 
+    case Constants.COMMAND_GET_ALL:
+      return browser.bookmarks.getTree();
+  }
+}
+
+function onOneWayMessage(message) {
+  switch (message.type) {
     case Constants.COMMAND_SET_CONFIGS: {
       for (const key of Object.keys(message.values)) {
         configs[key] = message.values[key];
       }
       return Promise.resolve(true);
     }
-
-    case Constants.COMMAND_GET_ALL:
-      return browser.bookmarks.getTree();
 
     case Constants.COMMAND_LOAD:
       (async () => {
@@ -92,9 +96,35 @@ function onMessage(message, _sender) {
   }
 }
 
+
+const mConnections = new Set();
+
+browser.runtime.onConnect.addListener(port => {
+  mConnections.add(port);
+  port.onMessage.addListener(onOneWayMessage);
+  port.onDisconnect.addListener(_message => {
+    mConnections.delete(port);
+    port.onMessage.removeListener(onOneWayMessage);
+  });
+});
+
+function broadcastMessage(message) {
+  for (const connection of mConnections) {
+    connection.postMessage(message);
+  }
+}
+
 configs.$loaded.then(() => {
   browser.runtime.onMessage.addListener(onMessage);
-  browser.runtime.sendMessage({
+  broadcastMessage({
     type: Constants.NOTIFY_READY
+  });
+});
+
+browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
+  broadcastMessage({
+    type: Constants.NOTIFY_REMOVED,
+    id,
+    removeInfo
   });
 });
