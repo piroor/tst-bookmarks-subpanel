@@ -121,6 +121,14 @@ configs.$loaded.then(() => {
   });
 });
 
+browser.bookmarks.onCreated.addListener((id, bookmark) => {
+  broadcastMessage({
+    type: Constants.NOTIFY_CREATED,
+    id,
+    bookmark
+  });
+});
+
 browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
   broadcastMessage({
     type: Constants.NOTIFY_REMOVED,

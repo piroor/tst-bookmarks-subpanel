@@ -17,6 +17,7 @@ let mConnection = null;
 
 let mOpenedFolders = new Set();
 const mItemsById = new Map();
+const mRawItemsById = new Map();
 
 function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
@@ -36,6 +37,7 @@ function buildFolder(folder, options = {}) {
   }
   else {
     item.classList.add('collapsed');
+    item.dirty = true;
   }
 
   mItemsById.set(folder.id, item);
@@ -50,13 +52,16 @@ function buildRow(item) {
 }
 
 function buildChildren(folderItem, options = {}) {
+  if (folderItem.classList.contains('collapsed'))
+    return;
   if (folderItem.lastChild.localName == 'ul') {
-    if (!options.force)
+    if (!folderItem.dirty && !options.force)
       return;
     folderItem.removeChild(folderItem.lastChild);
   }
   folderItem.appendChild(document.createElement('ul'));
   buildItems(folderItem.raw.children, folderItem.lastChild, { level: folderItem.level + 1 });
+  folderItem.dirty = false;
 }
 
 function buildBookmark(bookmark, options = {}) {
@@ -155,12 +160,21 @@ async function init() {
       })()
     ]);
     mOpenedFolders = new Set(configs.openedFolders);
+    storeRawItems(rootItems[0]);
     buildItems(rootItems[0].children, document.getElementById('root'));
     window.scrollTo(0, configs.scrollPosition);
     mInitiaized = true;
   }
   catch(_error) {
   }
+}
+
+function storeRawItems(rawItem) {
+  mRawItemsById.set(rawItem.id, rawItem);
+  if (rawItem.children)
+    for (const child of rawItem.children) {
+      storeRawItems(child);
+    }
 }
 
 init();
@@ -275,38 +289,71 @@ function onOneWayMessage(message) {
       init();
       break
 
+    case Constants.NOTIFY_CREATED: {
+      mRawItemsById.set(message.id, message.bookmark);
+      const parentRawItem = mRawItemsById.get(message.bookmark.parentId);
+      if (parentRawItem)
+        parentRawItem.children.splice(message.bookmark.index, 0, message.bookmark);
+      const parentItem = mItemsById.get(message.bookmark.parentId);
+      if (parentItem) {
+        parentItem.dirty = true;
+        buildChildren(parentItem);
+      }
+    }; break
+
     case Constants.NOTIFY_REMOVED: {
+      const rawItem = mRawItemsById.get(message.id);
+      if (!rawItem)
+        return;
+
+      const parentRawItem = mRawItemsById.get(message.removeInfo.parentId);
+      if (parentRawItem)
+        parentRawItem.children.splice(message.removeInfo.index, 1);
+
+      mRawItemsById.delete(message.id);
+
       const item = mItemsById.get(message.id);
       if (!item)
         return;
       item.parentNode.removeChild(item);
-      const parentItem = mItemsById.get(message.removeInfo.parentId);
-      if (parentItem)
-        parentItem.raw.children.splice(message.removeInfo.index, 1);
+      mItemsById.delete(message.id);
     }; break
 
     case Constants.NOTIFY_MOVED: {
+      const rawItem = mRawItemsById.get(message.id);
+      if (!rawItem)
+        return;
+
+      const oldParentRawItem = mRawItemsById.get(message.moveInfo.oldParentId);
+      if (oldParentRawItem)
+        oldParentRawItem.children.splice(message.moveInfo.oldIndex, 1);
+      const newParentRawItem = mRawItemsById.get(message.moveInfo.parentId);
+      if (newParentRawItem)
+        newParentRawItem.children.splice(message.moveInfo.index, 0, rawItem);
+
       const item = mItemsById.get(message.id);
       if (!item)
         return;
       item.parentNode.removeChild(item);
-      const oldParentItem = mItemsById.get(message.moveInfo.oldParentId);
-      if (oldParentItem)
-        oldParentItem.raw.children.splice(message.moveInfo.oldIndex, 1);
       const newParentItem = mItemsById.get(message.moveInfo.parentId);
       if (newParentItem) {
-        newParentItem.raw.children.splice(message.moveInfo.index, 0, item.raw);
-        buildChildren(newParentItem, { force: true });
+        newParentItem.dirty = true;
+        buildChildren(newParentItem);
       }
     }; break
 
     case Constants.NOTIFY_CHANGED: {
+      const rawItem = mRawItemsById.get(message.id);
+      if (!rawItem)
+        return;
+
+      for (const property of Object.keys(message.changeInfo)) {
+        rawItem[property] = message.changeInfo[property];
+      }
+
       const item = mItemsById.get(message.id);
       if (!item)
         return;
-      for (const property of Object.keys(message.changeInfo)) {
-        item.raw[property] = message.changeInfo[property];
-      }
       const label = item.querySelector('.label');
       if (message.changeInfo.title)
         label.textContent = message.changeInfo.title;
