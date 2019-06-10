@@ -14,8 +14,11 @@ export const NOTIFY_UPDATED_CONFIGS = 'configs-updated';
 export const COMMAND_GET_ALL = 'get-all';
 export const COMMAND_OPEN    = 'open';
 export const COMMAND_LOAD    = 'load';
+export const COMMAND_CREATE  = 'create';
+export const COMMAND_MOVE    = 'move';
+export const COMMAND_COPY    = 'copy';
 
-export const NOTIFY_READY = 'ready';
+export const NOTIFY_READY   = 'ready';
 export const NOTIFY_CREATED = 'created';
 export const NOTIFY_REMOVED = 'removed';
 export const NOTIFY_MOVED   = 'moved';

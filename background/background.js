@@ -109,6 +109,59 @@ function onOneWayMessage(message) {
         }
       })();
       break;
+
+    case Constants.COMMAND_CREATE:
+      const details = {
+        title:    message.details.title,
+        type:     message.details.type || 'bookmark',
+        parentId: message.details.parentId
+      };
+      if (message.details.url)
+        details.url = message.details.url;
+      if (message.details.index >= 0)
+        details.index = message.details.index;
+      browser.bookmarks.create(details);
+      break;
+
+    case Constants.COMMAND_MOVE:
+      const destination = {
+        parentId: message.destination.parentId
+      };
+      if (message.destination.index >= 0)
+        destination.index = message.destination.index;
+      browser.bookmarks.move(message.id, destination);
+      break;
+
+    case Constants.COMMAND_COPY:
+      (async () => {
+        const destination = {
+          parentId: message.destination.parentId
+        };
+        if (message.destination.index >= 0)
+          destination.index = message.destination.index;
+        copyItem(message.id, destination);
+      })();
+      break;
+  }
+}
+
+async function copyItem(original, destination) {
+  original = typeof original == 'string' ? (await browser.bookmarks.getSubTree(original)) : original;
+  original = Array.isArray(original) ? original[0] : original;
+  const details = Object.assign({
+    type: original.type
+  }, destination)
+  if (original.title)
+    details.title = original.title;
+  if (original.url)
+    details.url = original.url;
+  const created = await browser.bookmarks.create(details);
+  if (original.children && original.children.length > 0) {
+    for (const child of original.children) {
+      copyItem(child, {
+        parentId: created.id
+      });
+    }
   }
 }
 
