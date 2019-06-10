@@ -74,7 +74,7 @@ function onMessage(message, _sender) {
   }
 }
 
-function onOneWayMessage(message) {
+async function onOneWayMessage(message) {
   switch (message.type) {
     case Constants.COMMAND_SET_CONFIGS: {
       for (const key of Object.keys(message.values)) {
@@ -83,18 +83,15 @@ function onOneWayMessage(message) {
       return Promise.resolve(true);
     }
 
-    case Constants.COMMAND_LOAD:
-      (async () => {
+    case Constants.COMMAND_LOAD: {
         const window    = await browser.windows.getCurrent({ populate: true });
         const activeTab = window.tabs.find(tab => tab.active);
         browser.tabs.update(activeTab.id, {
           url: message.url
         });
-      })();
-      break;
+    }; break;
 
-    case Constants.COMMAND_OPEN:
-      (async () => {
+    case Constants.COMMAND_OPEN: {
         const window = await browser.windows.getCurrent({ populate: true });
         let index   = window.tabs.length;
         let isFirst = true;
@@ -107,10 +104,9 @@ function onOneWayMessage(message) {
           isFirst = false;
           index++;
         }
-      })();
-      break;
+    }; break;
 
-    case Constants.COMMAND_CREATE:
+    case Constants.COMMAND_CREATE: {
       const details = {
         title:    message.details.title,
         type:     message.details.type || 'bookmark',
@@ -121,27 +117,25 @@ function onOneWayMessage(message) {
       if (message.details.index >= 0)
         details.index = message.details.index;
       browser.bookmarks.create(details);
-      break;
+    }; break;
 
-    case Constants.COMMAND_MOVE:
+    case Constants.COMMAND_MOVE: {
       const destination = {
         parentId: message.destination.parentId
       };
       if (message.destination.index >= 0)
         destination.index = message.destination.index;
       browser.bookmarks.move(message.id, destination);
-      break;
+    }; break;
 
-    case Constants.COMMAND_COPY:
-      (async () => {
+    case Constants.COMMAND_COPY: {
         const destination = {
           parentId: message.destination.parentId
         };
         if (message.destination.index >= 0)
           destination.index = message.destination.index;
         copyItem(message.id, destination);
-      })();
-      break;
+    }; break;
   }
 }
 

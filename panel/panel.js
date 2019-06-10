@@ -306,7 +306,7 @@ window.addEventListener('scroll', () => {
 });
 
 // handling of messages sent from the background page
-function onOneWayMessage(message) {
+async function onOneWayMessage(message) {
   switch (message.type) {
     case Constants.NOTIFY_READY:
       init();
