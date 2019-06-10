@@ -557,6 +557,13 @@ function onDragOver(event) {
   const item     = getItemFromEvent(event);
   const position = getDropPosition(event);
   if (item) {
+    if (draggedId) {
+      const dragged = mItemsById.get(draggedId);
+      if (dragged && dragged.contains(item)) {
+        event.dataTransfer.effectAllowed = 'none';
+        return;
+      }
+    }
     item.dataset.dropPosition = position;
     event.dataTransfer.effectAllowed = event.ctrlKey ? 'copy' : 'move';
     event.preventDefault();
@@ -589,9 +596,11 @@ function onDrop(event) {
   const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
   if (draggedId) {
     event.preventDefault();
+    const dragged = mItemsById.get(draggedId);
+    if (dragged && dragged.contains(item))
+      return;
+
     if (event.ctrlKey) {
-      if (draggedId == parentId)
-        return;
       mConnection.postMessage({
         type: Constants.COMMAND_COPY,
         id:   draggedId,
