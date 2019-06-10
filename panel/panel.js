@@ -12,6 +12,8 @@ const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 let configs = {};
 let mConnection = null;
 
+const mRoot = document.getElementById('root');
+
 
 /* buiding bookmarks tree UI */
 
@@ -48,6 +50,7 @@ function buildRow(item) {
   const row = item.appendChild(document.createElement('a'));
   row.classList.add('row');
   row.style.paddingLeft = `calc(1em * ${item.level + 1})`;
+  row.setAttribute('draggable', true);
   return row;
 }
 
@@ -163,10 +166,20 @@ async function init() {
         });
       })()
     ]);
+
     mOpenedFolders = new Set(configs.openedFolders);
     storeRawItems(rootItems[0]);
-    buildItems(rootItems[0].children, document.getElementById('root'));
+    buildItems(rootItems[0].children, mRoot);
+
     window.scrollTo(0, configs.scrollPosition);
+
+    mRoot.addEventListener('dragstart', onDragStart);
+    mRoot.addEventListener('dragover', onDragOver);
+    mRoot.addEventListener('dragenter', onDragEnter);
+    mRoot.addEventListener('dragleave', onDragLeave);
+    mRoot.addEventListener('dragend', onDragEnd);
+    mRoot.addEventListener('drop', onDrop);
+
     mInitiaized = true;
   }
   catch(_error) {
@@ -213,10 +226,12 @@ window.addEventListener('mousedown', event => {
   item.firstChild.classList.add('active');
   item.firstChild.focus();
 
-  // We need to cancel mousedown to block the "auto scroll" behavior
-  // of Firefox itself.
-  event.stopPropagation();
-  event.preventDefault();
+  if (event.button == 1) {
+    // We need to cancel mousedown to block the "auto scroll" behavior
+    // of Firefox itself.
+    event.stopPropagation();
+    event.preventDefault();
+  }
 
   if (event.button == 2 ||
       (event.button == 0 &&
@@ -371,4 +386,41 @@ function onOneWayMessage(message) {
         label.textContent = message.changeInfo.title;
     }; break
   }
+}
+
+// drag and drop
+const TYPE_BOOKMARK_ITEM = 'application/x-tst-bookmarks-subpanel-bookmark-item';
+const TYPE_X_MOZ_URL     = 'text/x-moz-url';
+const TYPE_URI_LIST      = 'text/uri-list';
+const TYPE_TEXT_PLAIN    = 'text/plain';
+
+function onDragStart(event) {
+  const item = getItemFromEvent(event);
+  if (!item)
+    return;
+
+  const dt = event.dataTransfer;
+  dt.effectAllowed = 'copyMove';
+  dt.setData(TYPE_BOOKMARK_ITEM, item.raw.id);
+  dt.setData(TYPE_X_MOZ_URL, `${item.raw.url}\n${item.raw.title}`);
+  dt.setData(TYPE_URI_LIST, `#${item.raw.title}\n${item.raw.url}`);
+  dt.setData(TYPE_TEXT_PLAIN, item.raw.url);
+
+  const itemRect = item.getBoundingClientRect();
+  dt.setDragImage(item, event.clientX - itemRect.left, event.clientY - itemRect.top);
+}
+
+function onDragOver(event) {
+}
+
+function onDragEnter(event) {
+}
+
+function onDragLeave(event) {
+}
+
+function onDragEnd(event) {
+}
+
+function onDrop(event) {
 }
