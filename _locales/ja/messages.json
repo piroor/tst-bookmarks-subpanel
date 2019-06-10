@@ -2,6 +2,7 @@
   "extensionName": { "message": "TST Bookmarks Subpanel" },
   "extensionDescription": { "message": "ツリー型タブのサイドバー内にブックマーク一覧を表示します。" },
 
+  "config_openInTabDefault_label": { "message": "通常の操作で新しいタブを開く" },
   "config_openInTabAlways_label": { "message": "常に新しいタブで開く" },
   "config_openAsActiveTab_label": { "message": "開いたタブを常にアクティブにする" }
 }

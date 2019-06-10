@@ -155,6 +155,7 @@ async function init() {
           type: Constants.COMMAND_GET_CONFIGS,
           keys: [
             'openedFolders',
+            'openInTabDefault',
             'openInTabAlways',
             'scrollPosition',
             'openAsActiveTab'
@@ -262,7 +263,8 @@ window.addEventListener('mouseup', event => {
 
   if (item.classList.contains('bookmark') &&
       !item.classList.contains('unavailable')) {
-    if (configs.openInTabAlways == accel)
+    if (!configs.openInTabAlways &&
+        configs.openInTabDefault == accel)
       mConnection.postMessage({
         type: Constants.COMMAND_LOAD,
         url:  item.raw.url

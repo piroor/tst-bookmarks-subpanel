@@ -2,6 +2,7 @@
   "extensionName": { "message": "TST Bookmarks Subpanel" },
   "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
 
+  "config_openInTabDefault_label": { "message": "Open in new tab by default" },
   "config_openInTabAlways_label": { "message": "Open in new tab always" },
   "config_openAsActiveTab_label": { "message": "Activate opened tab always" }
 }
