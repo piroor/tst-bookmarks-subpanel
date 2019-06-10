@@ -91,7 +91,7 @@ function buildSeparator(separator, options = {}) {
   const item = document.createElement('li');
   item.raw = separator;
   item.level = options.level || 0;
-  const row = buildRow(item);
+  buildRow(item);
   item.classList.add('separator');
   mItemsById.set(separator.id, item);
   return item;
