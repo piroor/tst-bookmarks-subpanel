@@ -34,6 +34,9 @@ function buildFolder(folder, options = {}) {
   label.appendChild(document.createTextNode(folder.title || browser.i18n.getMessage('blankTitle')));
   item.classList.add('folder');
 
+  if (folder.children.length == 0)
+    item.classList.add('blank');
+
   if (mOpenedFolders.has(folder.id)) {
     buildChildren(item);
   }
@@ -324,6 +327,7 @@ function onOneWayMessage(message) {
       const parentItem = mItemsById.get(message.bookmark.parentId);
       if (parentItem) {
         parentItem.dirty = true;
+        parentItem.classList.remove('blank');
         buildChildren(parentItem);
       }
     }; break
@@ -342,6 +346,8 @@ function onOneWayMessage(message) {
       const item = mItemsById.get(message.id);
       if (!item)
         return;
+      if (item.parentNode.childNodes.length == 1)
+        mItemsById.get(message.removeInfo.parentId).classList.add('blank');
       item.parentNode.removeChild(item);
       mItemsById.delete(message.id);
     }; break
@@ -361,6 +367,8 @@ function onOneWayMessage(message) {
       const item = mItemsById.get(message.id);
       if (!item)
         return;
+      if (item.parentNode.childNodes.length == 1)
+        mItemsById.get(message.removeInfo.oldParentId).classList.add('blank');
       item.parentNode.removeChild(item);
       const newParentItem = mItemsById.get(message.moveInfo.parentId);
       if (newParentItem) {
