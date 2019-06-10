@@ -142,10 +142,13 @@ async function onOneWayMessage(message) {
 async function copyItem(original, destination) {
   if (typeof original == 'string') {
     original = await browser.bookmarks.get(original);
+    if (Array.isArray(original))
+      original = original[0];
     if (original.type == 'folder')
-      original = await browser.bookmarks.getSubTree(original);
+      original = await browser.bookmarks.getSubTree(original.id);
   }
-  original = Array.isArray(original) ? original[0] : original;
+  if (Array.isArray(original))
+    original = original[0];
   const details = Object.assign({
     type: original.type
   }, destination)
