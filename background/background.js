@@ -140,7 +140,11 @@ async function onOneWayMessage(message) {
 }
 
 async function copyItem(original, destination) {
-  original = typeof original == 'string' ? (await browser.bookmarks.getSubTree(original)) : original;
+  if (typeof original == 'string') {
+    original = await browser.bookmarks.get(original);
+    if (original.type == 'folder')
+      original = await browser.bookmarks.getSubTree(original);
+  }
   original = Array.isArray(original) ? original[0] : original;
   const details = Object.assign({
     type: original.type
@@ -181,7 +185,13 @@ function broadcastMessage(message) {
   }
 }
 
-browser.bookmarks.onCreated.addListener((id, bookmark) => {
+browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
+  // notified bookmark has no children information!
+  if (bookmark.type == 'folder') {
+    bookmark = await browser.bookmarks.getSubTree(id);
+    if (Array.isArray(bookmark))
+      bookmark = bookmark[0];
+  }
   broadcastMessage({
     type: Constants.NOTIFY_CREATED,
     id,
