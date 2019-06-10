@@ -341,14 +341,6 @@ async function onOneWayMessage(message) {
         parentRawItem.children.splice(message.removeInfo.index, 1);
 
       deleteRawItem(rawItem);
-
-      const item = mItemsById.get(message.id);
-      if (!item)
-        return;
-      if (item.parentNode.childNodes.length == 1)
-        mItemsById.get(message.removeInfo.parentId).classList.add('blank');
-      item.parentNode.removeChild(item);
-      mItemsById.delete(message.id);
     }; break
 
     case Constants.NOTIFY_MOVED: {
@@ -401,6 +393,19 @@ function deleteRawItem(rawItem) {
     for (const child of rawItem.children) {
       deleteRawItem(child);
     }
+
+  const item = mItemsById.get(rawItem.id);
+  if (!item)
+    return;
+  if (item.parentNode &&
+      item.parentNode.childNodes.length == 1) {
+    const parentItem = mItemsById.get(rawItem.parentId);
+    if (parentItem)
+      parentItem.classList.add('blank');
+  }
+  if (item.parentNode)
+    item.parentNode.removeChild(item);
+  mItemsById.delete(rawItem.id);
 }
 
 
