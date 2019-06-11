@@ -32,6 +32,7 @@ export const NOTIFY_MENU_CLICKED    = 'menu-clicked';
 
 export const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
+export const ROOT_ID = 'root________';
 export const ROOT_ITEMS = [
   'toolbar_____',
   'menu________',
@@ -40,6 +41,6 @@ export const ROOT_ITEMS = [
 ];
 
 export const UNMODIFIABLE_ITEMS = new Set([
-  'root________',
+  ROOT_ID,
   ...ROOT_ITEMS
 ]);

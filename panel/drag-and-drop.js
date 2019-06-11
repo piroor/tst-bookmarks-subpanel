@@ -27,14 +27,17 @@ const TYPE_X_MOZ_URL     = 'text/x-moz-url';
 const TYPE_URI_LIST      = 'text/uri-list';
 const TYPE_TEXT_PLAIN    = 'text/plain';
 
+function isRootItem(id) {
+  return Constants.ROOT_ITEMS.includes(id);
+}
+
 function onDragStart(event) {
   const item = EventUtils.getItemFromEvent(event);
-  if (!item ||
-      Constants.ROOT_ITEMS.includes(item.raw.id))
+  if (!item)
     return;
 
   const dt = event.dataTransfer;
-  dt.effectAllowed = 'copyMove';
+  dt.effectAllowed = isRootItem(item.raw.id) ? 'copy' : 'copyMove';
   dt.setData(TYPE_BOOKMARK_ITEM, item.raw.id);
   dt.setData(TYPE_X_MOZ_URL, `${item.raw.url}\n${item.raw.title}`);
   dt.setData(TYPE_URI_LIST, `#${item.raw.title}\n${item.raw.url}`);
@@ -60,6 +63,61 @@ function getDropPosition(event) {
   if (event.clientY >= (rect.y + rect.height - (rect.height / areaCount)))
     return DROP_POSITION_AFTER;
   return DROP_POSITION_SELF;
+}
+
+function getDropDestination(event) {
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item)
+    return null;
+
+  const position = getDropPosition(event);
+  let parentId;
+  let index;
+  if (item.raw.type != 'folder') {
+    parentId = item.raw.parentId;
+    index = position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
+  }
+  else {
+    switch (position) {
+      default:
+      case DROP_POSITION_SELF:
+        parentId = item.raw.id;
+        index = null;
+        break;
+
+      case DROP_POSITION_BEFORE:
+        parentId = item.raw.parentId;
+        index = item.raw.index;
+        break;
+
+      case DROP_POSITION_AFTER:
+        if (item.classList.contains('collapsed')) {
+          parentId = item.raw.parentId;
+          index = item.raw.index + 1;
+        }
+        else {
+          parentId = item.raw.id;
+          index = 0;
+        }
+        break;
+    }
+  }
+
+  const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
+  if (draggedId) {
+    const dragged = Bookmarks.get(draggedId);
+    if (dragged && dragged.contains(item))
+      return null;
+
+    if (parentId == dragged.parentId &&
+        index > dragged.index)
+      index--;
+  }
+
+  if (parentId == Constants.ROOT_ID)
+    return null;
+
+  return { parentId, index };
 }
 
 function creatDropPositionMarker() {
@@ -164,8 +222,8 @@ function onDragOver(event) {
     return;
   }
 
-  const position = getDropPosition(event);
-  if (position == DROP_POSITION_NONE) {
+  const destination = getDropDestination(event);
+  if (!destination) {
     event.dataTransfer.effectAllowed = 'none';
     return;
   }
@@ -179,8 +237,8 @@ function onDragOver(event) {
         return;
       }
     }
-    item.dataset.dropPosition = position;
-    event.dataTransfer.effectAllowed = event.ctrlKey ? 'copy' : 'move';
+    item.dataset.dropPosition = getDropPosition(event);
+    event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(item.raw.id) ? 'copy' : 'move';
     event.preventDefault();
   }
 }
@@ -202,72 +260,31 @@ function getLastVisibleItem(item) {
 
 function onDrop(event) {
   creatDropPositionMarker();
+
+  const destination = getDropDestination(event);
+  if (!destination) {
+    event.preventDefault();
+    return;
+  }
+
   const item     = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
   const position = item ? getDropPosition(event) : DROP_POSITION_AFTER;
-
-  let parentId;
-  let index;
-  if (item) {
-    if (item.raw.type == 'folder') {
-      switch (position) {
-        default:
-        case DROP_POSITION_SELF:
-          parentId = item.raw.id;
-          index = null;
-          break;
-
-        case DROP_POSITION_BEFORE:
-          parentId = item.raw.parentId;
-          index = item.raw.index;
-          break;
-
-        case DROP_POSITION_AFTER:
-          if (item.classList.contains('collapsed')) {
-            parentId = item.raw.parentId;
-            index = item.raw.index + 1;
-          }
-          else {
-            parentId = item.raw.id;
-            index = 0;
-          }
-          break;
-      }
-    }
-    else {
-      parentId = item.raw.parentId;
-      index = position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
-    }
-  }
 
   const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
   if (draggedId) {
     event.preventDefault();
-    const dragged = Bookmarks.get(draggedId);
-    if (dragged && dragged.contains(item))
-      return;
-
-    if (parentId == dragged.parentId &&
-        index > dragged.index)
-      index--;
-
-    if (event.ctrlKey) {
+    if (event.ctrlKey || isRootItem(item.raw.id)) {
       Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
         id:   draggedId,
-        destination: {
-          parentId,
-          index
-        }
+        destination
       });
     }
     else {
       Connection.sendMessage({
         type: Constants.COMMAND_MOVE_BOOKMARK,
         id:   draggedId,
-        destination: {
-          parentId,
-          index
-        }
+        destination
       });
     }
     return;
@@ -282,8 +299,8 @@ function onDrop(event) {
         type:  'bookmark',
         title: places[0].title,
         url:   places[0].url,
-        parentId,
-        index
+        parentId: destination.parentId,
+        index:    destination.index
       }
     });
     return;
