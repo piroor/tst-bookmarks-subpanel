@@ -110,7 +110,9 @@ window.addEventListener('mouseup', event => {
   if (item.classList.contains('folder')) {
     if (accel) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
-      Dialogs.warnOnOpenTabs(urls.length).then(() => {
+      Dialogs.warnOnOpenTabs(urls.length).then(granted => {
+        if (!granted)
+          return;
         Connection.sendMessage({
           type: Constants.COMMAND_OPEN_BOOKMARKS,
           urls

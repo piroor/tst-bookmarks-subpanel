@@ -61,7 +61,9 @@ function onCommand(target, _event) {
   switch (menuItemId) {
     case 'openAllInTabs':
       const urls = mContextItem.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
-      Dialogs.warnOnOpenTabs(urls.length).then(() => {
+      Dialogs.warnOnOpenTabs(urls.length).then(granted => {
+        if (!granted)
+          return;
         Connection.sendMessage({
           type: Constants.COMMAND_OPEN_BOOKMARKS,
           urls
