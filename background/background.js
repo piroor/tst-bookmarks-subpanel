@@ -88,41 +88,17 @@ Connection.onMessage.addListener(async message => {
       return Promise.resolve(true);
     }
 
-    case Constants.COMMAND_LOAD_BOOKMARK: {
-      const window    = await browser.windows.getCurrent({ populate: true });
-      const activeTab = window.tabs.find(tab => tab.active);
-      browser.tabs.update(activeTab.id, {
-        url: message.url
-      });
-    }; break;
+    case Constants.COMMAND_LOAD_BOOKMARK:
+      Commands.load(message.url);
+      break;
 
-    case Constants.COMMAND_OPEN_BOOKMARKS: {
-      const window = await browser.windows.getCurrent({ populate: true });
-      let index   = window.tabs.length;
-      let isFirst = true;
-      for (const url of message.urls) {
-        browser.tabs.create({
-          active: !message.background && isFirst,
-          url,
-          index
-        });
-        isFirst = false;
-        index++;
-      }
-    }; break;
+    case Constants.COMMAND_OPEN_BOOKMARKS:
+      Commands.open(message.urls, message);
+      break;
 
-    case Constants.COMMAND_CREATE_BOOKMARK: {
-      const details = {
-        title:    message.details.title,
-        type:     message.details.type || 'bookmark',
-        parentId: message.details.parentId
-      };
-      if (message.details.url)
-        details.url = message.details.url;
-      if (message.details.index >= 0)
-        details.index = message.details.index;
-      browser.bookmarks.create(details);
-    }; break;
+    case Constants.COMMAND_CREATE_BOOKMARK:
+      Commands.create(message.details);
+      break;
 
     case Constants.COMMAND_MOVE_BOOKMARK: {
       const destination = {

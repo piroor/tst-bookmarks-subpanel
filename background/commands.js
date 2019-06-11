@@ -5,6 +5,42 @@
 */
 'use strict';
 
+export async function load(url) {
+  const window    = await browser.windows.getCurrent({ populate: true });
+  const activeTab = window.tabs.find(tab => tab.active);
+  browser.tabs.update(activeTab.id, {
+    url
+  });
+}
+
+export async function open(urls, options = {}) {
+  const window = await browser.windows.getCurrent({ populate: true });
+  let index   = window.tabs.length;
+  let isFirst = true;
+  for (const url of urls) {
+    browser.tabs.create({
+      active: !options.background && isFirst,
+      url,
+      index
+    });
+    isFirst = false;
+    index++;
+  }
+}
+
+export function create(params = {}) {
+  const details = {
+    title:    params.title,
+    type:     params.type || 'bookmark',
+    parentId: params.parentId
+  };
+  if (params.url)
+    details.url = params.url;
+  if (params.index >= 0)
+    details.index = params.index;
+  browser.bookmarks.create(details);
+}
+
 export async function copy(original, destination) {
   if (typeof original == 'string') {
     original = await browser.bookmarks.get(original);
