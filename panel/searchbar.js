@@ -19,17 +19,34 @@ mSearchBox.addEventListener('blur', () => {
   mSearchBar.classList.remove('active');
 });
 
+let mThrottlingTimer;
+
 function onSearchInput() {
   if (!mSearchBox.value)
     mSearchBar.classList.add('blank');
   else
     mSearchBar.classList.remove('blank');
+
+  if (mThrottlingTimer)
+    clearTimeout(mThrottlingTimer);
+  mThrottlingTimer = setTimeout(() => {
+    mThrottlingTimer = null;
+    Bookmarks.search(mSearchBox.value);
+  }, 250);
 }
 
 mSearchBox.addEventListener('change', onSearchInput);
 mSearchBox.addEventListener('input', onSearchInput);
 
+mSearchBox.addEventListener('keydown', event => {
+  if (event.key == 'Escape') {
+    mSearchBox.value = '';
+    onSearchInput();
+  }
+});
+
 
 mClearButton.addEventListener('click', () => {
   mSearchBox.value = '';
+  onSearchInput();
 });

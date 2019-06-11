@@ -31,15 +31,15 @@ export async function init() {
     })()
   ]);
 
-  storeRawItems(rootItems[0]);
+  storeRawItem(rootItems[0]);
   buildItems(rootItems[0].children, mRoot);
 }
 
-function storeRawItems(rawItem) {
+function storeRawItem(rawItem) {
   mRawItemsById.set(rawItem.id, rawItem);
   if (rawItem.children)
     for (const child of rawItem.children) {
-      storeRawItems(child);
+      storeRawItem(child);
     }
 }
 
@@ -175,6 +175,32 @@ function buildItems(items, container, options = {}) {
         break;
     }
   }
+}
+
+
+export async function search(query) {
+  const range = document.createRange();
+  range.selectNodeContents(mRoot);
+  range.deleteContents();
+  range.detach();
+  mItemsById.clear();
+  mRawItemsById.clear();
+
+  if (!query) {
+    const rootItems = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_ALL_BOOKMARKS
+    });
+    storeRawItem(rootItems[0]);
+    buildItems(rootItems[0].children, mRoot);
+    return;
+  }
+
+  const foundItems = await browser.runtime.sendMessage({
+    type: Constants.COMMAND_SEARCH_BOOKMARKS,
+    query
+  });
+  foundItems.forEach(storeRawItem);
+  buildItems(foundItems, mRoot);
 }
 
 
