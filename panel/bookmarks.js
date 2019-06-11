@@ -15,6 +15,13 @@ let mOpenedFolders;
 
 const mRoot = document.getElementById('root');
 
+const ROOT_ITEMS = [
+  'toolbar_____',
+  'menu________',
+  'unfiled_____',
+  'mobile______'
+];
+
 export async function init() {
   const [rootItems] = await Promise.all([
     browser.runtime.sendMessage({
@@ -32,7 +39,8 @@ export async function init() {
   ]);
 
   storeRawItem(rootItems[0]);
-  buildItems(rootItems[0].children, mRoot);
+
+  buildItems(ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
 }
 
 function storeRawItem(rawItem) {
@@ -164,6 +172,8 @@ function buildSeparator(separator, options = {}) {
 function buildItems(items, container, options = {}) {
   const level = options.level || 0;
   for (const item of items) {
+    if (!item)
+      continue;
     switch (item.type) {
       case 'folder':
         container.appendChild(buildFolder(item, { level }));
@@ -194,7 +204,7 @@ export async function search(query) {
       type: Constants.COMMAND_GET_ALL_BOOKMARKS
     });
     storeRawItem(rootItems[0]);
-    buildItems(rootItems[0].children, mRoot);
+    buildItems(ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
     return;
   }
 
