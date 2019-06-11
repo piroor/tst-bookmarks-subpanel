@@ -227,13 +227,3 @@ browser.bookmarks.onChanged.addListener((id, changeInfo) => {
     changeInfo
   });
 });
-
-/* not implemented yet on Firefox
-browser.bookmarks.onChildrenReordered.addListener((id, changeInfo) => {
-  broadcastMessage({
-    type: Constants.NOTIFY_CHILDREN_REORDERED,
-    id,
-    reorderInfo
-  });
-});
-*/
