@@ -314,6 +314,11 @@ async function onClicked(info) {
 
 
     case 'sortByName':
+      bookmark.children.sort((a, b) => a.title > b.title);
+      for (let i = 0, maxi = bookmark.children.length; i < maxi; i++) {
+        const child = bookmark.children[i];
+        await browser.bookmarks.move(child.id, { index: i });
+      }
       break;
 
     case 'properties':
