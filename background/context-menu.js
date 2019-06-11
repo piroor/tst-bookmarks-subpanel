@@ -247,18 +247,23 @@ async function onClicked(info) {
 
   switch (info.menuItemId) {
     case 'open':
+      Commands.load(bookmark.url);
       break;
 
     case 'openTab':
+      Commands.openInTabs([bookmark.url]);
       break;
 
     case 'openWindow':
+      Commands.openInWindow(bookmark.url);
       break;
 
     case 'openPrivateWindow':
+      Commands.openInWindow(bookmark.url, { incognito: true });
       break;
 
     case 'openAllInTabs':
+      Commands.openInTabs(bookmark.children.map(item => item.url).filter(url => !!url));
       break;
 
 

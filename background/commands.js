@@ -13,7 +13,7 @@ export async function load(url) {
   });
 }
 
-export async function open(urls, options = {}) {
+export async function openInTabs(urls, options = {}) {
   const window = await browser.windows.getCurrent({ populate: true });
   let index   = window.tabs.length;
   let isFirst = true;
@@ -26,6 +26,13 @@ export async function open(urls, options = {}) {
     isFirst = false;
     index++;
   }
+}
+
+export function openInWindow(url, options = {}) {
+  browser.windows.create({
+    url,
+    incognito: !!options.incognito
+  });
 }
 
 export function create(params = {}) {
