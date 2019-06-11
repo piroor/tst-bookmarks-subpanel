@@ -246,6 +246,32 @@ async function onClicked(info) {
     return;
 
   switch (info.menuItemId) {
+    case 'open':
+      break;
+
+    case 'openTab':
+      break;
+
+    case 'openWindow':
+      break;
+
+    case 'openPrivateWindow':
+      break;
+
+    case 'openAllInTabs':
+      break;
+
+
+    case 'createBookmark':
+      break;
+
+    case 'createFolder':
+      break;
+
+    case 'createSeparator':
+      break;
+
+
     case 'copy':
       mCopiedItem = bookmark;
       break;
@@ -267,5 +293,12 @@ async function onClicked(info) {
         destination.index = bookmark.index;
       Commands.copy(mCopiedItem, destination);
     }; break;
+
+
+    case 'sortByName':
+      break;
+
+    case 'properties':
+      break;
   }
 }
