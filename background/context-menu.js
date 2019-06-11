@@ -245,6 +245,12 @@ async function onClicked(info) {
   if (!bookmark)
     return;
 
+  const destination = {
+    parentId: bookmark.type == 'folder' ? bookmark.id : bookmark.parentId
+  };
+  if (bookmark.type != 'folder')
+    destination.index = bookmark.index;
+
   switch (info.menuItemId) {
     case 'open':
       Commands.load(bookmark.url);
@@ -268,12 +274,24 @@ async function onClicked(info) {
 
 
     case 'createBookmark':
+      Commands.create(Object.assign({
+        type:  'bookmark',
+        title: browser.i18n.getMessage('newBookmarkTitle'),
+        url:   ''
+      }, destination));
       break;
 
     case 'createFolder':
+      Commands.create(Object.assign({
+        type:  'folder',
+        title: browser.i18n.getMessage('newFolderTitle')
+      }, destination));
       break;
 
     case 'createSeparator':
+      Commands.create(Object.assign({
+        type: 'separator'
+      }, destination));
       break;
 
 
@@ -290,14 +308,9 @@ async function onClicked(info) {
         browser.bookmarks.remove(info.bookmarkId);
       break;
 
-    case 'paste': {
-      const destination = {
-        parentId: bookmark.type == 'folder' ? bookmark.id : bookmark.parentId
-      };
-      if (bookmark.type != 'folder')
-        destination.index = bookmark.index;
+    case 'paste':
       Commands.copy(mCopiedItem, destination);
-    }; break;
+      break;
 
 
     case 'sortByName':

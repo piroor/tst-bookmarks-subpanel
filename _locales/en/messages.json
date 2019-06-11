@@ -3,6 +3,8 @@
   "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
 
   "blankTitle": { "message": "(no title)" },
+  "newBookmarkTitle": { "message": "New Bookmark" },
+  "newFolderTitle": { "message": "New Folder" },
 
   "menu_open_label": { "message": "&Open" },
   "menu_openTab_label": { "message": "Open in a Ne&w Tab" },

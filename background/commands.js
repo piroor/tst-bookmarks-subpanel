@@ -35,7 +35,7 @@ export function openInWindow(url, options = {}) {
   });
 }
 
-export function create(params = {}) {
+export async function create(params = {}) {
   const details = {
     title:    params.title,
     type:     params.type || 'bookmark',
@@ -45,7 +45,11 @@ export function create(params = {}) {
     details.url = params.url;
   if (params.index >= 0)
     details.index = params.index;
-  browser.bookmarks.create(details);
+  // We cannot create bookmark without URL.
+  // See: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/bookmarks/CreateDetails
+  if (details.type == 'bookmark' && !details.url)
+    details.url = 'about:blank';
+  return browser.bookmarks.create(details);
 }
 
 export async function copy(original, destination) {
