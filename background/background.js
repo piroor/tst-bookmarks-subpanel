@@ -104,7 +104,7 @@ Connection.onMessage.addListener(async message => {
       const destination = {
         parentId: message.destination.parentId
       };
-      if (message.destination.index >= 0)
+      if (typeof message.destination.index == 'number')
         destination.index = message.destination.index;
       browser.bookmarks.move(message.id, destination);
     }; break;
@@ -113,7 +113,7 @@ Connection.onMessage.addListener(async message => {
       const destination = {
         parentId: message.destination.parentId
       };
-      if (message.destination.index >= 0)
+      if (typeof message.destination.index == 'number')
         destination.index = message.destination.index;
       Commands.copy(message.id, destination);
     }; break;

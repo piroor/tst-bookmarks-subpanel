@@ -43,7 +43,7 @@ export async function create(params = {}) {
   };
   if (params.url)
     details.url = params.url;
-  if (params.index >= 0)
+  if (typeof params.index == 'number')
     details.index = params.index;
   // We cannot create bookmark without URL.
   // See: https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/bookmarks/CreateDetails

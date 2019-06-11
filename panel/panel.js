@@ -187,9 +187,6 @@ async function init() {
 }
 
 function storeRawItems(rawItem) {
-  // I don't kwno why, but sometimes the first child of a folder can have invalid index.
-  if (rawItem.index < 0)
-    rawItem.index = 0;
   mRawItemsById.set(rawItem.id, rawItem);
   if (rawItem.children)
     for (const child of rawItem.children) {
@@ -583,7 +580,7 @@ function onDrop(event) {
   const position = item ? getDropPosition(event) : DROP_POSITION_AFTER;
 
   const parentId = position == DROP_POSITION_SELF ? item.raw.id : item.raw.parentId;
-  const index    = position == DROP_POSITION_SELF ? -1 : position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
+  const index    = position == DROP_POSITION_SELF ? null : position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
 
   const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
   if (draggedId) {
