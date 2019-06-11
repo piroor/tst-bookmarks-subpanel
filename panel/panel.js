@@ -13,13 +13,12 @@ import * as Bookmarks from './bookmarks.js';
 import * as ContextMenu from './context-menu.js';
 import * as DragAndDrop from './drag-and-drop.js';
 import * as Dialogs from './dialogs.js';
+import './searchbar.js';
 
 let configs = {};
 let mInitiaized = false;
 
 const mRoot = document.getElementById('root');
-const mSearchBar = document.getElementById('searchbar');
-const mSearchBox = document.getElementById('searchbox');
 
 async function init() {
   if (mInitiaized)
@@ -155,13 +154,4 @@ mRoot.addEventListener('scroll', () => {
       scrollPosition: mRoot.scrollTop
     }
   });
-});
-
-
-mSearchBox.addEventListener('focus', () => {
-  mSearchBar.classList.add('active');
-});
-
-mSearchBox.addEventListener('blur', () => {
-  mSearchBar.classList.remove('active');
 });

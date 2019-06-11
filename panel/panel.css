@@ -18,6 +18,7 @@ body {
 }
 
 #searchbar::before,
+#searchbox-clear::before,
 .label::before,
 .twisty::before {
   background: currentColor;
@@ -58,7 +59,8 @@ body {
   border-color: Highlight;
 }
 
-#searchbar::before {
+#searchbar::before,
+#searchbox-clear::before  {
   background: ThreeDShadow;
   margin: 0.25em;
   mask-image: url("/resources/SearchWindows.svg");
@@ -71,6 +73,22 @@ body {
   flex-grow: 1;
   margin: 0;
   padding: 0;
+}
+
+#searchbar.blank #searchbox-clear {
+  display: none;
+}
+
+#searchbox-clear {
+  border: none;
+  background: transparent;
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+#searchbox-clear::before {
+  mask-image: url("/resources/SearchCancel.svg");
 }
 
 
