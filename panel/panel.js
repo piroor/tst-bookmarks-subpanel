@@ -13,6 +13,7 @@ import * as Bookmarks from './bookmarks.js';
 import * as Dialogs from './dialogs.js';
 import './context-menu.js';
 import './drag-and-drop.js';
+import './keyboard-navigation.js';
 import './searchbar.js';
 
 let configs = {};

@@ -62,6 +62,10 @@ export function setActive(item) {
   item.firstChild.focus();
 }
 
+export function getActive() {
+  return mRoot.querySelector('li.active');
+}
+
 export function toggleOpenState(item) {
   item.classList.toggle('collapsed');
   if (item.classList.contains('collapsed'))
