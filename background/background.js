@@ -10,6 +10,8 @@ import {
 } from '/common/common.js';
 
 import * as Constants from '/common/constants.js';
+
+import * as Connection from './connection.js';
 import * as ContextMenu from './context-menu.js';
 
 async function registerToTST() {
@@ -45,7 +47,7 @@ registerToTST();
 
 configs.$loaded.then(() => {
   browser.runtime.onMessage.addListener(onMessage);
-  broadcastMessage({
+  Connection.broadcastMessage({
     type: Constants.NOTIFY_READY
   });
   ContextMenu.init();
@@ -54,7 +56,7 @@ configs.$loaded.then(() => {
 configs.$addObserver(key => {
   const values = {};
   values[key] = configs[key];
-  broadcastMessage({
+  Connection.broadcastMessage({
     type: Constants.NOTIFY_UPDATED_CONFIGS,
     values
   });
@@ -76,7 +78,7 @@ function onMessage(message, _sender) {
   }
 }
 
-async function onOneWayMessage(message) {
+Connection.onMessage.addListener(async message => {
   switch (message.type) {
     case Constants.COMMAND_SET_CONFIGS: {
       for (const key of Object.keys(message.values)) {
@@ -139,7 +141,7 @@ async function onOneWayMessage(message) {
       copyItem(message.id, destination);
     }; break;
   }
-}
+});
 
 async function copyItem(original, destination) {
   if (typeof original == 'string') {
@@ -168,28 +170,6 @@ async function copyItem(original, destination) {
   }
 }
 
-
-// runtime.onMessage listeners registered at subpanels won't receive
-// any message from this background page, so we need to use connections
-// instead, to send messages from this background page to subpanel pages.
-
-const mConnections = new Set();
-
-browser.runtime.onConnect.addListener(port => {
-  mConnections.add(port);
-  port.onMessage.addListener(onOneWayMessage);
-  port.onDisconnect.addListener(_message => {
-    mConnections.delete(port);
-    port.onMessage.removeListener(onOneWayMessage);
-  });
-});
-
-function broadcastMessage(message) {
-  for (const connection of mConnections) {
-    connection.postMessage(message);
-  }
-}
-
 browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
   // notified bookmark has no children information!
   if (bookmark.type == 'folder') {
@@ -197,7 +177,7 @@ browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
     if (Array.isArray(bookmark))
       bookmark = bookmark[0];
   }
-  broadcastMessage({
+  Connection.broadcastMessage({
     type: Constants.NOTIFY_BOOKMARK_CREATED,
     id,
     bookmark
@@ -205,7 +185,7 @@ browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
 });
 
 browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
-  broadcastMessage({
+  Connection.broadcastMessage({
     type: Constants.NOTIFY_BOOKMARK_REMOVED,
     id,
     removeInfo
@@ -213,7 +193,7 @@ browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
 });
 
 browser.bookmarks.onMoved.addListener((id, moveInfo) => {
-  broadcastMessage({
+  Connection.broadcastMessage({
     type: Constants.NOTIFY_BOOKMARK_MOVED,
     id,
     moveInfo
@@ -221,7 +201,7 @@ browser.bookmarks.onMoved.addListener((id, moveInfo) => {
 });
 
 browser.bookmarks.onChanged.addListener((id, changeInfo) => {
-  broadcastMessage({
+  Connection.broadcastMessage({
     type: Constants.NOTIFY_BOOKMARK_CHANGED,
     id,
     changeInfo
