@@ -12,6 +12,7 @@ import * as EventUtils from './event-utils.js';
 import * as Bookmarks from './bookmarks.js';
 import * as ContextMenu from './context-menu.js';
 import * as DragAndDrop from './drag-and-drop.js';
+import * as Dialogs from './dialogs.js';
 
 let configs = {};
 let mInitiaized = false;
@@ -48,6 +49,17 @@ async function init() {
 }
 
 init();
+
+Connection.onMessage.addListener(async message => {
+  switch (message.type) {
+    case Constants.NOTIFY_UPDATED_CONFIGS:
+      for (const key of Object.keys(message.values)) {
+        if (key in configs)
+          configs[key] = message.values[key];
+      }
+      break;
+  }
+});
 
 
 let mLastMouseDownTarget = null;
@@ -98,9 +110,11 @@ window.addEventListener('mouseup', event => {
   if (item.classList.contains('folder')) {
     if (accel) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      Dialogs.warnOnOpenTabs(urls.length).then(() => {
       Connection.sendMessage({
         type: Constants.COMMAND_OPEN_BOOKMARKS,
         urls
+      });
       });
     }
     else {

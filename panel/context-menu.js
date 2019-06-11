@@ -59,6 +59,16 @@ function onCommand(target, _event) {
   }
 
   switch (menuItemId) {
+    case 'openAllInTabs':
+      const urls = mContextItem.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      Dialogs.warnOnOpenTabs(urls.length).then(() => {
+        Connection.sendMessage({
+          type: Constants.COMMAND_OPEN_BOOKMARKS,
+          urls
+        });
+      });
+      break;
+
     case 'createBookmark':
       Dialogs.showBookmarkDialog({
         mode:  'add',

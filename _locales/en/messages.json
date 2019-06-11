@@ -2,6 +2,18 @@
   "extensionName": { "message": "TST Bookmarks Subpanel" },
   "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
 
+  "tabs_openWarningMultipleBrande": { "message": "You are about to open $NUMBER$ tabs. This might slow down $BRAND$ while the pages are loading. Are you sure you want to continue?",
+    "placeholders": {
+      "NUMBER": { "content": "$1", "example": "10" },
+      "BRAND": { "content": "$2", "example": "Firefox" }
+    }},
+  "tabs_openWarningPromptMeBranded": { "message": "Warn me when opening multiple tabs might slow down $BRAND$",
+    "placeholders": {
+      "BRAND": { "content": "$1", "example": "Firefox" }
+    }},
+  "tabs_openButtonMultiple": { "message": "Open tabs" },
+  "tabs_openWarningMultiple_cancel": { "message": "Cancel" },
+
   "blankTitle": { "message": "(no title)" },
   "defaultBookmarkTitle": { "message": "New Bookmark" },
   "defaultFolderTitle": { "message": "New Folder" },

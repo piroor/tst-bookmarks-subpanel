@@ -12,6 +12,9 @@ export const configs = new Configs({
   openInTabAlways: false,
   openAsActiveTab: true,
 
+  warnOnOpen: true,
+  maxOpenBeforeWarn: 15,
+
   scrollPosition: 0,
   openedFolders: []
 }, {

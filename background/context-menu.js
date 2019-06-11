@@ -270,9 +270,11 @@ async function onClicked(info) {
       Commands.openInWindow(bookmark.url, { incognito: true });
       break;
 
+      /*
     case 'openAllInTabs':
-      Commands.openInTabs(bookmark.children.map(item => item.url).filter(url => !!url));
+      Commands.openInTabs(bookmark.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url)));
       break;
+      */
 
 
       /*

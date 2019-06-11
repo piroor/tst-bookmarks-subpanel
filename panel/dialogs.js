@@ -5,8 +5,66 @@
 */
 'use strict';
 
+import * as Constants from '/common/constants.js';
+
 import RichConfirm from '/extlib/RichConfirm.js';
 import l10n from '/extlib/l10n.js';
+
+import * as Connection from './connection.js';
+
+
+let configs;
+browser.runtime.sendMessage({
+  type: Constants.COMMAND_GET_CONFIGS,
+  keys: [
+    'warnOnOpen',
+    'maxOpenBeforeWarn'
+  ]
+}).then(gotConfigs => configs = gotConfigs);
+
+Connection.onMessage.addListener(async message => {
+  switch (message.type) {
+    case Constants.NOTIFY_UPDATED_CONFIGS:
+      for (const key of Object.keys(message.values)) {
+        if (key in configs)
+          configs[key] = message.values[key];
+      }
+      break;
+  }
+});
+
+export async function warnOnOpenTabs(count) {
+  if (!configs.warnOnOpen ||
+      count < configs.maxOpenBeforeWarn)
+    return true;
+
+  const brandName = await browser.runtime.sendMessage({
+    type: Constants.COMMAND_GET_BROWSER_NAME
+  });
+  const result = await RichConfirm.show({
+    message: browser.i18n.getMessage('tabs_openWarningMultipleBrande', [count, brandName]),
+    buttons: [
+      browser.i18n.getMessage('tabs_openButtonMultiple'),
+      browser.i18n.getMessage('tabs_openWarningMultiple_cancel')
+    ],
+    checkMessage: browser.i18n.getMessage('tabs_openWarningPromptMeBranded', [brandName]),
+    checked: true
+  });
+  switch (result.buttonIndex) {
+    case 0:
+      if (!result.checked) {
+        Connection.sendMessage({
+          type:   Constants.COMMAND_SET_CONFIGS,
+          values: {
+            warnOnOpen: false
+          }
+        });
+      }
+      return true;
+    default:
+      return false;
+  }
+}
 
 export async function showBookmarkDialog(params) {
   const urlField = `

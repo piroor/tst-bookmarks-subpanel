@@ -68,6 +68,9 @@ browser.runtime.onMessage.addListener((message, _sender) => {
 
     case Constants.COMMAND_GET_ALL_BOOKMARKS:
       return browser.bookmarks.getTree();
+
+    case Constants.COMMAND_GET_BROWSER_NAME:
+      return browser.runtime.getBrowserInfo().then(info => info.name);
   }
 });
 
