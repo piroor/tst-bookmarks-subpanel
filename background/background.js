@@ -46,6 +46,13 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 
 registerToTST();
 
+
+let mOpenedFolders = new Set();
+
+configs.$loaded.then(() => {
+  mOpenedFolders = new Set(configs.openedFolders);
+});
+
 configs.$addObserver(key => {
   const values = {};
   values[key] = configs[key];
@@ -142,6 +149,11 @@ browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
     id,
     removeInfo
   });
+
+  if (mOpenedFolders.has(id)) {
+    mOpenedFolders.delete(id);
+    configs.openedFolders = Array.from(mOpenedFolders);
+  }
 });
 
 browser.bookmarks.onMoved.addListener((id, moveInfo) => {
