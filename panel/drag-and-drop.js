@@ -11,11 +11,32 @@ import * as EventUtils from './event-utils.js';
 import * as Connection from './connection.js';
 import * as Bookmarks from './bookmarks.js';
 
+let configs = {};
+browser.runtime.sendMessage({
+  type: Constants.COMMAND_GET_CONFIGS,
+  keys: [
+    'autoExpandDelay'
+  ]
+}).then(gotConfigs => configs = gotConfigs);
+
+Connection.onMessage.addListener(async message => {
+  switch (message.type) {
+    case Constants.NOTIFY_UPDATED_CONFIGS:
+      for (const key of Object.keys(message.values)) {
+        if (key in configs)
+          configs[key] = message.values[key];
+      }
+      break;
+  }
+});
+
+
 
 const mRoot = document.getElementById('root');
 
 mRoot.addEventListener('dragstart', onDragStart);
 mRoot.addEventListener('dragover', onDragOver);
+mRoot.addEventListener('dragenter', onDragEnter);
 mRoot.addEventListener('dragleave', onDragLeave);
 mRoot.addEventListener('dragend', onDragEnd);
 mRoot.addEventListener('drop', onDrop);
@@ -240,6 +261,31 @@ function onDragOver(event) {
     event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(item.raw.id) ? 'copy' : 'move';
     event.preventDefault();
   }
+}
+
+let mLastDragEnterId = null;
+let mDelayedExpandTimer = null;
+
+function onDragEnter(event) {
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item ||
+      !item.classList.contains('folder') ||
+      !item.classList.contains('collapsed') ||
+      item.raw.id == mLastDragEnterId)
+    return;
+
+  mLastDragEnterId = item.raw.id;
+  if (mDelayedExpandTimer)
+    clearTimeout();
+  mDelayedExpandTimer = setTimeout(() => {
+    if (mLastDragEnterId != item.raw.id)
+      return;
+
+    mDelayedExpandTimer = null;
+    mLastDragEnterId = null;
+    if (item.classList.contains('collapsed'))
+      Bookmarks.toggleOpenState(item);
+  }, configs.autoExpandDelay);
 }
 
 function onDragLeave(_event) {

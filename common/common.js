@@ -15,6 +15,8 @@ export const configs = new Configs({
   warnOnOpen: true,
   maxOpenBeforeWarn: 15,
 
+  autoExpandDelay: 1000,
+
   scrollPosition: 0,
   openedFolders: []
 }, {

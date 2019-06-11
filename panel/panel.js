@@ -120,8 +120,7 @@ mRoot.addEventListener('mouseup', event => {
       });
     }
     else {
-      item.classList.toggle('collapsed');
-      Bookmarks.updateOpenState(item);
+      Bookmarks.toggleOpenState(item);
     }
     return;
   }

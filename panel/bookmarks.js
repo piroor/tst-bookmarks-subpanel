@@ -62,7 +62,8 @@ export function setActive(item) {
   item.firstChild.focus();
 }
 
-export function updateOpenState(item) {
+export function toggleOpenState(item) {
+  item.classList.toggle('collapsed');
   if (item.classList.contains('collapsed'))
     mOpenedFolders.delete(item.raw.id);
   else
