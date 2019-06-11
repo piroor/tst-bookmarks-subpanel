@@ -7,12 +7,12 @@
 
 import * as Constants from '/common/constants.js';
 
+import * as Connection from './connection.js';
 import * as ContextMenu from './context-menu.js';
 
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
 let configs = {};
-let mConnection = null;
 
 const mRoot = document.getElementById('root');
 
@@ -126,7 +126,7 @@ function updateFolderOpenState(item) {
     mOpenedFolders.delete(item.raw.id);
   else
     mOpenedFolders.add(item.raw.id);
-  mConnection.postMessage({
+  Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
       openedFolders: Array.from(mOpenedFolders)
@@ -147,13 +147,6 @@ async function init() {
   if (mInitiaized)
     return;
   try {
-    // runtime.onMessage listener registerad at a restricted page (like this
-    // subpanel page) won't receive messages from the background page, so
-    // we need to use connection instead.
-    mConnection = browser.runtime.connect({
-      name: `panel:${Date.now()}`
-    });
-    mConnection.onMessage.addListener(onOneWayMessage);
     const [rootItems] = await Promise.all([
       browser.runtime.sendMessage({
         type: Constants.COMMAND_GET_ALL_BOOKMARKS
@@ -269,7 +262,7 @@ window.addEventListener('mouseup', event => {
   if (item.classList.contains('folder')) {
     if (accel) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && LOADABLE_URL_MATCHER.test(url));
-      mConnection.postMessage({
+      Connection.sendMessage({
         type: Constants.COMMAND_OPEN_BOOKMARKS,
         urls
       });
@@ -285,12 +278,12 @@ window.addEventListener('mouseup', event => {
       !item.classList.contains('unavailable')) {
     if (!configs.openInTabAlways &&
         configs.openInTabDefault == accel)
-      mConnection.postMessage({
+      Connection.sendMessage({
         type: Constants.COMMAND_LOAD_BOOKMARK,
         url:  item.raw.url
       });
     else
-      mConnection.postMessage({
+      Connection.sendMessage({
         type:       Constants.COMMAND_OPEN_BOOKMARKS,
         urls:       [item.raw.url],
         background: configs.openAsActiveTab ? event.shiftKey : !event.shiftKey
@@ -300,7 +293,7 @@ window.addEventListener('mouseup', event => {
 });
 
 window.addEventListener('scroll', () => {
-  mConnection.postMessage({
+  Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
       scrollPosition: window.scrollY
@@ -309,7 +302,7 @@ window.addEventListener('scroll', () => {
 });
 
 // handling of messages sent from the background page
-async function onOneWayMessage(message) {
+Connection.onMessage.addListener(async message => {
   switch (message.type) {
     case Constants.NOTIFY_READY:
       init();
@@ -391,7 +384,7 @@ async function onOneWayMessage(message) {
         label.textContent = message.changeInfo.title;
     }; break
   }
-}
+});
 
 function deleteRawItem(rawItem) {
   mRawItemsById.delete(rawItem.id);
@@ -604,7 +597,7 @@ function onDrop(event) {
       return;
 
     if (event.ctrlKey) {
-      mConnection.postMessage({
+      Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
         id:   draggedId,
         destination: {
@@ -614,7 +607,7 @@ function onDrop(event) {
       });
     }
     else {
-      mConnection.postMessage({
+      Connection.sendMessage({
         type: Constants.COMMAND_MOVE_BOOKMARK,
         id:   draggedId,
         destination: {
@@ -629,7 +622,7 @@ function onDrop(event) {
   const places = retrievePlacesFromDragEvent(event);
   if (places.length > 0) {
     event.preventDefault();
-    mConnection.postMessage({
+    Connection.sendMessage({
       type:    Constants.COMMAND_CREATE_BOOKMARK,
       details: {
         type:  'bookmark',
