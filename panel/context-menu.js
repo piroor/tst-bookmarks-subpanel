@@ -188,6 +188,7 @@ async function showBookmarkDialog(params) {
       onShown(container) {
         l10n.updateDocument();
         container.classList.add('bookmark-dialog');
+        container.querySelector('[name="title"]').select();
       },
       buttons: [
         browser.i18n.getMessage(`bookmarkDialog_${params.mode}`),
