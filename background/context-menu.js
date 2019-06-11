@@ -195,7 +195,7 @@ function hasVisiblePrecedingItem(separator) {
   );
 }
 
-const UNDELETABLE_ITEMS = new Set([
+const UNMODIFIABLE_ITEMS = new Set([
   'root________',
   'menu________',
   'toolbar_____',
@@ -207,7 +207,7 @@ async function onShown(contextItem) {
   const isFolder    = contextItem && contextItem.type == 'folder';
   const isBookmark  = contextItem && contextItem.type == 'bookmark';
   const isSeparator = contextItem && contextItem.type == 'separator';
-  const deletable   = contextItem && !contextItem.unmodifiable && !UNDELETABLE_ITEMS.has(contextItem.id);
+  const modifiable  = contextItem && !contextItem.unmodifiable && !UNMODIFIABLE_ITEMS.has(contextItem.id);
 
   updateVisible('open', isBookmark);
   updateVisible('openTab', isBookmark);
@@ -216,14 +216,15 @@ async function onShown(contextItem) {
   updateVisible('openAllInTabs', isFolder);
   updateEnabled('openAllInTabs', isFolder && contextItem.children.length > 0);
 
-  updateEnabled('cut', deletable);
+  updateEnabled('cut', modifiable);
   updateEnabled('paste', !!mCopiedItem);
 
-  updateEnabled('delete', deletable);
+  updateEnabled('delete', modifiable);
 
   updateVisible('sortByName', isFolder);
 
-  updateVisible('properties', isSeparator);
+  updateVisible('properties', !isSeparator);
+  updateEnabled('properties', modifiable);
 
   for (const separator of mSeparators) {
     updateSeparator(separator.id);
@@ -323,7 +324,9 @@ async function onClicked(info) {
       }
       break;
 
+      /*
     case 'properties':
       break;
+      */
   }
 }
