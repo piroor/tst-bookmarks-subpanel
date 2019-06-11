@@ -201,12 +201,8 @@ Connection.onMessage.addListener(async message => {
         return;
 
       const item = mItemsById.get(message.id);
-      if (item) {
-        const wasActive = item.classList.contains('active');
-        const nextActive = item.nextSibling || item.previousSibling || item.closest('li');
-        if (nextActive)
-          setActive(nextActive);
-      }
+      if (item && item.classList.contains('active'))
+        setActive(item.nextSibling || item.previousSibling || item.closest('li'));
 
       const parentRawItem = mRawItemsById.get(message.removeInfo.parentId);
       if (parentRawItem)
