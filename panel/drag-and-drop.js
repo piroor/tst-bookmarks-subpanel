@@ -267,12 +267,10 @@ function onDrop(event) {
     return;
   }
 
-  const item     = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
-  const position = item ? getDropPosition(event) : DROP_POSITION_AFTER;
-
   const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
   if (draggedId) {
     event.preventDefault();
+    const item = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
     if (event.ctrlKey || isRootItem(item.raw.id)) {
       Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
