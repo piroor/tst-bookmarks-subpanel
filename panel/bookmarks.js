@@ -134,6 +134,20 @@ export function updateOpenState(item) {
   }
 }
 
+function clearActive() {
+  for (const node of document.querySelectorAll('.active')) {
+    node.classList.remove('active');
+  }
+}
+
+export function setActive(item) {
+  clearActive();
+  if (!item)
+    return;
+  item.classList.add('active');
+  item.firstChild.focus();
+}
+
 
 /* initializing */
 
@@ -186,6 +200,14 @@ Connection.onMessage.addListener(async message => {
       if (!rawItem)
         return;
 
+      const item = mItemsById.get(message.id);
+      if (item) {
+        const wasActive = item.classList.contains('active');
+        const nextActive = item.nextSibling || item.previousSibling || item.closest('li');
+        if (nextActive)
+          setActive(nextActive);
+      }
+
       const parentRawItem = mRawItemsById.get(message.removeInfo.parentId);
       if (parentRawItem)
         parentRawItem.children.splice(parentRawItem.children.findIndex(item => item.id == message.id), 1);
@@ -211,6 +233,9 @@ Connection.onMessage.addListener(async message => {
       const item = mItemsById.get(message.id);
       if (!item)
         return;
+
+      const wasActive = item.classList.contains('active');
+
       if (item.parentNode.childNodes.length == 1)
         mItemsById.get(message.removeInfo.oldParentId).classList.add('blank');
       item.parentNode.removeChild(item);
@@ -219,6 +244,9 @@ Connection.onMessage.addListener(async message => {
         newParentItem.dirty = true;
         buildChildren(newParentItem);
       }
+
+      if (wasActive)
+        setActive(mItemsById.get(message.id));
     }; break
 
     case Constants.NOTIFY_BOOKMARK_CHANGED: {

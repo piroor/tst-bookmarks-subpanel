@@ -50,12 +50,6 @@ async function init() {
 init();
 
 
-function clearActive() {
-  for (const node of document.querySelectorAll('.active')) {
-    node.classList.remove('active');
-  }
-}
-
 let mLastMouseDownTarget = null;
 
 window.addEventListener('mousedown', event => {
@@ -65,9 +59,7 @@ window.addEventListener('mousedown', event => {
 
   mLastMouseDownTarget = item.raw.id;
 
-  clearActive();
-  item.firstChild.classList.add('active');
-  item.firstChild.focus();
+  Bookmarks.setActive(item);
 
   if (event.button == 1) {
     // We need to cancel mousedown to block the "auto scroll" behavior
