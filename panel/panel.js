@@ -154,7 +154,7 @@ async function init() {
     mConnection.onMessage.addListener(onOneWayMessage);
     const [rootItems] = await Promise.all([
       browser.runtime.sendMessage({
-        type: Constants.COMMAND_GET_ALL
+        type: Constants.COMMAND_GET_ALL_BOOKMARKS
       }),
       (async () => {
         configs = await browser.runtime.sendMessage({
@@ -266,7 +266,7 @@ window.addEventListener('mouseup', event => {
     if (accel) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && LOADABLE_URL_MATCHER.test(url));
       mConnection.postMessage({
-        type: Constants.COMMAND_OPEN,
+        type: Constants.COMMAND_OPEN_BOOKMARKS,
         urls
       });
     }
@@ -282,12 +282,12 @@ window.addEventListener('mouseup', event => {
     if (!configs.openInTabAlways &&
         configs.openInTabDefault == accel)
       mConnection.postMessage({
-        type: Constants.COMMAND_LOAD,
+        type: Constants.COMMAND_LOAD_BOOKMARK,
         url:  item.raw.url
       });
     else
       mConnection.postMessage({
-        type:       Constants.COMMAND_OPEN,
+        type:       Constants.COMMAND_OPEN_BOOKMARKS,
         urls:       [item.raw.url],
         background: configs.openAsActiveTab ? event.shiftKey : !event.shiftKey
       });
@@ -317,7 +317,7 @@ async function onOneWayMessage(message) {
       }
       break;
 
-    case Constants.NOTIFY_CREATED: {
+    case Constants.NOTIFY_BOOKMARK_CREATED: {
       mRawItemsById.set(message.id, message.bookmark);
       const parentRawItem = mRawItemsById.get(message.bookmark.parentId);
       if (parentRawItem)
@@ -330,7 +330,7 @@ async function onOneWayMessage(message) {
       }
     }; break
 
-    case Constants.NOTIFY_REMOVED: {
+    case Constants.NOTIFY_BOOKMARK_REMOVED: {
       const rawItem = mRawItemsById.get(message.id);
       if (!rawItem)
         return;
@@ -342,7 +342,7 @@ async function onOneWayMessage(message) {
       deleteRawItem(rawItem);
     }; break
 
-    case Constants.NOTIFY_MOVED: {
+    case Constants.NOTIFY_BOOKMARK_MOVED: {
       const rawItem = mRawItemsById.get(message.id);
       if (!rawItem)
         return;
@@ -370,7 +370,7 @@ async function onOneWayMessage(message) {
       }
     }; break
 
-    case Constants.NOTIFY_CHANGED: {
+    case Constants.NOTIFY_BOOKMARK_CHANGED: {
       const rawItem = mRawItemsById.get(message.id);
       if (!rawItem)
         return;
@@ -601,7 +601,7 @@ function onDrop(event) {
 
     if (event.ctrlKey) {
       mConnection.postMessage({
-        type: Constants.COMMAND_COPY,
+        type: Constants.COMMAND_COPY_BOOKMARK,
         id:   draggedId,
         destination: {
           parentId,
@@ -611,7 +611,7 @@ function onDrop(event) {
     }
     else {
       mConnection.postMessage({
-        type: Constants.COMMAND_MOVE,
+        type: Constants.COMMAND_MOVE_BOOKMARK,
         id:   draggedId,
         destination: {
           parentId,
@@ -626,7 +626,7 @@ function onDrop(event) {
   if (places.length > 0) {
     event.preventDefault();
     mConnection.postMessage({
-      type:    Constants.COMMAND_CREATE,
+      type:    Constants.COMMAND_CREATE_BOOKMARK,
       details: {
         type:  'bookmark',
         title: places[0].title,

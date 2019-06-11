@@ -71,7 +71,7 @@ function onMessage(message, _sender) {
       return Promise.resolve(values);
     }
 
-    case Constants.COMMAND_GET_ALL:
+    case Constants.COMMAND_GET_ALL_BOOKMARKS:
       return browser.bookmarks.getTree();
   }
 }
@@ -85,7 +85,7 @@ async function onOneWayMessage(message) {
       return Promise.resolve(true);
     }
 
-    case Constants.COMMAND_LOAD: {
+    case Constants.COMMAND_LOAD_BOOKMARK: {
       const window    = await browser.windows.getCurrent({ populate: true });
       const activeTab = window.tabs.find(tab => tab.active);
       browser.tabs.update(activeTab.id, {
@@ -93,7 +93,7 @@ async function onOneWayMessage(message) {
       });
     }; break;
 
-    case Constants.COMMAND_OPEN: {
+    case Constants.COMMAND_OPEN_BOOKMARKS: {
       const window = await browser.windows.getCurrent({ populate: true });
       let index   = window.tabs.length;
       let isFirst = true;
@@ -108,7 +108,7 @@ async function onOneWayMessage(message) {
       }
     }; break;
 
-    case Constants.COMMAND_CREATE: {
+    case Constants.COMMAND_CREATE_BOOKMARK: {
       const details = {
         title:    message.details.title,
         type:     message.details.type || 'bookmark',
@@ -121,7 +121,7 @@ async function onOneWayMessage(message) {
       browser.bookmarks.create(details);
     }; break;
 
-    case Constants.COMMAND_MOVE: {
+    case Constants.COMMAND_MOVE_BOOKMARK: {
       const destination = {
         parentId: message.destination.parentId
       };
@@ -130,7 +130,7 @@ async function onOneWayMessage(message) {
       browser.bookmarks.move(message.id, destination);
     }; break;
 
-    case Constants.COMMAND_COPY: {
+    case Constants.COMMAND_COPY_BOOKMARK: {
       const destination = {
         parentId: message.destination.parentId
       };
@@ -198,7 +198,7 @@ browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
       bookmark = bookmark[0];
   }
   broadcastMessage({
-    type: Constants.NOTIFY_CREATED,
+    type: Constants.NOTIFY_BOOKMARK_CREATED,
     id,
     bookmark
   });
@@ -206,7 +206,7 @@ browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
 
 browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
   broadcastMessage({
-    type: Constants.NOTIFY_REMOVED,
+    type: Constants.NOTIFY_BOOKMARK_REMOVED,
     id,
     removeInfo
   });
@@ -214,7 +214,7 @@ browser.bookmarks.onRemoved.addListener((id, removeInfo) => {
 
 browser.bookmarks.onMoved.addListener((id, moveInfo) => {
   broadcastMessage({
-    type: Constants.NOTIFY_MOVED,
+    type: Constants.NOTIFY_BOOKMARK_MOVED,
     id,
     moveInfo
   });
@@ -222,7 +222,7 @@ browser.bookmarks.onMoved.addListener((id, moveInfo) => {
 
 browser.bookmarks.onChanged.addListener((id, changeInfo) => {
   broadcastMessage({
-    type: Constants.NOTIFY_CHANGED,
+    type: Constants.NOTIFY_BOOKMARK_CHANGED,
     id,
     changeInfo
   });

@@ -11,16 +11,15 @@ export const COMMAND_GET_CONFIGS = 'get-configs';
 export const COMMAND_SET_CONFIGS = 'set-configs';
 export const NOTIFY_UPDATED_CONFIGS = 'configs-updated';
 
-export const COMMAND_GET_ALL = 'get-all';
-export const COMMAND_OPEN    = 'open';
-export const COMMAND_LOAD    = 'load';
-export const COMMAND_CREATE  = 'create';
-export const COMMAND_MOVE    = 'move';
-export const COMMAND_COPY    = 'copy';
+export const COMMAND_GET_ALL_BOOKMARKS = 'get-all-bookmarks';
+export const COMMAND_OPEN_BOOKMARKS    = 'open-bookmarks';
+export const COMMAND_LOAD_BOOKMARK     = 'load-bookmark';
+export const COMMAND_CREATE_BOOKMARK   = 'create-bookmark';
+export const COMMAND_MOVE_BOOKMARK     = 'move-bookmark';
+export const COMMAND_COPY_BOOKMARK     = 'copy-bookmark';
 
-export const NOTIFY_READY   = 'ready';
-export const NOTIFY_CREATED = 'created';
-export const NOTIFY_REMOVED = 'removed';
-export const NOTIFY_MOVED   = 'moved';
-export const NOTIFY_CHANGED = 'changed';
-//export const NOTIFY_CHILDREN_REORDERED = 'children-reordered';
+export const NOTIFY_READY            = 'ready';
+export const NOTIFY_BOOKMARK_CREATED = 'bookmark-created';
+export const NOTIFY_BOOKMARK_REMOVED = 'bookmark-removed';
+export const NOTIFY_BOOKMARK_MOVED   = 'bookmark-moved';
+export const NOTIFY_BOOKMARK_CHANGED = 'bookmark-changed';
