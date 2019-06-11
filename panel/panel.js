@@ -209,7 +209,7 @@ function clearActive() {
 
 function getItemFromEvent(event) {
   let target = event.target;
-  if (target.nodeType != Node.ELEMENT_NODE)
+  if (!(target instanceof Element))
     target = target.parentNode;
   const row = target && target.closest('.row');
   return row && row.parentNode;
