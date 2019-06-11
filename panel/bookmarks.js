@@ -15,9 +15,69 @@ let mOpenedFolders;
 
 const mRoot = document.getElementById('root');
 
+export async function init() {
+  const [rootItems] = await Promise.all([
+    browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_ALL_BOOKMARKS
+    }),
+    (async () => {
+      const configs = await browser.runtime.sendMessage({
+        type: Constants.COMMAND_GET_CONFIGS,
+        keys: [
+          'openedFolders'
+        ]
+      });
+      mOpenedFolders = new Set(configs.openedFolders);
+    })()
+  ]);
+
+  storeRawItems(rootItems[0]);
+  buildItems(rootItems[0].children, mRoot);
+}
+
+function storeRawItems(rawItem) {
+  mRawItemsById.set(rawItem.id, rawItem);
+  if (rawItem.children)
+    for (const child of rawItem.children) {
+      storeRawItems(child);
+    }
+}
+
 export function get(id) {
   return mItemsById.get(id);
 }
+
+function clearActive() {
+  for (const node of mRoot.querySelectorAll('li.active')) {
+    node.classList.remove('active');
+  }
+}
+
+export function setActive(item) {
+  clearActive();
+  if (!item)
+    return;
+  item.classList.add('active');
+  item.firstChild.focus();
+}
+
+export function updateOpenState(item) {
+  if (item.classList.contains('collapsed'))
+    mOpenedFolders.delete(item.raw.id);
+  else
+    mOpenedFolders.add(item.raw.id);
+  Connection.sendMessage({
+    type:   Constants.COMMAND_SET_CONFIGS,
+    values: {
+      openedFolders: Array.from(mOpenedFolders)
+    }
+  });
+  if (!item.classList.contains('collapsed') &&
+      item.lastChild.localName != 'ul') {
+    buildChildren(item);
+  }
+}
+
 
 function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
@@ -117,67 +177,6 @@ function buildItems(items, container, options = {}) {
   }
 }
 
-export function updateOpenState(item) {
-  if (item.classList.contains('collapsed'))
-    mOpenedFolders.delete(item.raw.id);
-  else
-    mOpenedFolders.add(item.raw.id);
-  Connection.sendMessage({
-    type:   Constants.COMMAND_SET_CONFIGS,
-    values: {
-      openedFolders: Array.from(mOpenedFolders)
-    }
-  });
-  if (!item.classList.contains('collapsed') &&
-      item.lastChild.localName != 'ul') {
-    buildChildren(item);
-  }
-}
-
-function clearActive() {
-  for (const node of mRoot.querySelectorAll('li.active')) {
-    node.classList.remove('active');
-  }
-}
-
-export function setActive(item) {
-  clearActive();
-  if (!item)
-    return;
-  item.classList.add('active');
-  item.firstChild.focus();
-}
-
-
-/* initializing */
-
-export async function init() {
-  const [rootItems] = await Promise.all([
-    browser.runtime.sendMessage({
-      type: Constants.COMMAND_GET_ALL_BOOKMARKS
-    }),
-    (async () => {
-      const configs = await browser.runtime.sendMessage({
-        type: Constants.COMMAND_GET_CONFIGS,
-        keys: [
-          'openedFolders'
-        ]
-      });
-      mOpenedFolders = new Set(configs.openedFolders);
-    })()
-  ]);
-
-  storeRawItems(rootItems[0]);
-  buildItems(rootItems[0].children, mRoot);
-}
-
-function storeRawItems(rawItem) {
-  mRawItemsById.set(rawItem.id, rawItem);
-  if (rawItem.children)
-    for (const child of rawItem.children) {
-      storeRawItems(child);
-    }
-}
 
 // handling of messages sent from the background page
 Connection.onMessage.addListener(async message => {
