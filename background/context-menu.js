@@ -7,7 +7,7 @@
 
 import * as Constants from '/common/constants.js';
 
-const mItemsById = {
+const mDefinitions = {
   'open': {
     title: browser.i18n.getMessage('menu_open_label')
   },
@@ -68,6 +68,7 @@ const mItemsById = {
 };
 
 export const items = [];
+const itemsById = {};
 
 //const SIDEBAR_URL_PATTERN = [`moz-extension://${location.host}/*`];
 
@@ -79,9 +80,9 @@ function getItemPlacementSignature(item) {
   });
 }
 export async function init() {
-  const itemIds = Object.keys(mItemsById);
+  const itemIds = Object.keys(mDefinitions);
   for (const id of itemIds) {
-    const item = mItemsById[id];
+    const item = mDefinitions[id];
     item.id          = id;
     item.lastVisible = false;
     item.lastEnabled = true;
@@ -90,7 +91,7 @@ export async function init() {
       item.precedingItems = [];
       item.followingItems = [];
       for (const id of itemIds) {
-        const possibleSibling = mItemsById[id];
+        const possibleSibling = mDefinitions[id];
         if (getItemPlacementSignature(item) != getItemPlacementSignature(possibleSibling)) {
           if (beforeSeparator)
             continue;
@@ -131,6 +132,7 @@ export async function init() {
       info.parentId = item.parentId;
     //browser.menus.create(info);
     items.push(info);
+    itemsById[info.id] = info;
   }
   //browser.menus.onShown.addListener(onShown);
   //browser.menus.onClicked.addListener(onClick);
@@ -141,13 +143,34 @@ function onMessage(message, _sender) {
   switch (message.type) {
     case Constants.COMMAND_GET_MENU_ITEMS:
       return Promise.resolve(items);
+
+    case Constants.NOTIFY_MENU_SHOWN:
+      return onShown(message.contextItem);
   }
 }
 
-/*
-function onShown() {
+async function onShown(contextItem) {
+  const isFolder    = contextItem && contextItem.type == 'folder';
+  const isBookmark  = contextItem && contextItem.type == 'bookmark';
+  const isSeparator = contextItem && contextItem.type == 'separator';
+
+  itemsById.open.visible              = isBookmark;
+  itemsById.openTab.visible           = isBookmark;
+  itemsById.openWindow.visible        = isBookmark;
+  itemsById.openPrivateWindow.visible = isBookmark;
+  itemsById.openAllInTabs.visible     = isFolder;
+  itemsById.openAllInTabs.enabled     = isFolder && contextItem.children.length > 0;
+
+  itemsById.delete.enabled = true;
+
+  itemsById.sortByName.visible = isFolder;
+
+  itemsById.properties.visible = !isSeparator;
+
+  return items;
 }
 
+/*
 function onClick() {
 }
 */

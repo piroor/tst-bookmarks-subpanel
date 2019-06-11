@@ -8,6 +8,7 @@
 import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
+import * as EventUtils from './event-utils.js';
 import * as ContextMenu from './context-menu.js';
 
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
@@ -204,18 +205,10 @@ function clearActive() {
   }
 }
 
-function getItemFromEvent(event) {
-  let target = event.target;
-  if (!(target instanceof Element))
-    target = target.parentNode;
-  const row = target && target.closest('.row');
-  return row && row.parentNode;
-}
-
 let mLastMouseDownTarget = null;
 
 window.addEventListener('mousedown', event => {
-  const item = getItemFromEvent(event);
+  const item = EventUtils.getItemFromEvent(event);
   if (!item)
     return;
 
@@ -246,7 +239,7 @@ window.addEventListener('mouseup', event => {
   if (event.button == 2)
     return;
 
-  const item = getItemFromEvent(event);
+  const item = EventUtils.getItemFromEvent(event);
   if (!item)
     return;
 
@@ -415,7 +408,7 @@ const TYPE_URI_LIST      = 'text/uri-list';
 const TYPE_TEXT_PLAIN    = 'text/plain';
 
 function onDragStart(event) {
-  const item = getItemFromEvent(event);
+  const item = EventUtils.getItemFromEvent(event);
   if (!item)
     return;
 
@@ -436,7 +429,7 @@ const DROP_POSITION_BEFORE = 'before';
 const DROP_POSITION_AFTER  = 'after';
 
 function getDropPosition(event) {
-  const item = getItemFromEvent(event);
+  const item = EventUtils.getItemFromEvent(event);
   if (!item)
     return DROP_POSITION_NONE;
   const areaCount = item.raw.type == 'folder' ? 3 : 2;
@@ -550,7 +543,7 @@ function onDragOver(event) {
     return;
   }
 
-  const item     = getItemFromEvent(event);
+  const item     = EventUtils.getItemFromEvent(event);
   const position = getDropPosition(event);
   if (item) {
     if (draggedId) {
@@ -583,7 +576,7 @@ function getLastVisibleItem(item) {
 
 function onDrop(event) {
   creatDropPositionMarker();
-  const item     = getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
+  const item     = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
   const position = item ? getDropPosition(event) : DROP_POSITION_AFTER;
 
   const parentId = position == DROP_POSITION_SELF ? item.raw.id : item.raw.parentId;
