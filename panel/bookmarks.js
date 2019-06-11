@@ -83,6 +83,7 @@ function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
   item.raw = folder;
   item.level = options.level || 0;
+  item.dataset.id = folder.id;
   const row = buildRow(item);
   row.setAttribute('title', folder.title);
   const twisty = row.appendChild(document.createElement('button'));
@@ -110,7 +111,7 @@ function buildFolder(folder, options = {}) {
 function buildRow(item) {
   const row = item.appendChild(document.createElement('a'));
   row.classList.add('row');
-  row.style.paddingLeft = `calc(1em * ${item.level + 1})`;
+  row.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
   row.setAttribute('draggable', true);
   return row;
 }
@@ -132,6 +133,7 @@ function buildBookmark(bookmark, options = {}) {
   const item = document.createElement('li');
   item.raw = bookmark;
   item.level = options.level || 0;
+  item.dataset.id = bookmark.id;
   const row = buildRow(item);
   const label = row.appendChild(document.createElement('span'));
   label.classList.add('label');
@@ -152,6 +154,7 @@ function buildSeparator(separator, options = {}) {
   const item = document.createElement('li');
   item.raw = separator;
   item.level = options.level || 0;
+  item.dataset.id = separator.id;
   buildRow(item);
   item.classList.add('separator');
   mItemsById.set(separator.id, item);

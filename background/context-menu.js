@@ -196,19 +196,11 @@ function hasVisiblePrecedingItem(separator) {
   );
 }
 
-const UNMODIFIABLE_ITEMS = new Set([
-  'root________',
-  'menu________',
-  'toolbar_____',
-  'unfiled_____',
-  'mobile______'
-]);
-
 async function onShown(contextItem) {
   const isFolder    = contextItem && contextItem.type == 'folder';
   const isBookmark  = contextItem && contextItem.type == 'bookmark';
   const isSeparator = contextItem && contextItem.type == 'separator';
-  const modifiable  = contextItem && !contextItem.unmodifiable && !UNMODIFIABLE_ITEMS.has(contextItem.id);
+  const modifiable  = contextItem && !contextItem.unmodifiable && !Constants.UNMODIFIABLE_ITEMS.has(contextItem.id);
 
   updateVisible('open', isBookmark);
   updateVisible('openTab', isBookmark);

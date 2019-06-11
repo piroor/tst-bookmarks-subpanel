@@ -31,3 +31,11 @@ export const NOTIFY_MENU_SHOWN      = 'menu-shown';
 export const NOTIFY_MENU_CLICKED    = 'menu-clicked';
 
 export const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
+
+export const UNMODIFIABLE_ITEMS = new Set([
+  'root________',
+  'menu________',
+  'toolbar_____',
+  'unfiled_____',
+  'mobile______'
+]);

@@ -8,7 +8,11 @@
   background: -moz-field;
   color: -moz-fieldText;
   cursor: default;
-  font-size: small;
+  font: message-box;
+  --icon-size: 1.3em;
+  --indent-size: 1.3em;
+  --indent-offset-size: 0px;
+  --twisty-size: 0.8em;
 }
 
 :root,
@@ -25,20 +29,20 @@ body {
   color: inherit;
   content: "";
   display: inline-block;
-  height: 1em;
-  line-height: 1;
+  height: var(--icon-size);
+  line-height: var(--icon-size);
   margin-right: 0.25em;
   mask: url("/resources/Globe.svg") no-repeat center / 100%;
-  max-height: 1em;
-  max-width: 1em;
-  width: 1em;
+  max-height: var(--icon-size);
+  max-width: var(--icon-size);
+  width: var(--icon-size);
 }
 
 
 
 #searchbar {
   background: -moz-field;
-  border: 1px solid ThreeDShadow;
+  border: 1px solid GrayText;
   color: -moz-fieldText;
   display: flex;
   flex-direction: row;
@@ -49,10 +53,11 @@ body {
   position: fixed;
   right: 0.2em;
   top: 0.2em;
+  --icon-size: 1em;
 }
 
 #searchbar:hover {
-  border-color: ThreeDDarkShadow;
+  border-color: currentColor;
 }
 
 #searchbar.active {
@@ -61,7 +66,7 @@ body {
 
 #searchbar::before,
 #searchbox-clear::before  {
-  background: ThreeDShadow;
+  background: GrayText;
   margin: 0.25em;
   mask-image: url("/resources/SearchWindows.svg");
 }
@@ -95,6 +100,7 @@ body {
 ul#root {
   bottom: 0;
   left: 0;
+  line-height: 1.6;
   overflow-y: auto;
   position: fixed;
   right: 0;
@@ -160,7 +166,7 @@ ul#root li[data-drop-position="after"] > .row {
 }
 
 .folder > .row {
-  margin-left: -1em;
+  --indent-offset-size: calc(var(--twisty-size) * 1.3);
 }
 
 .folder.blank > .row > .twisty {
@@ -179,13 +185,17 @@ ul#root li[data-drop-position="after"] > .row {
   opacity: 0.65;
 }
 
+.separator {
+  line-height: 0;
+}
+
 .separator > .row {
   padding-bottom: 0.4em;
   padding-top: 0.4em;
 }
 
 .separator > .row::before {
-  border-top: 1px solid;
+  border-top: 1px solid GrayText;
   content: " ";
   display: block;
   font-size: 1px;
@@ -198,9 +208,12 @@ ul#root li[data-drop-position="after"] > .row {
 .twisty {
   background: none;
   border: none;
-  margin: 0;
+  height: var(--icon-size);
+  margin: 0 calc(var(--icon-size) / 5) 0 0;
   min-width: 0;
   padding: 0;
+  width: var(--icon-size);
+  --icon-size: var(--twisty-size);
 }
 
 .label::before {
@@ -208,15 +221,26 @@ ul#root li[data-drop-position="after"] > .row {
 }
 
 .folder > .row > .label::before {
-  mask-image: url("/resources/Folder.svg");
+  background: url("/resources/places/folder.svg") no-repeat center / 100%;
+  mask: none;
+}
+
+.folder[data-id="menu________"] > .row > .label::before {
+  background-image: url("/resources/places/bookmarksMenu.svg");
+}
+
+.folder[data-id="toolbar_____"] > .row > .label::before {
+  background-image: url("/resources/places/bookmarksToolbar.svg");
+}
+
+.folder[data-id="unfiled_____"] > .row > .label::before {
+  background-image: url("/resources/places/unfiledBookmarks.svg");
 }
 
 .twisty::before {
-  font-size: 80%;
   mask-image: url("/resources/ArrowheadDown.svg");
 }
 
 .folder.collapsed > .row > .twisty::before {
-  font-size: 80%;
   mask-image: url("/resources/ArrowheadRight.svg");
 }
