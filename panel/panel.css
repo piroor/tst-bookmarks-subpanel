@@ -17,14 +17,15 @@ body {
   padding: 0;
 }
 
-ul {
+ul#root,
+ul#root ul {
   margin: 0;
   max-width: 100%;
   padding: 0;
   width: 100%;
 }
 
-li {
+ul#root li {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -42,16 +43,16 @@ li {
   white-space: pre;
 }
 
-li[data-drop-position="self"] > .row > .label {
+ul#root li[data-drop-position="self"] > .row > .label {
   color: HighlightText;
   background: Highlight;
 }
 
-li[data-drop-position="before"] > .row {
+ul#root li[data-drop-position="before"] > .row {
   border-top-color: currentColor;
 }
 
-li[data-drop-position="after"] > .row {
+ul#root li[data-drop-position="after"] > .row {
   border-bottom-color: currentColor;
 }
 

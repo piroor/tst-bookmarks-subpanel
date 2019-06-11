@@ -5,6 +5,8 @@
 */
 'use strict';
 
+import * as Constants from '/common/constants.js';
+
 const mItemsById = {
   'open': {
     title: browser.i18n.getMessage('menu_open_label')
@@ -132,6 +134,14 @@ export async function init() {
   }
   //browser.menus.onShown.addListener(onShown);
   //browser.menus.onClicked.addListener(onClick);
+  browser.runtime.onMessage.addListener(onMessage);
+}
+
+function onMessage(message, _sender) {
+  switch (message.type) {
+    case Constants.COMMAND_GET_MENU_ITEMS:
+      return Promise.resolve(items);
+  }
 }
 
 /*

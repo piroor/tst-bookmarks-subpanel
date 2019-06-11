@@ -7,6 +7,8 @@
 
 import * as Constants from '/common/constants.js';
 
+import * as ContextMenu from './context-menu.js';
+
 const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
 let configs = {};
@@ -181,6 +183,8 @@ async function init() {
     mRoot.addEventListener('dragleave', onDragLeave);
     mRoot.addEventListener('dragend', onDragEnd);
     mRoot.addEventListener('drop', onDrop);
+
+    ContextMenu.init();
 
     mInitiaized = true;
   }
