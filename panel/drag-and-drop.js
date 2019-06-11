@@ -246,6 +246,10 @@ function onDrop(event) {
     if (dragged && dragged.contains(item))
       return;
 
+    if (parentId == dragged.parentId &&
+        index > dragged.index)
+      index--;
+
     if (event.ctrlKey) {
       Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
