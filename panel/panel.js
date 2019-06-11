@@ -330,7 +330,7 @@ Connection.onMessage.addListener(async message => {
 
       const parentRawItem = mRawItemsById.get(message.removeInfo.parentId);
       if (parentRawItem)
-        parentRawItem.children.splice(message.removeInfo.index, 1);
+        parentRawItem.children.splice(parentRawItem.children.findIndex(item => item.id == message.id), 1);
 
       deleteRawItem(rawItem);
     }; break
@@ -342,7 +342,7 @@ Connection.onMessage.addListener(async message => {
 
       const oldParentRawItem = mRawItemsById.get(message.moveInfo.oldParentId);
       if (oldParentRawItem)
-        oldParentRawItem.children.splice(message.moveInfo.oldIndex, 1);
+        oldParentRawItem.children.splice(oldParentRawItem.children.findIndex(item => item.id == message.id), 1);
       const newParentRawItem = mRawItemsById.get(message.moveInfo.parentId);
       if (newParentRawItem)
         newParentRawItem.children.splice(message.moveInfo.index, 0, rawItem);
