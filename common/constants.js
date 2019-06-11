@@ -32,10 +32,14 @@ export const NOTIFY_MENU_CLICKED    = 'menu-clicked';
 
 export const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
-export const UNMODIFIABLE_ITEMS = new Set([
-  'root________',
-  'menu________',
+export const ROOT_ITEMS = [
   'toolbar_____',
+  'menu________',
   'unfiled_____',
   'mobile______'
+];
+
+export const UNMODIFIABLE_ITEMS = new Set([
+  'root________',
+  ...ROOT_ITEMS
 ]);

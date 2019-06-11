@@ -15,13 +15,6 @@ let mOpenedFolders;
 
 const mRoot = document.getElementById('root');
 
-const ROOT_ITEMS = [
-  'toolbar_____',
-  'menu________',
-  'unfiled_____',
-  'mobile______'
-];
-
 export async function init() {
   const [rootItems] = await Promise.all([
     browser.runtime.sendMessage({
@@ -40,7 +33,7 @@ export async function init() {
 
   storeRawItem(rootItems[0]);
 
-  buildItems(ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
+  buildItems(Constants.ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
 }
 
 function storeRawItem(rawItem) {
@@ -204,7 +197,7 @@ export async function search(query) {
       type: Constants.COMMAND_GET_ALL_BOOKMARKS
     });
     storeRawItem(rootItems[0]);
-    buildItems(ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
+    buildItems(Constants.ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
     return;
   }
 

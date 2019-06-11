@@ -29,7 +29,8 @@ const TYPE_TEXT_PLAIN    = 'text/plain';
 
 function onDragStart(event) {
   const item = EventUtils.getItemFromEvent(event);
-  if (!item)
+  if (!item ||
+      Constants.ROOT_ITEMS.includes(item.raw.id))
     return;
 
   const dt = event.dataTransfer;
@@ -163,8 +164,13 @@ function onDragOver(event) {
     return;
   }
 
-  const item     = EventUtils.getItemFromEvent(event);
   const position = getDropPosition(event);
+  if (position == DROP_POSITION_NONE) {
+    event.dataTransfer.effectAllowed = 'none';
+    return;
+  }
+
+  const item = EventUtils.getItemFromEvent(event);
   if (item) {
     if (draggedId) {
       const dragged = Bookmarks.get(draggedId);
