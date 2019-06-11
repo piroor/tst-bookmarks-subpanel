@@ -31,7 +31,7 @@
   "menu_openAllInTabs_label": { "message": "&Open All in Tabs" },
   "menu_createBookmark_label": { "message": "New &Bookmark…" },
   "menu_createFolder_label": { "message": "New &Folder…" },
-  "menu_createSeparator_label": { "message": "New &Separator…" },
+  "menu_createSeparator_label": { "message": "New &Separator" },
   "menu_cut_label": { "message": "Cu&t" },
   "menu_copy_label": { "message": "&Copy" },
   "menu_paste_label": { "message": "&Paste" },

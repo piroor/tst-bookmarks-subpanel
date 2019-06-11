@@ -31,7 +31,7 @@
   "menu_openAllInTabs_label": { "message": "タブですべて開く(&O)" },
   "menu_createBookmark_label": { "message": "新しいブックマーク(&B)..." },
   "menu_createFolder_label": { "message": "新しいフォルダー(&F)..." },
-  "menu_createSeparator_label": { "message": "新しい区切り(&S)..." },
+  "menu_createSeparator_label": { "message": "新しい区切り(&S)" },
   "menu_cut_label": { "message": "切り取り(&T)" },
   "menu_copy_label": { "message": "コピー(&C)" },
   "menu_paste_label": { "message": "貼り付け(&P)" },
