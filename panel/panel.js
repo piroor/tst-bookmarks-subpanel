@@ -187,6 +187,9 @@ async function init() {
 }
 
 function storeRawItems(rawItem) {
+  // I don't kwno why, but sometimes the first child of a folder can have invalid index.
+  if (rawItem.index < 0)
+    rawItem.index = 0;
   mRawItemsById.set(rawItem.id, rawItem);
   if (rawItem.children)
     for (const child of rawItem.children) {
