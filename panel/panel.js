@@ -579,8 +579,39 @@ function onDrop(event) {
   const item     = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
   const position = item ? getDropPosition(event) : DROP_POSITION_AFTER;
 
-  const parentId = position == DROP_POSITION_SELF ? item.raw.id : item.raw.parentId;
-  const index    = position == DROP_POSITION_SELF ? null : position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
+  let parentId;
+  let index;
+  if (item) {
+    if (item.raw.type == 'folder') {
+      switch (position) {
+        default:
+        case DROP_POSITION_SELF:
+          parentId = item.raw.id;
+          index = null;
+          break;
+
+        case DROP_POSITION_BEFORE:
+          parentId = item.raw.parentId;
+          index = item.raw.index;
+          break;
+
+        case DROP_POSITION_AFTER:
+          if (item.classList.contains('collapsed')) {
+            parentId = item.raw.parentId;
+            index = item.raw.index + 1;
+          }
+          else {
+            parentId = item.raw.id;
+            index = 0;
+          }
+          break;
+      }
+    }
+    else {
+      parentId = item.raw.parentId;
+      index = position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
+    }
+  }
 
   const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
   if (draggedId) {
