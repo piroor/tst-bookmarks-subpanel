@@ -19,7 +19,7 @@ let mUI;
 const mItemsById = {};
 let mContextItem;
 
-export async function init() {
+async function init() {
   const items = await browser.runtime.sendMessage({
     type: Constants.COMMAND_GET_MENU_ITEMS
   });
@@ -46,6 +46,7 @@ export async function init() {
     subMenuCloseDelay: 300  // configs.subMenuCloseDelay
   });
 }
+init();
 
 function onCommand(target, _event) {
   const menuItemId = target && target.dataset.command;

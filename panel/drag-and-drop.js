@@ -14,13 +14,12 @@ import * as Bookmarks from './bookmarks.js';
 
 const mRoot = document.getElementById('root');
 
-export function init() {
-  mRoot.addEventListener('dragstart', onDragStart);
-  mRoot.addEventListener('dragover', onDragOver);
-  mRoot.addEventListener('dragleave', onDragLeave);
-  mRoot.addEventListener('dragend', onDragEnd);
-  mRoot.addEventListener('drop', onDrop);
-}
+mRoot.addEventListener('dragstart', onDragStart);
+mRoot.addEventListener('dragover', onDragOver);
+mRoot.addEventListener('dragleave', onDragLeave);
+mRoot.addEventListener('dragend', onDragEnd);
+mRoot.addEventListener('drop', onDrop);
+
 
 const TYPE_BOOKMARK_ITEM = 'application/x-tst-bookmarks-subpanel-bookmark-item';
 const TYPE_X_MOZ_URL     = 'text/x-moz-url';

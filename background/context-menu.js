@@ -85,7 +85,7 @@ function getItemPlacementSignature(item) {
     parentId: item.parentId
   });
 }
-async function init() {
+function init() {
   const itemIds = Object.keys(mItemsById);
   for (const id of itemIds) {
     const item = mItemsById[id];
@@ -141,12 +141,10 @@ async function init() {
   }
   //browser.menus.onShown.addListener(onShown);
   //browser.menus.onClicked.addListener(onClicked);
-  browser.runtime.onMessage.addListener(onMessage);
-  Connection.onMessage.addListener(onOneWayMessage);
 }
 init();
 
-function onMessage(message, _sender) {
+browser.runtime.onMessage.addListener((message, _sender) => {
   switch (message.type) {
     case Constants.COMMAND_GET_MENU_ITEMS:
       return Promise.resolve(mMenuItemDefinitions);
@@ -154,9 +152,9 @@ function onMessage(message, _sender) {
     case Constants.NOTIFY_MENU_SHOWN:
       return onShown(message.contextItem);
   }
-}
+});
 
-function onOneWayMessage(message) {
+Connection.onMessage.addListener(message => {
   switch (message.type) {
     case Constants.NOTIFY_MENU_CLICKED:
       onClicked({
@@ -165,7 +163,7 @@ function onOneWayMessage(message) {
       });
       break
   }
-}
+});
 
 function updateVisible(id, visible) {
   const item = mItemsById[id];

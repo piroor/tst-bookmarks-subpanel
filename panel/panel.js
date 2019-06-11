@@ -10,9 +10,9 @@ import * as Constants from '/common/constants.js';
 import * as Connection from './connection.js';
 import * as EventUtils from './event-utils.js';
 import * as Bookmarks from './bookmarks.js';
-import * as ContextMenu from './context-menu.js';
-import * as DragAndDrop from './drag-and-drop.js';
 import * as Dialogs from './dialogs.js';
+import './context-menu.js';
+import './drag-and-drop.js';
 import './searchbar.js';
 
 let configs = {};
@@ -41,9 +41,6 @@ async function init() {
     ]);
 
     mRoot.scrollTop = configs.scrollPosition;
-
-    DragAndDrop.init();
-    ContextMenu.init();
 
     mInitiaized = true;
   }
