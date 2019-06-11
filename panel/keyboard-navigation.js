@@ -118,10 +118,10 @@ function createVisibleItemWalker() {
       acceptNode(node) {
         if (!node.matches('#root li'))
           return NodeFilter.FILTER_SKIP;
-        const collapsed = node.closest('li.collapsed');
-        if (!collapsed || collapsed == node)
-          return NodeFilter.FILTER_ACCEPT;
-        return NodeFilter.FILTER_SKIP;
+        const collapsed = node.parentNode.closest('li.collapsed');
+        if (collapsed)
+          return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
       }
     },
     false
