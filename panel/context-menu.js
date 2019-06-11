@@ -8,11 +8,10 @@
 import * as Constants from '/common/constants.js';
 
 import MenuUI from '/extlib/MenuUI.js';
-import RichConfirm from '/extlib/RichConfirm.js';
-import l10n from '/extlib/l10n.js';
 
 import * as EventUtils from './event-utils.js';
 import * as Connection from './connection.js';
+import * as Dialogs from './dialogs.js';
 
 const mRoot = document.getElementById('context-menu');
 let mUI;
@@ -61,7 +60,7 @@ function onCommand(target, _event) {
 
   switch (menuItemId) {
     case 'createBookmark':
-      showBookmarkDialog({
+      Dialogs.showBookmarkDialog({
         mode:  'add',
         type:  'bookmark',
         title: browser.i18n.getMessage('defaultBookmarkTitle'),
@@ -79,7 +78,7 @@ function onCommand(target, _event) {
       break;
 
     case 'createFolder':
-      showBookmarkDialog({
+      Dialogs.showBookmarkDialog({
         mode:  'add',
         type:  'folder',
         title: browser.i18n.getMessage('defaultFolderTitle')
@@ -96,7 +95,7 @@ function onCommand(target, _event) {
       break;
 
     case 'properties':
-      showBookmarkDialog({
+      Dialogs.showBookmarkDialog({
         mode:  'save',
         type:  mContextItem.type,
         title: mContextItem.title,
@@ -166,43 +165,4 @@ async function open(options = {}) {
 
 async function close() {
   await mUI.close();
-}
-
-
-async function showBookmarkDialog(params) {
-  const urlField = `
-        <div><label>__MSG_bookmarkDialog_url__
-                    <input type="text"
-                           name="url"
-                           value=${JSON.stringify(params.url)}></label></div>
-  `;
-  try {
-    const result = await RichConfirm.show({
-      content: `
-        <div><label>__MSG_bookmarkDialog_title__
-                    <input type="text"
-                           name="title"
-                           value=${JSON.stringify(params.title)}></label></div>
-        ${params.type == 'bookmark' ? urlField: ''}
-      `,
-      onShown(container) {
-        l10n.updateDocument();
-        container.classList.add('bookmark-dialog');
-        container.querySelector('[name="title"]').select();
-      },
-      buttons: [
-        browser.i18n.getMessage(`bookmarkDialog_${params.mode}`),
-        browser.i18n.getMessage('bookmarkDialog_cancel')
-      ]
-    });
-    if (result.buttonIndex != 0)
-      return null;
-    return {
-      title: result.values.title,
-      url:   result.values.url
-    };
-  }
-  catch(_error) {
-    return null;
-  }
 }
