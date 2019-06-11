@@ -17,6 +17,10 @@ import * as Dialogs from './dialogs.js';
 let configs = {};
 let mInitiaized = false;
 
+const mRoot = document.getElementById('root');
+const mSearchBar = document.getElementById('searchbar');
+const mSearchBox = document.getElementById('searchbox');
+
 async function init() {
   if (mInitiaized)
     return;
@@ -37,7 +41,7 @@ async function init() {
       })()
     ]);
 
-    window.scrollTo(0, configs.scrollPosition);
+    mRoot.scrollTop = configs.scrollPosition;
 
     DragAndDrop.init();
     ContextMenu.init();
@@ -64,7 +68,7 @@ Connection.onMessage.addListener(async message => {
 
 let mLastMouseDownTarget = null;
 
-window.addEventListener('mousedown', event => {
+mRoot.addEventListener('mousedown', event => {
   const item = EventUtils.getItemFromEvent(event);
   if (!item)
     return;
@@ -90,7 +94,7 @@ window.addEventListener('mousedown', event => {
 
 // We need to handle mouseup instead of click to bypass the "auto scroll"
 // behavior of Firefox itself.
-window.addEventListener('mouseup', event => {
+mRoot.addEventListener('mouseup', event => {
   if (event.button == 2)
     return;
 
@@ -144,11 +148,20 @@ window.addEventListener('mouseup', event => {
   }
 });
 
-window.addEventListener('scroll', () => {
+mRoot.addEventListener('scroll', () => {
   Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
-      scrollPosition: window.scrollY
+      scrollPosition: mRoot.scrollTop
     }
   });
+});
+
+
+mSearchBox.addEventListener('focus', () => {
+  mSearchBar.classList.add('active');
+});
+
+mSearchBox.addEventListener('blur', () => {
+  mSearchBar.classList.remove('active');
 });

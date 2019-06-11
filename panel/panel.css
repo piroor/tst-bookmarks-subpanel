@@ -17,6 +17,73 @@ body {
   padding: 0;
 }
 
+#searchbar::before,
+.label::before,
+.twisty::before {
+  background: currentColor;
+  color: inherit;
+  content: "";
+  display: inline-block;
+  height: 1em;
+  line-height: 1;
+  margin-right: 0.25em;
+  mask: url("/resources/Globe.svg") no-repeat center / 100%;
+  max-height: 1em;
+  max-width: 1em;
+  width: 1em;
+}
+
+
+
+#searchbar {
+  background: -moz-field;
+  border: 1px solid ThreeDShadow;
+  color: -moz-fieldText;
+  display: flex;
+  flex-direction: row;
+  height: 1.5em;
+  left: 0.2em;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  right: 0.2em;
+  top: 0.2em;
+}
+
+#searchbar:hover {
+  border-color: ThreeDDarkShadow;
+}
+
+#searchbar.active {
+  border-color: Highlight;
+}
+
+#searchbar::before {
+  background: ThreeDShadow;
+  margin: 0.25em;
+  mask-image: url("/resources/SearchWindows.svg");
+}
+
+#searchbox {
+  background: transparent;
+  border: none;
+  color: -moz-fieldText;
+  flex-grow: 1;
+  margin: 0;
+  padding: 0;
+}
+
+
+ul#root {
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+  position: fixed;
+  right: 0;
+  scrollbar-width: thin;
+  top: 2em;
+}
+
 ul#root,
 ul#root ul {
   margin: 0;
@@ -118,19 +185,8 @@ ul#root li[data-drop-position="after"] > .row {
   padding: 0;
 }
 
-.label::before,
-.twisty::before {
-  background: currentColor no-repeat center / 100%;
-  color: inherit;
-  content: "";
-  display: inline-block;
-  height: 1em;
-  line-height: 1;
-  margin-right: 0.25em;
-  mask: url("/resources/Globe.svg") no-repeat center / 100%;
-  max-height: 1em;
-  max-width: 1em;
-  width: 1em;
+.label::before {
+  mask-image: url("/resources/Globe.svg");
 }
 
 .folder > .row > .label::before {

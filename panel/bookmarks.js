@@ -135,7 +135,7 @@ export function updateOpenState(item) {
 }
 
 function clearActive() {
-  for (const node of document.querySelectorAll('.active')) {
+  for (const node of mRoot.querySelectorAll('li.active')) {
     node.classList.remove('active');
   }
 }
