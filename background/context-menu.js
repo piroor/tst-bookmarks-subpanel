@@ -85,7 +85,7 @@ function getItemPlacementSignature(item) {
     parentId: item.parentId
   });
 }
-export async function init() {
+async function init() {
   const itemIds = Object.keys(mItemsById);
   for (const id of itemIds) {
     const item = mItemsById[id];
@@ -144,6 +144,7 @@ export async function init() {
   browser.runtime.onMessage.addListener(onMessage);
   Connection.onMessage.addListener(onOneWayMessage);
 }
+init();
 
 function onMessage(message, _sender) {
   switch (message.type) {

@@ -12,8 +12,8 @@ import {
 import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
-import * as ContextMenu from './context-menu.js';
 import * as Commands from './commands.js';
+import './context-menu.js';
 
 async function registerToTST() {
   try {
@@ -46,14 +46,6 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 
 registerToTST();
 
-configs.$loaded.then(() => {
-  browser.runtime.onMessage.addListener(onMessage);
-  Connection.broadcastMessage({
-    type: Constants.NOTIFY_READY
-  });
-  ContextMenu.init();
-});
-
 configs.$addObserver(key => {
   const values = {};
   values[key] = configs[key];
@@ -63,21 +55,21 @@ configs.$addObserver(key => {
   });
 });
 
-
-function onMessage(message, _sender) {
+browser.runtime.onMessage.addListener((message, _sender) => {
   switch (message.type) {
-    case Constants.COMMAND_GET_CONFIGS: {
-      const values = {};
-      for (const key of message.keys) {
-        values[key] = configs[key];
-      }
-      return Promise.resolve(values);
-    }
+    case Constants.COMMAND_GET_CONFIGS:
+      return configs.$loaded.then(() => {
+        const values = {};
+        for (const key of message.keys) {
+          values[key] = configs[key];
+        }
+        return values;
+      });
 
     case Constants.COMMAND_GET_ALL_BOOKMARKS:
       return browser.bookmarks.getTree();
   }
-}
+});
 
 Connection.onMessage.addListener(async message => {
   switch (message.type) {

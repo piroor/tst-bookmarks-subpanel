@@ -19,7 +19,6 @@ export const COMMAND_UPDATE_BOOKMARK   = 'update-bookmark';
 export const COMMAND_MOVE_BOOKMARK     = 'move-bookmark';
 export const COMMAND_COPY_BOOKMARK     = 'copy-bookmark';
 
-export const NOTIFY_READY            = 'ready';
 export const NOTIFY_BOOKMARK_CREATED = 'bookmark-created';
 export const NOTIFY_BOOKMARK_REMOVED = 'bookmark-removed';
 export const NOTIFY_BOOKMARK_MOVED   = 'bookmark-moved';
