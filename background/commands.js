@@ -41,7 +41,7 @@ export async function create(params = {}) {
     type:     params.type || 'bookmark',
     parentId: params.parentId
   };
-  if (params.url)
+  if (params.type == 'bookmark' && params.url)
     details.url = params.url;
   if (typeof params.index == 'number')
     details.index = params.index;
@@ -50,6 +50,16 @@ export async function create(params = {}) {
   if (details.type == 'bookmark' && !details.url)
     details.url = 'about:blank';
   return browser.bookmarks.create(details);
+}
+
+export async function update(id, params = {}) {
+  const bookmark = await browser.bookmarks.get(id);
+  const changes = {
+    title: params.title
+  };
+  if (bookmark.type == 'bookmark' && params.url)
+    changes.url = params.url;
+  return browser.bookmarks.update(id, changes);
 }
 
 export async function copy(original, destination) {

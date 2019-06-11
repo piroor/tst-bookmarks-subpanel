@@ -3,8 +3,14 @@
   "extensionDescription": { "message": "ツリー型タブのサイドバー内にブックマーク一覧を表示します。" },
 
   "blankTitle": { "message": "(無題)" },
-  "newBookmarkTitle": { "message": "新しいブックマーク" },
-  "newFolderTitle": { "message": "新しいフォルダー" },
+  "defaultBookmarkTitle": { "message": "新しいブックマーク" },
+  "defaultFolderTitle": { "message": "新しいフォルダー" },
+
+  "bookmarkDialog_title":  { "message": "名前:" },
+  "bookmarkDialog_url":    { "message": "URL:" },
+  "bookmarkDialog_save":   { "message": "保存" },
+  "bookmarkDialog_add":    { "message": "追加" },
+  "bookmarkDialog_cancel": { "message": "キャンセル" },
 
   "menu_open_label": { "message": "開く(&O)" },
   "menu_openTab_label": { "message": "新しいタブで開く(&W)" },

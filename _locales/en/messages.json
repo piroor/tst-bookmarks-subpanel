@@ -3,8 +3,14 @@
   "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
 
   "blankTitle": { "message": "(no title)" },
-  "newBookmarkTitle": { "message": "New Bookmark" },
-  "newFolderTitle": { "message": "New Folder" },
+  "defaultBookmarkTitle": { "message": "New Bookmark" },
+  "defaultFolderTitle": { "message": "New Folder" },
+
+  "bookmarkDialog_title":  { "message": "Name:" },
+  "bookmarkDialog_url":    { "message": "Location:" },
+  "bookmarkDialog_save":   { "message": "Save" },
+  "bookmarkDialog_add":    { "message": "Add" },
+  "bookmarkDialog_cancel": { "message": "Cancel" },
 
   "menu_open_label": { "message": "&Open" },
   "menu_openTab_label": { "message": "Open in a Ne&w Tab" },

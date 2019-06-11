@@ -8,6 +8,8 @@
 import * as Constants from '/common/constants.js';
 
 import MenuUI from '/extlib/MenuUI.js';
+import RichConfirm from '/extlib/RichConfirm.js';
+import l10n from '/extlib/l10n.js';
 
 import * as EventUtils from './event-utils.js';
 import * as Connection from './connection.js';
@@ -47,11 +49,77 @@ export async function init() {
 }
 
 function onCommand(target, _event) {
-  Connection.sendMessage({
-    type:       Constants.NOTIFY_MENU_CLICKED,
-    menuItemId: target && target.dataset.command,
-    bookmarkId: mContextItem && mContextItem.id
-  });
+  const menuItemId = target && target.dataset.command;
+  const bookmarkId = mContextItem && mContextItem.id;
+
+  const destination = {};
+  if (mContextItem) {
+    destination.parentId = mContextItem.type == 'folder' ? mContextItem.id : mContextItem.parentId;
+    if (mContextItem.type != 'folder')
+      destination.index = mContextItem.index;
+  }
+
+  switch (menuItemId) {
+    case 'createBookmark':
+      showBookmarkDialog({
+        mode:  'add',
+        type:  'bookmark',
+        title: browser.i18n.getMessage('defaultBookmarkTitle'),
+        url:   ''
+      }).then(details => {
+        if (!details)
+          return;
+        Connection.sendMessage({
+          type:    Constants.COMMAND_CREATE_BOOKMARK,
+          details: Object.assign({
+            type:  'bookmark'
+          }, details, destination)
+        });
+      });
+      break;
+
+    case 'createFolder':
+      showBookmarkDialog({
+        mode:  'add',
+        type:  'folder',
+        title: browser.i18n.getMessage('defaultFolderTitle')
+      }).then(details => {
+        if (!details)
+          return;
+        Connection.sendMessage({
+          type:    Constants.COMMAND_CREATE_BOOKMARK,
+          details: Object.assign({
+            type:  'folder'
+          }, details, destination)
+        });
+      });
+      break;
+
+    case 'properties':
+      showBookmarkDialog({
+        mode:  'save',
+        type:  mContextItem.type,
+        title: mContextItem.title,
+        url:   mContextItem.url
+      }).then(details => {
+        if (!details)
+          return;
+        Connection.sendMessage({
+          type:    Constants.COMMAND_UPDATE_BOOKMARK,
+          id:      bookmarkId,
+          changes: details
+        });
+      });
+      break;
+
+    default:
+      Connection.sendMessage({
+        type: Constants.NOTIFY_MENU_CLICKED,
+        menuItemId,
+        bookmarkId
+      });
+      break;
+  }
   close();
 }
 
@@ -98,4 +166,42 @@ async function open(options = {}) {
 
 async function close() {
   await mUI.close();
+}
+
+
+async function showBookmarkDialog(params) {
+  const urlField = `
+        <div><label>__MSG_bookmarkDialog_url__
+                    <input type="text"
+                           name="url"
+                           value=${JSON.stringify(params.url)}></label></div>
+  `;
+  try {
+    const result = await RichConfirm.show({
+      content: `
+        <div><label>__MSG_bookmarkDialog_title__
+                    <input type="text"
+                           name="title"
+                           value=${JSON.stringify(params.title)}></label></div>
+        ${params.type == 'bookmark' ? urlField: ''}
+      `,
+      onShown(container) {
+        l10n.updateDocument();
+        container.classList.add('bookmark-dialog');
+      },
+      buttons: [
+        browser.i18n.getMessage(`bookmarkDialog_${params.mode}`),
+        browser.i18n.getMessage('bookmarkDialog_cancel')
+      ]
+    });
+    if (result.buttonIndex != 0)
+      return null;
+    return {
+      title: result.values.title,
+      url:   result.values.url
+    };
+  }
+  catch(_error) {
+    return null;
+  }
 }

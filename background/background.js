@@ -100,6 +100,10 @@ Connection.onMessage.addListener(async message => {
       Commands.create(message.details);
       break;
 
+    case Constants.COMMAND_UPDATE_BOOKMARK:
+      Commands.update(message.id, message.changes);
+      break;
+
     case Constants.COMMAND_MOVE_BOOKMARK: {
       const destination = {
         parentId: message.destination.parentId

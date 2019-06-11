@@ -13,3 +13,6 @@
 [submodule "submodules/webextensions-lib-event-listener-manager"]
 	path = submodules/webextensions-lib-event-listener-manager
 	url = https://github.com/piroor/webextensions-lib-event-listener-manager.git
+[submodule "submodules/webextensions-lib-rich-confirm"]
+	path = submodules/webextensions-lib-rich-confirm
+	url = https://github.com/piroor/webextensions-lib-rich-confirm.git

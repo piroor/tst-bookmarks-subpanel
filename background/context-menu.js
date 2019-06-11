@@ -273,10 +273,11 @@ async function onClicked(info) {
       break;
 
 
+      /*
     case 'createBookmark':
       Commands.create(Object.assign({
         type:  'bookmark',
-        title: browser.i18n.getMessage('newBookmarkTitle'),
+        title: browser.i18n.getMessage('defaultBookmarkTitle'),
         url:   ''
       }, destination));
       break;
@@ -284,9 +285,10 @@ async function onClicked(info) {
     case 'createFolder':
       Commands.create(Object.assign({
         type:  'folder',
-        title: browser.i18n.getMessage('newFolderTitle')
+        title: browser.i18n.getMessage('defaultFolderTitle')
       }, destination));
       break;
+      */
 
     case 'createSeparator':
       Commands.create(Object.assign({
