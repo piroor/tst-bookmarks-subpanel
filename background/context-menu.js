@@ -7,6 +7,11 @@
 
 import * as Constants from '/common/constants.js';
 
+import * as Connection from './connection.js';
+import * as Commands from './commands.js';
+
+let mCopiedItem = null;
+
 const mItemsById = {
   'open': {
     title: browser.i18n.getMessage('menu_open_label')
@@ -135,8 +140,9 @@ export async function init() {
     mMenuItemDefinitions.push(info);
   }
   //browser.menus.onShown.addListener(onShown);
-  //browser.menus.onClicked.addListener(onClick);
+  //browser.menus.onClicked.addListener(onClicked);
   browser.runtime.onMessage.addListener(onMessage);
+  Connection.onMessage.addListener(onOneWayMessage);
 }
 
 function onMessage(message, _sender) {
@@ -146,6 +152,17 @@ function onMessage(message, _sender) {
 
     case Constants.NOTIFY_MENU_SHOWN:
       return onShown(message.contextItem);
+  }
+}
+
+function onOneWayMessage(message) {
+  switch (message.type) {
+    case Constants.NOTIFY_MENU_CLICKED:
+      onClicked({
+        bookmarkId: message.bookmarkId,
+        menuItemId: message.menuItemId
+      });
+      break
   }
 }
 
@@ -178,10 +195,19 @@ function hasVisiblePrecedingItem(separator) {
   );
 }
 
+const UNDELETABLE_ITEMS = new Set([
+  'root________',
+  'menu________',
+  'toolbar_____',
+  'unfiled_____',
+  'mobile______'
+]);
+
 async function onShown(contextItem) {
   const isFolder    = contextItem && contextItem.type == 'folder';
   const isBookmark  = contextItem && contextItem.type == 'bookmark';
   const isSeparator = contextItem && contextItem.type == 'separator';
+  const deletable   = contextItem && !contextItem.unmodifiable && !UNDELETABLE_ITEMS.has(contextItem.id);
 
   updateVisible('open', isBookmark);
   updateVisible('openTab', isBookmark);
@@ -190,7 +216,10 @@ async function onShown(contextItem) {
   updateVisible('openAllInTabs', isFolder);
   updateEnabled('openAllInTabs', isFolder && contextItem.children.length > 0);
 
-  updateEnabled('delete', true);
+  updateEnabled('cut', deletable);
+  updateEnabled('paste', !!mCopiedItem);
+
+  updateEnabled('delete', deletable);
 
   updateVisible('sortByName', isFolder);
 
@@ -203,7 +232,40 @@ async function onShown(contextItem) {
   return mItems;
 }
 
-/*
-function onClick() {
+async function onClicked(info) {
+  let bookmark = info.bookmarkId && await browser.bookmarks.get(info.bookmarkId);
+  if (Array.isArray(bookmark))
+    bookmark = bookmark[0];
+  if (bookmark && bookmark.type == 'folder') {
+    bookmark = await browser.bookmarks.getSubTree(bookmark.id);
+    if (Array.isArray(bookmark))
+      bookmark = bookmark[0];
+  }
+
+  if (!bookmark)
+    return;
+
+  switch (info.menuItemId) {
+    case 'copy':
+      mCopiedItem = bookmark;
+      break;
+
+    case 'cut':
+      mCopiedItem = bookmark;
+    case 'delete':
+      if (bookmark.type == 'folder')
+        browser.bookmarks.removeTree(info.bookmarkId);
+      else
+        browser.bookmarks.remove(info.bookmarkId);
+      break;
+
+    case 'paste': {
+      const destination = {
+        parentId: bookmark.type == 'folder' ? bookmark.id : bookmark.parentId
+      };
+      if (bookmark.type != 'folder')
+        destination.index = bookmark.index;
+      Commands.copy(mCopiedItem, destination);
+    }; break;
+  }
 }
-*/

@@ -13,6 +13,7 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 import * as ContextMenu from './context-menu.js';
+import * as Commands from './commands.js';
 
 async function registerToTST() {
   try {
@@ -138,37 +139,10 @@ Connection.onMessage.addListener(async message => {
       };
       if (message.destination.index >= 0)
         destination.index = message.destination.index;
-      copyItem(message.id, destination);
+      Commands.copy(message.id, destination);
     }; break;
   }
 });
-
-async function copyItem(original, destination) {
-  if (typeof original == 'string') {
-    original = await browser.bookmarks.get(original);
-    if (Array.isArray(original))
-      original = original[0];
-    if (original.type == 'folder')
-      original = await browser.bookmarks.getSubTree(original.id);
-  }
-  if (Array.isArray(original))
-    original = original[0];
-  const details = Object.assign({
-    type: original.type
-  }, destination)
-  if (original.title)
-    details.title = original.title;
-  if (original.url)
-    details.url = original.url;
-  const created = await browser.bookmarks.create(details);
-  if (original.children && original.children.length > 0) {
-    for (const child of original.children) {
-      copyItem(child, {
-        parentId: created.id
-      });
-    }
-  }
-}
 
 browser.bookmarks.onCreated.addListener(async (id, bookmark) => {
   // notified bookmark has no children information!

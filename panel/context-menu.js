@@ -10,12 +10,13 @@ import * as Constants from '/common/constants.js';
 import MenuUI from '/extlib/MenuUI.js';
 
 import * as EventUtils from './event-utils.js';
+import * as Connection from './connection.js';
 
 const mRoot = document.getElementById('context-menu');
 let mUI;
 
 const mItemsById = {};
-
+let mContextItem;
 
 export async function init() {
   const items = await browser.runtime.sendMessage({
@@ -26,6 +27,7 @@ export async function init() {
     const node = document.createElement('li');
     if (item.title)
       node.textContent = item.title;
+    node.dataset.command = item.id;
     node.classList.add(item.type);
     mRoot.appendChild(node);
     item.node = node;
@@ -44,7 +46,13 @@ export async function init() {
   });
 }
 
-function onCommand() {
+function onCommand(target, _event) {
+  Connection.sendMessage({
+    type:       Constants.NOTIFY_MENU_CLICKED,
+    menuItemId: target && target.dataset.command,
+    bookmarkId: mContextItem && mContextItem.id
+  });
+  close();
 }
 
 async function onShown(contextItem) {
@@ -60,6 +68,7 @@ window.addEventListener('contextmenu', async event => {
     return;
 
   const item = EventUtils.getItemFromEvent(event);
+  mContextItem = item && item.raw;
 
   event.stopPropagation();
   event.preventDefault();
@@ -69,7 +78,6 @@ window.addEventListener('contextmenu', async event => {
     if ('visible' in updatedItem) {
       item.visible = updatedItem.visible;
       item.node.style.display = item.visible ? 'block' : 'none';
-      console.log(item.id, item.node.style.display);
     }
     if ('enabled' in updatedItem) {
       item.enabled = updatedItem.enabled;

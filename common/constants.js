@@ -26,3 +26,4 @@ export const NOTIFY_BOOKMARK_CHANGED = 'bookmark-changed';
 
 export const COMMAND_GET_MENU_ITEMS = 'get-menu-items';
 export const NOTIFY_MENU_SHOWN      = 'menu-shown';
+export const NOTIFY_MENU_CLICKED    = 'menu-clicked';
