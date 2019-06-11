@@ -7,7 +7,7 @@
 
 import * as Constants from '/common/constants.js';
 
-const mDefinitions = {
+const mItemsById = {
   'open': {
     title: browser.i18n.getMessage('menu_open_label')
   },
@@ -66,9 +66,10 @@ const mDefinitions = {
     title: browser.i18n.getMessage('menu_properties_label')
   }
 };
+const mItems = Array.from(Object.values(mItemsById));
+const mSeparators = mItems.filter(item => item.type == 'separator');
 
-export const items = [];
-const itemsById = {};
+const mMenuItemDefinitions = [];
 
 //const SIDEBAR_URL_PATTERN = [`moz-extension://${location.host}/*`];
 
@@ -80,18 +81,18 @@ function getItemPlacementSignature(item) {
   });
 }
 export async function init() {
-  const itemIds = Object.keys(mDefinitions);
+  const itemIds = Object.keys(mItemsById);
   for (const id of itemIds) {
-    const item = mDefinitions[id];
+    const item = mItemsById[id];
     item.id          = id;
-    item.lastVisible = false;
+    item.lastVisible = true;
     item.lastEnabled = true;
     if (item.type == 'separator') {
       let beforeSeparator = true;
       item.precedingItems = [];
       item.followingItems = [];
       for (const id of itemIds) {
-        const possibleSibling = mDefinitions[id];
+        const possibleSibling = mItemsById[id];
         if (getItemPlacementSignature(item) != getItemPlacementSignature(possibleSibling)) {
           if (beforeSeparator)
             continue;
@@ -131,8 +132,7 @@ export async function init() {
     if (item.parentId)
       info.parentId = item.parentId;
     //browser.menus.create(info);
-    items.push(info);
-    itemsById[info.id] = info;
+    mMenuItemDefinitions.push(info);
   }
   //browser.menus.onShown.addListener(onShown);
   //browser.menus.onClicked.addListener(onClick);
@@ -142,11 +142,40 @@ export async function init() {
 function onMessage(message, _sender) {
   switch (message.type) {
     case Constants.COMMAND_GET_MENU_ITEMS:
-      return Promise.resolve(items);
+      return Promise.resolve(mMenuItemDefinitions);
 
     case Constants.NOTIFY_MENU_SHOWN:
       return onShown(message.contextItem);
   }
+}
+
+function updateVisible(id, visible) {
+  const item = mItemsById[id];
+  item.visible = item.lastVisible = visible;
+}
+
+function updateEnabled(id, enabled) {
+  const item = mItemsById[id];
+  item.enabled = item.lastEnabled = enabled;
+}
+
+function updateSeparator(id, options = {}) {
+  const item = mItemsById[id];
+  const visible = (
+    (options.hasVisiblePreceding ||
+     hasVisiblePrecedingItem(item)) &&
+    (options.hasVisibleFollowing ||
+     item.followingItems.some(id => mItemsById[id].type != 'separator' && mItemsById[id].lastVisible))
+  );
+  updateVisible(id, visible);
+}
+function hasVisiblePrecedingItem(separator) {
+  return (
+    separator.precedingItems.some(id => mItemsById[id].type != 'separator' && mItemsById[id].lastVisible) ||
+    (separator.previousSeparator &&
+     !separator.previousSeparator.lastVisible &&
+     hasVisiblePrecedingItem(separator.previousSeparator))
+  );
 }
 
 async function onShown(contextItem) {
@@ -154,20 +183,24 @@ async function onShown(contextItem) {
   const isBookmark  = contextItem && contextItem.type == 'bookmark';
   const isSeparator = contextItem && contextItem.type == 'separator';
 
-  itemsById.open.visible              = isBookmark;
-  itemsById.openTab.visible           = isBookmark;
-  itemsById.openWindow.visible        = isBookmark;
-  itemsById.openPrivateWindow.visible = isBookmark;
-  itemsById.openAllInTabs.visible     = isFolder;
-  itemsById.openAllInTabs.enabled     = isFolder && contextItem.children.length > 0;
+  updateVisible('open', isBookmark);
+  updateVisible('openTab', isBookmark);
+  updateVisible('openWindow', isBookmark);
+  updateVisible('openPrivateWindow', isBookmark);
+  updateVisible('openAllInTabs', isFolder);
+  updateEnabled('openAllInTabs', isFolder && contextItem.children.length > 0);
 
-  itemsById.delete.enabled = true;
+  updateEnabled('delete', true);
 
-  itemsById.sortByName.visible = isFolder;
+  updateVisible('sortByName', isFolder);
 
-  itemsById.properties.visible = !isSeparator;
+  updateVisible('properties', isSeparator);
 
-  return items;
+  for (const separator of mSeparators) {
+    updateSeparator(separator.id);
+  }
+
+  return mItems;
 }
 
 /*

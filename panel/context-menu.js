@@ -26,6 +26,7 @@ export async function init() {
     const node = document.createElement('li');
     if (item.title)
       node.textContent = item.title;
+    node.classList.add(item.type);
     mRoot.appendChild(node);
     item.node = node;
     mItemsById[item.id] = item;
