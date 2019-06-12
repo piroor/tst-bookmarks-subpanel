@@ -209,7 +209,7 @@ async function onShown(contextItem, contextItems) {
   updateVisible('openWindow', !multiselected && hasBookmark);
   updateVisible('openPrivateWindow', !multiselected && hasBookmark);
   updateVisible('openAllInTabs', multiselected ? allBookmarks : hasFolder);
-  updateEnabled('openAllInTabs', multiselected ? allBookmarks : (hasFolder && contextItem.children.length));
+  updateEnabled('openAllInTabs', multiselected ? allBookmarks : (hasFolder && contextItem.children.length > 0));
 
   updateEnabled('cut', modifiable);
   updateEnabled('paste', !multiselected && mCopiedItems.length > 0);
