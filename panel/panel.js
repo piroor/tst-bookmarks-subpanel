@@ -112,6 +112,8 @@ mRoot.addEventListener('mouseup', event => {
     }
     else {
       Bookmarks.toggleOpenState(item);
+      if (!EventUtils.getElementTarget(event).classList.contains('twisty'))
+        Bookmarks.setActive(item);
     }
     return;
   }

@@ -10,7 +10,7 @@ import * as Constants from '/common/constants.js';
 import * as Connection from './connection.js';
 import * as Commands from './commands.js';
 
-let mCopiedItem = null;
+let mCopiedItems = [];
 
 const mItemsById = {
   'open': {
@@ -150,7 +150,7 @@ browser.runtime.onMessage.addListener((message, _sender) => {
       return Promise.resolve(mMenuItemDefinitions);
 
     case Constants.NOTIFY_MENU_SHOWN:
-      return onShown(message.contextItem);
+      return onShown(message.contextItem, message.contextItems);
   }
 });
 
@@ -159,6 +159,8 @@ Connection.onMessage.addListener(message => {
     case Constants.NOTIFY_MENU_CLICKED:
       onClicked({
         bookmarkId: message.bookmarkId,
+        bookmark:   message.bookmark,
+        bookmarks:  message.bookmarks,
         menuItemId: message.menuItemId
       });
       break
@@ -194,27 +196,29 @@ function hasVisiblePrecedingItem(separator) {
   );
 }
 
-async function onShown(contextItem) {
-  const isFolder    = contextItem && contextItem.type == 'folder';
-  const isBookmark  = contextItem && contextItem.type == 'bookmark';
-  const isSeparator = contextItem && contextItem.type == 'separator';
-  const modifiable  = contextItem && !contextItem.unmodifiable && !Constants.UNMODIFIABLE_ITEMS.has(contextItem.id);
+async function onShown(contextItem, contextItems) {
+  const hasFolder    = contextItems.some(item => item.type == 'folder');
+  const hasBookmark  = contextItems.some(item => item.type == 'bookmark');
+  const hasSeparator = contextItems.some(item => item.type == 'separator');
+  const allBookmarks = hasBookmark && !hasFolder && !hasSeparator;
+  const modifiable   = contextItems.every(item => !item.unmodifiable && !Constants.UNMODIFIABLE_ITEMS.has(item.id));
+  const multiselected = contextItems.length > 1;
 
-  updateVisible('open', isBookmark);
-  updateVisible('openTab', isBookmark);
-  updateVisible('openWindow', isBookmark);
-  updateVisible('openPrivateWindow', isBookmark);
-  updateVisible('openAllInTabs', isFolder);
-  updateEnabled('openAllInTabs', isFolder && contextItem.children.length > 0);
+  updateVisible('open', !multiselected && hasBookmark);
+  updateVisible('openTab', !multiselected && hasBookmark);
+  updateVisible('openWindow', !multiselected && hasBookmark);
+  updateVisible('openPrivateWindow', !multiselected && hasBookmark);
+  updateVisible('openAllInTabs', multiselected ? allBookmarks : hasFolder);
+  updateEnabled('openAllInTabs', multiselected ? allBookmarks : (hasFolder && contextItem.children.length));
 
   updateEnabled('cut', modifiable);
-  updateEnabled('paste', !!mCopiedItem);
+  updateEnabled('paste', !multiselected && mCopiedItems.length > 0);
 
   updateEnabled('delete', modifiable);
 
-  updateVisible('sortByName', isFolder);
+  updateVisible('sortByName', !multiselected && hasFolder);
 
-  updateVisible('properties', !isSeparator);
+  updateVisible('properties', !multiselected && !hasSeparator);
   updateEnabled('properties', modifiable);
 
   for (const separator of mSeparators) {
@@ -225,6 +229,7 @@ async function onShown(contextItem) {
 }
 
 async function onClicked(info) {
+  /*
   let bookmark = info.bookmarkId && await browser.bookmarks.get(info.bookmarkId);
   if (Array.isArray(bookmark))
     bookmark = bookmark[0];
@@ -233,6 +238,9 @@ async function onClicked(info) {
     if (Array.isArray(bookmark))
       bookmark = bookmark[0];
   }
+  */
+  const bookmark  = info.bookmark;
+  const bookmarks = info.bookmarks;
 
   if (!bookmark)
     return;
@@ -292,20 +300,22 @@ async function onClicked(info) {
 
 
     case 'copy':
-      mCopiedItem = bookmark;
+      mCopiedItems = bookmarks;
       break;
 
     case 'cut':
-      mCopiedItem = bookmark;
+      mCopiedItems = bookmarks;
     case 'delete':
-      if (bookmark.type == 'folder')
-        browser.bookmarks.removeTree(info.bookmarkId);
-      else
-        browser.bookmarks.remove(info.bookmarkId);
+      for (const bookmark of bookmarks) {
+        if (bookmark.type == 'folder')
+          browser.bookmarks.removeTree(bookmark.id);
+        else
+          browser.bookmarks.remove(bookmark.id);
+      }
       break;
 
     case 'paste':
-      Commands.copy(mCopiedItem, destination);
+      Commands.copy(mCopiedItems, destination);
       break;
 
 

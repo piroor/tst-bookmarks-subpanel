@@ -12,12 +12,13 @@ import MenuUI from '/extlib/MenuUI.js';
 import * as EventUtils from './event-utils.js';
 import * as Connection from './connection.js';
 import * as Dialogs from './dialogs.js';
+import * as Bookmarks from './bookmarks.js';
 
 const mRoot = document.getElementById('context-menu');
 let mUI;
 
 const mItemsById = {};
-let mContextItem;
+let mContextItemId;
 
 async function init() {
   const items = await browser.runtime.sendMessage({
@@ -48,29 +49,37 @@ async function init() {
 }
 init();
 
+function getContextItems() {
+  const contextItem = Bookmarks.get(mContextItemId);
+  if (!contextItem || contextItem.classList.contains('highlighted'))
+    return Bookmarks.getHighlighted();
+  return contextItem ? [contextItem] : [];
+}
+
 function onCommand(target, _event) {
   const menuItemId = target && target.dataset.command;
-  const bookmarkId = mContextItem && mContextItem.id;
+  const contextItem = Bookmarks.get(mContextItemId);
+  const contextItems = getContextItems();
 
   const destination = {};
-  if (mContextItem) {
-    destination.parentId = mContextItem.type == 'folder' ? mContextItem.id : mContextItem.parentId;
-    if (mContextItem.type != 'folder')
-      destination.index = mContextItem.index;
+  if (contextItems.length > 0) {
+    destination.parentId = contextItem.raw.type == 'folder' ? contextItem.raw.id : contextItem.raw.parentId;
+    if (contextItem.raw.type != 'folder')
+      destination.index = contextItem.raw.index;
   }
 
   switch (menuItemId) {
-    case 'openAllInTabs':
-      const urls = mContextItem.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+    case 'openAllInTabs': {
+      const urls = contextItem.raw.type == 'folder' ? contextItem.raw.children.map(raw => raw.url) : contextItems.map(item => item.raw.url);
       Dialogs.warnOnOpenTabs(urls.length).then(granted => {
         if (!granted)
           return;
         Connection.sendMessage({
           type: Constants.COMMAND_OPEN_BOOKMARKS,
-          urls
+          urls: urls.filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url))
         });
       });
-      break;
+    }; break;
 
     case 'createBookmark':
       Dialogs.showBookmarkDialog({
@@ -110,15 +119,15 @@ function onCommand(target, _event) {
     case 'properties':
       Dialogs.showBookmarkDialog({
         mode:  'save',
-        type:  mContextItem.type,
-        title: mContextItem.title,
-        url:   mContextItem.url
+        type:  contextItem.raw.type,
+        title: contextItem.raw.title,
+        url:   contextItem.raw.url
       }).then(details => {
         if (!details)
           return;
         Connection.sendMessage({
           type:    Constants.COMMAND_UPDATE_BOOKMARK,
-          id:      bookmarkId,
+          id:      contextItem.raw.id,
           changes: details
         });
       });
@@ -128,17 +137,22 @@ function onCommand(target, _event) {
       Connection.sendMessage({
         type: Constants.NOTIFY_MENU_CLICKED,
         menuItemId,
-        bookmarkId
+        bookmarkId: contextItem.raw.id,
+        bookmark:   contextItem.raw,
+        bookmarks:  contextItems.map(item => item.raw)
       });
       break;
   }
   close();
 }
 
-async function onShown(contextItem) {
+async function onShown() {
+  const contextItem = Bookmarks.get(mContextItemId);
+  const contextItems = getContextItems();
   return browser.runtime.sendMessage({
     type: Constants.NOTIFY_MENU_SHOWN,
-    contextItem
+    contextItem:  contextItem && contextItem.raw,
+    contextItems: contextItems.map(item => item.raw)
   });
 }
 
@@ -148,11 +162,11 @@ window.addEventListener('contextmenu', async event => {
     return;
 
   const item = EventUtils.getItemFromEvent(event);
-  mContextItem = item && item.raw;
+  mContextItemId = item && item.raw.id;
 
   event.stopPropagation();
   event.preventDefault();
-  const updatedItems = await onShown(item && item.raw);
+  const updatedItems = await onShown();
   for (const updatedItem of updatedItems) {
     const item = mItemsById[updatedItem.id];
     if ('visible' in updatedItem) {

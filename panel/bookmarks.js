@@ -73,6 +73,10 @@ export function getActive() {
   return mRoot.querySelector('li.active');
 }
 
+export function getHighlighted() {
+  return Array.from(mRoot.querySelectorAll('li.highlighted'));
+}
+
 export function toggleOpenState(item) {
   item.classList.toggle('collapsed');
   if (item.classList.contains('collapsed'))
