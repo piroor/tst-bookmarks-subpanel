@@ -48,17 +48,23 @@ export function get(id) {
   return mItemsById.get(id);
 }
 
-function clearActive() {
-  for (const node of mRoot.querySelectorAll('li.active')) {
+function clearActive(options = {}) {
+  const selectors = ['li.active'];
+  if (!options.multiselect)
+    selectors.push('li.highlighted');
+  for (const node of mRoot.querySelectorAll(selectors.join(','))) {
     node.classList.remove('active');
+    if (!options.multiselect)
+      node.classList.remove('highlighted');
   }
 }
 
-export function setActive(item) {
-  clearActive();
+export function setActive(item, options = {}) {
+  clearActive(options);
   if (!item)
     return;
   item.classList.add('active');
+  item.classList.add('highlighted');
   item.firstChild.focus();
   mRoot.classList.add('active');
 }

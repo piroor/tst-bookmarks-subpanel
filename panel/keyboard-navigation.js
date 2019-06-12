@@ -21,6 +21,9 @@ const configs = Connection.getConfigs([
 
 document.addEventListener('keydown', onKeyDown);
 
+let mFirstMultiselectId = null;
+let mLastMultiselectId = null;
+
 function onKeyDown(event) {
   if (event.isComposing)
     return;
@@ -36,18 +39,23 @@ function onKeyDown(event) {
   if (activeItem)
     walker.currentNode = activeItem;
 
+  if (!event.shiftKey)
+    mFirstMultiselectId = mLastMultiselectId = null;
+  else if (!mFirstMultiselectId && activeItem)
+    mFirstMultiselectId = activeItem.raw.id;
+
   switch (event.key) {
     case 'ArrowUp':
       if (!onTree || !hasItem || accel)
         return;
-      setActive(walker.previousNode() || activeItem);
+      setActive(walker.previousNode() || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
     case 'ArrowDown':
       if (!onTree || !hasItem || accel)
         return;
-      setActive(walker.nextNode() || activeItem);
+      setActive(walker.nextNode() || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
@@ -67,7 +75,7 @@ function onKeyDown(event) {
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.previousNode()
       }
-      setActive(walker.currentNode || activeItem);
+      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
@@ -77,7 +85,7 @@ function onKeyDown(event) {
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.nextNode()
       }
-      setActive(walker.currentNode || activeItem);
+      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
@@ -86,7 +94,7 @@ function onKeyDown(event) {
         return;
       while (walker.previousNode()) {
       }
-      setActive(walker.currentNode || activeItem);
+      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
@@ -95,7 +103,7 @@ function onKeyDown(event) {
         return;
       while (walker.nextNode()) {
       }
-      setActive(walker.currentNode || activeItem);
+      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
@@ -151,15 +159,66 @@ function onKeyDown(event) {
   }
 }
 
-function setActive(activeItem) {
+function setActive(activeItem, options = {}) {
   if (!activeItem)
     return;
-  Bookmarks.setActive(activeItem);
+
+  Bookmarks.setActive(activeItem, options);
   activeItem.scrollIntoView({
     behavior: 'smooth',
     block:    'nearest',
     inline:   'nearest'
   });
+
+  if (!options.multiselect)
+    return;
+
+   mLastMultiselectId = activeItem.raw.id;
+   let firstItem = Bookmarks.get(mFirstMultiselectId);
+   let lastItem  = Bookmarks.get(mLastMultiselectId);
+
+   const isBottomToTop = firstItem != lastItem && lastItem.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING;
+
+   if (firstItem != lastItem) {
+     const nearestHighlightedWalker = createVisibleItemWalker();
+     nearestHighlightedWalker.currentNode = lastItem;
+     let lastHighlighted = lastItem;
+     while (isBottomToTop ? nearestHighlightedWalker.nextNode() : nearestHighlightedWalker.previousNode()) {
+       const current = nearestHighlightedWalker.currentNode;
+       if (!current ||
+           current == lastItem ||
+           !current.classList.contains('highlighted'))
+         break;
+       lastHighlighted = current;
+     }
+     if (lastHighlighted != firstItem) {
+       firstItem = lastHighlighted;
+       mFirstMultiselectId = lastHighlighted.raw.id;
+     }
+   }
+
+   const toBeUnhighlighted = new Set(mRoot.querySelectorAll('li.highlighted'));
+
+   toBeUnhighlighted.delete(firstItem);
+   firstItem.classList.add('highlighted');
+
+   if (firstItem != lastItem) {
+     toBeUnhighlighted.delete(lastItem);
+     lastItem.classList.add('highlighted');
+     const highlightableItemWalker = createVisibleItemWalker();
+     highlightableItemWalker.currentNode = firstItem;
+     while (isBottomToTop ? highlightableItemWalker.previousNode() : highlightableItemWalker.nextNode()) {
+       const current = highlightableItemWalker.currentNode;
+       if (!current || current == lastItem)
+         break;
+       current.classList.add('highlighted');
+       toBeUnhighlighted.delete(current);
+     }
+  }
+
+   for (const item of toBeUnhighlighted) {
+     item.classList.remove('highlighted');
+   }
 }
 
 function createVisibleItemWalker() {
