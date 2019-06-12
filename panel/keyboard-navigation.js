@@ -173,52 +173,53 @@ function setActive(activeItem, options = {}) {
   if (!options.multiselect)
     return;
 
-   mLastMultiselectId = activeItem.raw.id;
-   let firstItem = Bookmarks.get(mFirstMultiselectId);
-   let lastItem  = Bookmarks.get(mLastMultiselectId);
+  mLastMultiselectId = activeItem.raw.id;
+  let firstItem = Bookmarks.get(mFirstMultiselectId);
+  const lastItem = Bookmarks.get(mLastMultiselectId);
 
-   const isBottomToTop = firstItem != lastItem && lastItem.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING;
+  const isBottomToTop = firstItem != lastItem && lastItem.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING;
 
-   if (firstItem != lastItem) {
-     const nearestHighlightedWalker = createVisibleItemWalker();
-     nearestHighlightedWalker.currentNode = lastItem;
-     let lastHighlighted = lastItem;
-     while (isBottomToTop ? nearestHighlightedWalker.nextNode() : nearestHighlightedWalker.previousNode()) {
-       const current = nearestHighlightedWalker.currentNode;
-       if (!current ||
-           current == lastItem ||
-           !current.classList.contains('highlighted'))
-         break;
-       lastHighlighted = current;
-     }
-     if (lastHighlighted != firstItem) {
-       firstItem = lastHighlighted;
-       mFirstMultiselectId = lastHighlighted.raw.id;
-     }
-   }
-
-   const toBeUnhighlighted = new Set(mRoot.querySelectorAll('li.highlighted'));
-
-   toBeUnhighlighted.delete(firstItem);
-   firstItem.classList.add('highlighted');
-
-   if (firstItem != lastItem) {
-     toBeUnhighlighted.delete(lastItem);
-     lastItem.classList.add('highlighted');
-     const highlightableItemWalker = createVisibleItemWalker();
-     highlightableItemWalker.currentNode = firstItem;
-     while (isBottomToTop ? highlightableItemWalker.previousNode() : highlightableItemWalker.nextNode()) {
-       const current = highlightableItemWalker.currentNode;
-       if (!current || current == lastItem)
-         break;
-       current.classList.add('highlighted');
-       toBeUnhighlighted.delete(current);
-     }
+  if (firstItem != lastItem) {
+    const nearestHighlightedWalker = createVisibleItemWalker();
+    nearestHighlightedWalker.currentNode = lastItem;
+    let lastHighlighted = lastItem;
+    while (isBottomToTop ? nearestHighlightedWalker.nextNode() : nearestHighlightedWalker.previousNode()) {
+      const current = nearestHighlightedWalker.currentNode;
+      if (!current ||
+          current == lastItem ||
+          !current.classList.contains('highlighted'))
+        break;
+      lastHighlighted = current;
+    }
+    if (lastHighlighted != firstItem) {
+      firstItem = lastHighlighted;
+      mFirstMultiselectId = lastHighlighted.raw.id;
+    }
   }
 
-   for (const item of toBeUnhighlighted) {
-     item.classList.remove('highlighted');
-   }
+  const toBeUnhighlighted = new Set(mRoot.querySelectorAll('li.highlighted'));
+
+  toBeUnhighlighted.delete(firstItem);
+  firstItem.classList.add('highlighted');
+
+  if (firstItem != lastItem) {
+    toBeUnhighlighted.delete(lastItem);
+    lastItem.classList.add('highlighted');
+    const highlightableItemWalker = createVisibleItemWalker();
+    highlightableItemWalker.currentNode = firstItem;
+    while (isBottomToTop ? highlightableItemWalker.previousNode() : highlightableItemWalker.nextNode()) {
+      const current = highlightableItemWalker.currentNode;
+      if (!current ||
+          current == lastItem)
+        break;
+      current.classList.add('highlighted');
+      toBeUnhighlighted.delete(current);
+    }
+  }
+
+  for (const item of toBeUnhighlighted) {
+    item.classList.remove('highlighted');
+  }
 }
 
 function createVisibleItemWalker() {
