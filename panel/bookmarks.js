@@ -89,8 +89,15 @@ export function toggleOpenState(item) {
       openedFolders: Array.from(mOpenedFolders)
     }
   });
-  if (!item.classList.contains('collapsed') &&
-      item.lastChild.localName != 'ul') {
+  if (item.classList.contains('collapsed')) {
+    if (item.lastChild.localName == 'ul') {
+      for (const descendant of item.lastChild.querySelectorAll('li')) {
+        mItemsById.delete(descendant.raw.id);
+      }
+      item.removeChild(item.lastChild);
+    }
+  }
+  else {
     buildChildren(item);
   }
 }
