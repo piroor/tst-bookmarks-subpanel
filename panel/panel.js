@@ -20,7 +20,6 @@ let mInitiaized = false;
 
 const configs = Connection.getConfigs([
   'openedFolders',
-  'openInTabDefault',
   'openInTabAlways',
   'scrollPosition',
   'openAsActiveTab',
@@ -142,8 +141,7 @@ mContent.addEventListener('mouseup', event => {
         urls:     [item.raw.url],
         inWindow: true
       });
-    else if (!configs.openInTabAlways &&
-             configs.openInTabDefault == accel)
+    else if (!configs.openInTabAlways)
       Connection.sendMessage({
         type: Constants.COMMAND_LOAD_BOOKMARK,
         url:  item.raw.url

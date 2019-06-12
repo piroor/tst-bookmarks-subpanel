@@ -15,7 +15,6 @@ const mRoot = document.getElementById('root');
 
 const configs = Connection.getConfigs([
   'openInTabAlways',
-  'openInTabDefault',
   'openAsActiveTab'
 ]);
 
@@ -161,8 +160,7 @@ function onKeyDown(event) {
           urls:     [activeItem.raw.url],
           inWindow: true
         });
-      else if (!configs.openInTabAlways &&
-               configs.openInTabDefault == accel)
+      else if (!configs.openInTabAlways)
         Connection.sendMessage({
           type: Constants.COMMAND_LOAD_BOOKMARK,
           url:  activeItem.raw.url

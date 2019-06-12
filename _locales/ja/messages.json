@@ -41,9 +41,8 @@
   "menu_sortByName_label": { "message": "名前順に並べ替える(&R)" },
   "menu_properties_label": { "message": "プロパティ(&I)" },
 
-  "config_openInTabDefault_label": { "message": "通常の操作で新しいタブを開く" },
-  "config_openInTabAlways_label": { "message": "常に新しいタブで開く" },
-  "config_openAsActiveTab_label": { "message": "開いたタブを常にアクティブにする" },
+  "config_openInTabAlways_label": { "message": "ブックマークを常にタブで開く" },
+  "config_openAsActiveTab_label": { "message": "ブックマークをタブを開いたとき、すぐにそのタブに切り替える" },
   "config_warnOnOpen_label":               { "message": "同時に複数のタブを開くときは確認する"},
   "config_maxOpenBeforeWarn_label_before": { "message": "（" },
   "config_maxOpenBeforeWarn_label_after":  { "message": "個以上のタブを開こうとした場合）" },

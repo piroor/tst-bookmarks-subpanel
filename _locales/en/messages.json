@@ -41,9 +41,8 @@
   "menu_sortByName_label": { "message": "So&rt By Name" },
   "menu_properties_label": { "message": "Propert&ies" },
 
-  "config_openInTabDefault_label": { "message": "Open in new tab by default" },
-  "config_openInTabAlways_label": { "message": "Open in new tab always" },
-  "config_openAsActiveTab_label": { "message": "Activate opened tab always" },
+  "config_openInTabAlways_label": { "message": "Open bookmarks in tabs always" },
+  "config_openAsActiveTab_label": { "message": "When you open a link in a new tab, switch to it immediately" },
   "config_warnOnOpen_label":               { "message": "Warn you when opening multiple tabs might slow down the browser" },
   "config_maxOpenBeforeWarn_label_before": { "message": "(when " },
   "config_maxOpenBeforeWarn_label_after":  { "message": " or more tabs are opening)" },

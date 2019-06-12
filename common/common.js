@@ -8,7 +8,6 @@
 import Configs from '/extlib/Configs.js';
 
 export const configs = new Configs({
-  openInTabDefault: false,
   openInTabAlways: false,
   openAsActiveTab: true,
 
