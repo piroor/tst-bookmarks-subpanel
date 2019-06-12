@@ -38,31 +38,31 @@ function onKeyDown(event) {
 
   switch (event.key) {
     case 'ArrowUp':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       setActive(walker.previousNode() || activeItem);
       event.preventDefault();
       return;
 
     case 'ArrowDown':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       setActive(walker.nextNode() || activeItem);
       event.preventDefault();
       return;
 
     case 'ArrowRight':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       return;
 
     case 'ArrowLeft':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       return;
 
     case 'PageUp':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.previousNode()
@@ -72,7 +72,7 @@ function onKeyDown(event) {
       return;
 
     case 'PageDown':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.nextNode()
@@ -82,7 +82,7 @@ function onKeyDown(event) {
       return;
 
     case 'Home':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       while (walker.previousNode()) {
       }
@@ -91,7 +91,7 @@ function onKeyDown(event) {
       return;
 
     case 'End':
-      if (!onTree || !hasItem)
+      if (!onTree || !hasItem || accel)
         return;
       while (walker.nextNode()) {
       }
