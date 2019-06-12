@@ -60,13 +60,25 @@ function onKeyDown(event) {
       return;
 
     case 'ArrowRight':
-      if (!onTree || !hasItem || accel)
+      if (!onTree || !hasItem || !activeItem)
         return;
+      if (activeItem.classList.contains('folder') &&
+          activeItem.classList.contains('collapsed'))
+        Bookmarks.toggleOpenState(activeItem);
+      else
+        setActive(activeItem.querySelector('li') || activeItem);
+      event.preventDefault();
       return;
 
     case 'ArrowLeft':
-      if (!onTree || !hasItem || accel)
+      if (!onTree || !hasItem || !activeItem)
         return;
+      if (activeItem.classList.contains('folder') &&
+          !activeItem.classList.contains('collapsed'))
+        Bookmarks.toggleOpenState(activeItem);
+      else
+        setActive(activeItem.parentNode.closest('li') || activeItem);
+      event.preventDefault();
       return;
 
     case 'PageUp':
