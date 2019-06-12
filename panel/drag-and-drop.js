@@ -25,10 +25,10 @@ mRoot.addEventListener('dragend', onDragEnd);
 mRoot.addEventListener('drop', onDrop);
 
 
-const TYPE_BOOKMARK_ITEM = 'application/x-tst-bookmarks-subpanel-bookmark-item';
-const TYPE_X_MOZ_URL     = 'text/x-moz-url';
-const TYPE_URI_LIST      = 'text/uri-list';
-const TYPE_TEXT_PLAIN    = 'text/plain';
+const TYPE_BOOKMARK_ITEMS = 'application/x-tst-bookmarks-subpanel-bookmark-items';
+const TYPE_X_MOZ_URL      = 'text/x-moz-url';
+const TYPE_URI_LIST       = 'text/uri-list';
+const TYPE_TEXT_PLAIN     = 'text/plain';
 
 function isRootItem(id) {
   return Constants.ROOT_ITEMS.includes(id);
@@ -39,15 +39,17 @@ function onDragStart(event) {
   if (!item)
     return;
 
-  const dt = event.dataTransfer;
-  dt.effectAllowed = isRootItem(item.raw.id) ? 'copy' : 'copyMove';
-  dt.setData(TYPE_BOOKMARK_ITEM, item.raw.id);
-  dt.setData(TYPE_X_MOZ_URL, `${item.raw.url}\n${item.raw.title}`);
-  dt.setData(TYPE_URI_LIST, `#${item.raw.title}\n${item.raw.url}`);
-  dt.setData(TYPE_TEXT_PLAIN, item.raw.url);
+  const items = Array.from(mRoot.querySelectorAll('li.highlighted, li.active'));
 
-  const itemRect = item.getBoundingClientRect();
-  dt.setDragImage(item, event.clientX - itemRect.left, event.clientY - itemRect.top);
+  const dt = event.dataTransfer;
+  dt.effectAllowed = items.some(item => isRootItem(item.raw.id)) ? 'copy' : 'copyMove';
+  dt.setData(TYPE_BOOKMARK_ITEMS, items.map(item => item.raw.id).join(','));
+  dt.setData(TYPE_X_MOZ_URL, items.map(item => `${item.raw.url}\n${item.raw.title}`).join('\n'));
+  dt.setData(TYPE_URI_LIST, items.map(item => `#${item.raw.title}\n${item.raw.url}`).join('\n'));
+  dt.setData(TYPE_TEXT_PLAIN, items.map(item => item.raw.url).join('\n'));
+
+  const itemRect = item.firstChild.getBoundingClientRect();
+  dt.setDragImage(item.firstChild, event.clientX - itemRect.left, event.clientY - itemRect.top);
 }
 
 const DROP_POSITION_NONE   = '';
@@ -106,15 +108,16 @@ function getDropDestination(event) {
     }
   }
 
-  const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
-  if (draggedId) {
-    const dragged = Bookmarks.get(draggedId);
-    if (dragged && dragged.contains(item))
+  const draggedItems = getDraggedItems(event);
+  if (draggedItems.length > 0) {
+    if (draggedItems.some(draggedItem => draggedItem.contains(item)))
       return null;
 
-    if (parentId == dragged.parentId &&
-        index > dragged.index)
-      index--;
+    for (const draggedItem of draggedItems) {
+      if (parentId == draggedItem.parentId &&
+          index > draggedItem.index)
+        index--;
+    }
   }
 
   if (parentId == Constants.ROOT_ID)
@@ -127,6 +130,11 @@ function creatDropPositionMarker() {
   for (const node of document.querySelectorAll('[data-drop-position]')) {
     delete node.dataset.dropPosition;
   }
+}
+
+function getDraggedItems(event) {
+  const draggedIds = event.dataTransfer.getData(TYPE_BOOKMARK_ITEMS);
+  return draggedIds ? draggedIds.split(',').map(id => id && Bookmarks.get(id)).filter(item => !!item) : [];
 }
 
 function retrievePlacesFromDragEvent(event) {
@@ -217,9 +225,9 @@ function fixupURIFromText(maybeURI) {
 
 function onDragOver(event) {
   creatDropPositionMarker();
-  const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
-  const places    = draggedId ? [] : retrievePlacesFromDragEvent(event);
-  if (!draggedId &&
+  const draggedItems = getDraggedItems(event);
+  const places       = draggedItems.length > 0 ? [] : retrievePlacesFromDragEvent(event);
+  if (draggedItems.length == 0 &&
       places.length == 0) {
     event.dataTransfer.effectAllowed = 'none';
     return;
@@ -233,12 +241,9 @@ function onDragOver(event) {
 
   const item = EventUtils.getItemFromEvent(event);
   if (item) {
-    if (draggedId) {
-      const dragged = Bookmarks.get(draggedId);
-      if (dragged && dragged.contains(item)) {
-        event.dataTransfer.effectAllowed = 'none';
-        return;
-      }
+    if (draggedItems.some(draggedItem => draggedItem.contains(item))) {
+      event.dataTransfer.effectAllowed = 'none';
+      return;
     }
     item.dataset.dropPosition = getDropPosition(event);
     event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(item.raw.id) ? 'copy' : 'move';
@@ -295,21 +300,22 @@ function onDrop(event) {
     return;
   }
 
-  const draggedId = event.dataTransfer.getData(TYPE_BOOKMARK_ITEM);
-  if (draggedId) {
+  const draggedItems = getDraggedItems(event);
+  if (draggedItems.length > 0) {
     event.preventDefault();
     const item = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
+    const ids  = draggedItems.map(draggedItem => draggedItem.raw.id);
     if (event.ctrlKey || isRootItem(item.raw.id)) {
       Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
-        id:   draggedId,
+        ids,
         destination
       });
     }
     else {
       Connection.sendMessage({
         type: Constants.COMMAND_MOVE_BOOKMARK,
-        id:   draggedId,
+        ids,
         destination
       });
     }

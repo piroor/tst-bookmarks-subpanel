@@ -73,7 +73,16 @@ export async function update(id, params = {}) {
   return browser.bookmarks.update(id, changes);
 }
 
-export async function copy(original, destination) {
+export async function copy(originals, destination) {
+  if (!Array.isArray(originals))
+    originals = [originals];
+  for (const original of originals) {
+    copyOne(original, destination);
+    if (typeof destination.index == 'number')
+      destination.index++;
+  }
+}
+async function copyOne(original, destination) {
   if (typeof original == 'string') {
     original = await browser.bookmarks.get(original);
     if (Array.isArray(original))

@@ -118,7 +118,12 @@ Connection.onMessage.addListener(async message => {
       };
       if (typeof message.destination.index == 'number')
         destination.index = message.destination.index;
-      browser.bookmarks.move(message.id, destination);
+      const ids = message.ids || [message.id];
+      for (const id of ids) {
+        browser.bookmarks.move(id, destination);
+        if (typeof destination.index == 'number')
+          destination.index++;
+      }
     }; break;
 
     case Constants.COMMAND_COPY_BOOKMARK: {
@@ -127,7 +132,7 @@ Connection.onMessage.addListener(async message => {
       };
       if (typeof message.destination.index == 'number')
         destination.index = message.destination.index;
-      Commands.copy(message.id, destination);
+      Commands.copy(message.ids || [message.id], destination);
     }; break;
   }
 });

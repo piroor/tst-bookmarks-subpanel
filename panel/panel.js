@@ -59,7 +59,9 @@ mRoot.addEventListener('mousedown', event => {
   mLastMouseDownTarget = item.raw.id;
 
   if (!EventUtils.getElementTarget(event).classList.contains('twisty'))
-    Bookmarks.setActive(item);
+    Bookmarks.setActive(item, {
+      multiselect: item.classList.contains('highlighted') && mRoot.querySelectorAll('li.highlighted').length > 1
+    });
 
   if (event.button == 1) {
     // We need to cancel mousedown to block the "auto scroll" behavior
