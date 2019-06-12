@@ -15,6 +15,8 @@ export const configs = new Configs({
   warnOnOpen: true,
   maxOpenBeforeWarn: 15,
 
+  showScrollbarLeft: false,
+
   autoExpandDelay: 1000,
 
   scrollPosition: 0,

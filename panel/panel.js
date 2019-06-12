@@ -23,10 +23,12 @@ const configs = Connection.getConfigs([
   'openInTabDefault',
   'openInTabAlways',
   'scrollPosition',
-  'openAsActiveTab'
+  'openAsActiveTab',
+  'showScrollbarLeft'
 ]);
 
 const mSearchBox = document.getElementById('searchbox');
+const mContent = document.getElementById('content');
 const mRoot = document.getElementById('root');
 
 async function init() {
@@ -38,7 +40,10 @@ async function init() {
       configs.$loaded
     ]);
 
-    mRoot.scrollTop = configs.scrollPosition;
+    mContent.scrollTop = configs.scrollPosition;
+
+    if (configs.showScrollbarLeft)
+      document.documentElement.classList.add('left-scrollbar');
 
     mInitiaized = true;
   }
@@ -51,7 +56,7 @@ init();
 
 let mLastMouseDownTarget = null;
 
-mRoot.addEventListener('mousedown', event => {
+mContent.addEventListener('mousedown', event => {
   const item = EventUtils.getItemFromEvent(event);
   if (!item)
     return;
@@ -80,7 +85,7 @@ mRoot.addEventListener('mousedown', event => {
 
 // We need to handle mouseup instead of click to bypass the "auto scroll"
 // behavior of Firefox itself.
-mRoot.addEventListener('mouseup', event => {
+mContent.addEventListener('mouseup', event => {
   if (event.button == 2)
     return;
 
@@ -142,11 +147,11 @@ mRoot.addEventListener('mouseup', event => {
   }
 });
 
-mRoot.addEventListener('scroll', () => {
+mContent.addEventListener('scroll', () => {
   Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
-      scrollPosition: mRoot.scrollTop
+      scrollPosition: mContent.scrollTop
     }
   });
 });
