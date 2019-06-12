@@ -75,7 +75,10 @@ function onKeyDown(event) {
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.previousNode()
       }
-      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
+      setActive(walker.currentNode || activeItem, {
+        multiselect: event.shiftKey,
+        jumped:      true
+      });
       event.preventDefault();
       return;
 
@@ -85,7 +88,10 @@ function onKeyDown(event) {
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.nextNode()
       }
-      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
+      setActive(walker.currentNode || activeItem, {
+        multiselect: event.shiftKey,
+        jumped:      true
+      });
       event.preventDefault();
       return;
 
@@ -94,7 +100,10 @@ function onKeyDown(event) {
         return;
       while (walker.previousNode()) {
       }
-      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
+      setActive(walker.currentNode || activeItem, {
+        multiselect: event.shiftKey,
+        jumped:      true
+      });
       event.preventDefault();
       return;
 
@@ -103,7 +112,10 @@ function onKeyDown(event) {
         return;
       while (walker.nextNode()) {
       }
-      setActive(walker.currentNode || activeItem, { multiselect: event.shiftKey });
+      setActive(walker.currentNode || activeItem, {
+        multiselect: event.shiftKey,
+        jumped:      true
+      });
       event.preventDefault();
       return;
 
@@ -163,6 +175,8 @@ function setActive(activeItem, options = {}) {
   if (!activeItem)
     return;
 
+  const lastActiveItem = Bookmarks.getActive() || activeItem;
+
   Bookmarks.setActive(activeItem, options);
   activeItem.scrollIntoView({
     behavior: 'smooth',
@@ -183,9 +197,9 @@ function setActive(activeItem, options = {}) {
     // When there is any unhighlighted item between highlighted items (they may
     // be produced with expansion of a highlighted folder), we should restart
     // multiselection from most nearest highlighted item.
+    let lastHighlighted = options.jumped ? lastActiveItem : lastItem;
     const nearestHighlightedWalker = createVisibleItemWalker();
-    nearestHighlightedWalker.currentNode = lastItem;
-    let lastHighlighted = lastItem;
+    nearestHighlightedWalker.currentNode = lastHighlighted;
     while (isBottomToTop ? nearestHighlightedWalker.nextNode() : nearestHighlightedWalker.previousNode()) {
       const current = nearestHighlightedWalker.currentNode;
       if (!current ||
@@ -194,14 +208,16 @@ function setActive(activeItem, options = {}) {
         break;
       lastHighlighted = current;
     }
-    if (lastHighlighted != firstItem) {
+    if (lastHighlighted != firstItem &&
+        (isBottomToTop ?
+          (lastHighlighted.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING) :
+          (firstItem.compareDocumentPosition(lastHighlighted) & Node.DOCUMENT_POSITION_FOLLOWING))) {
       firstItem = lastHighlighted;
       mFirstMultiselectId = lastHighlighted.raw.id;
     }
   }
 
   const toBeUnhighlighted = new Set(mRoot.querySelectorAll('li.highlighted'));
-
   toBeUnhighlighted.delete(firstItem);
   firstItem.classList.add('highlighted');
 
