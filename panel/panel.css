@@ -153,14 +153,22 @@ ul#root li[data-drop-position="after"] > .row {
   background: ThreeDFace;
 }
 
+.row:focus {
+  outline: none;
+}
+
 .active > .row,
-.active > .row * {
+.active > .row *,
+.highlighted > .row,
+.highlighted > .row * {
   color: InactiveCaptionText;
   background: InactiveCaption;
 }
 
-.active > .row:focus,
-.active > .row:focus * {
+#root.active .active > .row,
+#root.active .active > .row *,
+#root.active .highlighted > .row,
+#root.active .highlighted > .row * {
   color: HighlightText;
   background: Highlight;
 }

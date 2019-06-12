@@ -60,6 +60,7 @@ export function setActive(item) {
     return;
   item.classList.add('active');
   item.firstChild.focus();
+  mRoot.classList.add('active');
 }
 
 export function getActive() {

@@ -26,6 +26,7 @@ const configs = Connection.getConfigs([
   'openAsActiveTab'
 ]);
 
+const mSearchBox = document.getElementById('searchbox');
 const mRoot = document.getElementById('root');
 
 async function init() {
@@ -143,4 +144,15 @@ mRoot.addEventListener('scroll', () => {
       scrollPosition: mRoot.scrollTop
     }
   });
+});
+
+window.addEventListener('focus', () => {
+  setTimeout(() => {
+    if (!mSearchBox.matches(':focus'))
+      mRoot.classList.add('active');
+  }, 0);
+});
+
+window.addEventListener('blur', () => {
+  mRoot.classList.remove('active');
 });
