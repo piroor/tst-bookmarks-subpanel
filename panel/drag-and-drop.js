@@ -251,33 +251,34 @@ function onDragOver(event) {
   }
 }
 
-let mLastDragEnterId = null;
-let mDelayedExpandTimer = null;
-
 function onDragEnter(event) {
   const item = EventUtils.getItemFromEvent(event);
   if (!item ||
       !item.classList.contains('folder') ||
       !item.classList.contains('collapsed') ||
-      item.raw.id == mLastDragEnterId)
+      item == EventUtils.getRelatedItemFromEvent(event))
     return;
 
-  mLastDragEnterId = item.raw.id;
-  if (mDelayedExpandTimer)
-    clearTimeout();
-  mDelayedExpandTimer = setTimeout(() => {
-    if (mLastDragEnterId != item.raw.id)
-      return;
-
-    mDelayedExpandTimer = null;
-    mLastDragEnterId = null;
+  if (item.delayedExpandTimer)
+    clearTimeout(item.delayedExpandTimer);
+  item.delayedExpandTimer = setTimeout(() => {
+    item.delayedExpandTimer = null;
     if (item.classList.contains('collapsed'))
       Bookmarks.toggleOpenState(item);
   }, configs.autoExpandDelay);
 }
 
-function onDragLeave(_event) {
+function onDragLeave(event) {
   creatDropPositionMarker();
+  const item = EventUtils.getItemFromEvent(event);
+  const leftItem = EventUtils.getRelatedItemFromEvent(event);
+  if (!item ||
+      !leftItem ||
+      item == leftItem)
+    return;
+
+  clearTimeout(item.delayedExpandTimer);
+  item.delayedExpandTimer = null;
 }
 
 function onDragEnd(_event) {

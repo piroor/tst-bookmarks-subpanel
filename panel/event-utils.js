@@ -17,3 +17,13 @@ export function getElementTarget(event) {
     target = target.parentNode;
   return target;
 }
+
+export function getRelatedItemFromEvent(event) {
+  let target = event.relatedTarget;
+  if (!target)
+    return null;
+  if (!(target instanceof Element))
+    target = target.parentNode;
+  const row = target && target.closest('.row');
+  return row && row.parentNode;
+}
