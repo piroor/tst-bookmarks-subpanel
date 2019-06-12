@@ -39,11 +39,6 @@ function onKeyDown(event) {
   if (activeItem)
     walker.currentNode = activeItem;
 
-  if (!event.shiftKey)
-    mFirstMultiselectId = mLastMultiselectId = null;
-  else if (!mFirstMultiselectId && activeItem)
-    mFirstMultiselectId = activeItem.raw.id;
-
   switch (event.key) {
     case 'ArrowUp':
       if (!onTree || !hasItem || accel)
@@ -188,6 +183,11 @@ function setActive(activeItem, options = {}) {
     return;
 
   const lastActiveItem = Bookmarks.getActive() || activeItem;
+
+  if (!options.multiselect)
+    mFirstMultiselectId = mLastMultiselectId = null;
+  else if (!mFirstMultiselectId && lastActiveItem)
+    mFirstMultiselectId = lastActiveItem.raw.id;
 
   Bookmarks.setActive(activeItem, options);
   activeItem.scrollIntoView({
