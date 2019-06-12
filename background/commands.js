@@ -40,7 +40,8 @@ export async function openInWindow(urls, options = {}) {
       browser.tabs.create({
         windowId: window.id,
         url:      urls[i],
-        index:    i
+        index:    i,
+        active:   false
       });
     }
 }
