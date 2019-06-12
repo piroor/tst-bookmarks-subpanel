@@ -11,26 +11,9 @@ import * as EventUtils from './event-utils.js';
 import * as Connection from './connection.js';
 import * as Bookmarks from './bookmarks.js';
 
-let configs = {};
-browser.runtime.sendMessage({
-  type: Constants.COMMAND_GET_CONFIGS,
-  keys: [
-    'autoExpandDelay'
-  ]
-}).then(gotConfigs => configs = gotConfigs);
-
-Connection.onMessage.addListener(async message => {
-  switch (message.type) {
-    case Constants.NOTIFY_UPDATED_CONFIGS:
-      for (const key of Object.keys(message.values)) {
-        if (key in configs)
-          configs[key] = message.values[key];
-      }
-      break;
-  }
-});
-
-
+const configs = Connection.getConfigs([
+  'autoExpandDelay'
+]);
 
 const mRoot = document.getElementById('root');
 

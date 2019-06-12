@@ -12,26 +12,10 @@ import l10n from '/extlib/l10n.js';
 
 import * as Connection from './connection.js';
 
-
-let configs;
-browser.runtime.sendMessage({
-  type: Constants.COMMAND_GET_CONFIGS,
-  keys: [
-    'warnOnOpen',
-    'maxOpenBeforeWarn'
-  ]
-}).then(gotConfigs => configs = gotConfigs);
-
-Connection.onMessage.addListener(async message => {
-  switch (message.type) {
-    case Constants.NOTIFY_UPDATED_CONFIGS:
-      for (const key of Object.keys(message.values)) {
-        if (key in configs)
-          configs[key] = message.values[key];
-      }
-      break;
-  }
-});
+const configs = Connection.getConfigs([
+  'warnOnOpen',
+  'maxOpenBeforeWarn'
+]);
 
 export async function warnOnOpenTabs(count) {
   if (!configs.warnOnOpen ||

@@ -5,6 +5,8 @@
 */
 'use strict';
 
+import * as Constants from '/common/constants.js';
+
 import EventListenerManager from '/extlib/EventListenerManager.js';
 
 let mConnection = null;
@@ -35,4 +37,29 @@ function onOneWayMessage(message) {
 
 export function sendMessage(message) {
   mConnection.postMessage(message);
+}
+
+export function getConfigs(keys) {
+  const configs = {};
+  configs.$loaded = new Promise(async (resolve, _reject) => {
+    const values = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_CONFIGS,
+      keys
+    });
+    for (const key of Object.keys(values)) {
+      configs[key] = values[key];
+    }
+    resolve();
+  });
+  onMessage.addListener(async message => {
+    switch (message.type) {
+      case Constants.NOTIFY_UPDATED_CONFIGS:
+        for (const key of Object.keys(message.values)) {
+          if (key in configs)
+            configs[key] = message.values[key];
+        }
+        break;
+    }
+  });
+  return configs;
 }

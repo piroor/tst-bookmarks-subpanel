@@ -16,8 +16,15 @@ import './drag-and-drop.js';
 import './keyboard-navigation.js';
 import './searchbar.js';
 
-let configs = {};
 let mInitiaized = false;
+
+const configs = Connection.getConfigs([
+  'openedFolders',
+  'openInTabDefault',
+  'openInTabAlways',
+  'scrollPosition',
+  'openAsActiveTab'
+]);
 
 const mRoot = document.getElementById('root');
 
@@ -27,18 +34,7 @@ async function init() {
   try {
     await Promise.all([
       Bookmarks.init(),
-      (async () => {
-        configs = await browser.runtime.sendMessage({
-          type: Constants.COMMAND_GET_CONFIGS,
-          keys: [
-            'openedFolders',
-            'openInTabDefault',
-            'openInTabAlways',
-            'scrollPosition',
-            'openAsActiveTab'
-          ]
-        });
-      })()
+      configs.$loaded
     ]);
 
     mRoot.scrollTop = configs.scrollPosition;
@@ -50,17 +46,6 @@ async function init() {
 }
 
 init();
-
-Connection.onMessage.addListener(async message => {
-  switch (message.type) {
-    case Constants.NOTIFY_UPDATED_CONFIGS:
-      for (const key of Object.keys(message.values)) {
-        if (key in configs)
-          configs[key] = message.values[key];
-      }
-      break;
-  }
-});
 
 
 let mLastMouseDownTarget = null;
