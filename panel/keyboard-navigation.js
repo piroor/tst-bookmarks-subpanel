@@ -132,7 +132,7 @@ function onKeyDown(event) {
         }
       }
       if (onSearchBox) {
-        Bookmarks.setActive(activeItem || mRoot.firstChild);
+        Bookmarks.setActive(activeItem || mRoot.firstChild, { multiselect: true });
         event.preventDefault();
       }
       return;
