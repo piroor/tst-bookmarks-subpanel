@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/piroor/tst-bookmarks-subpanel.svg?branch=master)](https://travis-ci.org/piroor/tst-bookmarks-subpanel)
 
-This is a Firefox addon providing the "Bookmarks" subpanel for Tree Style Tab.
+A Firefox addon providing the "Bookmarks" subpanel for Tree Style Tab.
+This has started mainly for demonstration of [TST's SubPanel API](https://github.com/piroor/treestyletab/wiki/SubPanel-API).
 
 ## Known restrictions
 
