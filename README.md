@@ -1,4 +1,4 @@
-# tst-bookmarks-subpanel
+# [TST Bookmarks Subpanel](https://addons.mozilla.org/firefox/addon/tst-bookmarks-subpanel/)
 
 [![Build Status](https://travis-ci.org/piroor/tst-bookmarks-subpanel.svg?branch=master)](https://travis-ci.org/piroor/tst-bookmarks-subpanel)
 
