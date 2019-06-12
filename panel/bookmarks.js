@@ -94,6 +94,7 @@ function buildFolder(folder, options = {}) {
   row.setAttribute('title', folder.title);
   const twisty = row.appendChild(document.createElement('button'));
   twisty.classList.add('twisty');
+  twisty.setAttribute('tabindex', -1);
   const label = row.appendChild(document.createElement('span'));
   label.classList.add('label');
   label.appendChild(document.createTextNode(folder.title || browser.i18n.getMessage('blankTitle')));
@@ -119,6 +120,7 @@ function buildRow(item) {
   row.classList.add('row');
   row.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
   row.setAttribute('draggable', true);
+  row.setAttribute('tabindex', -1);
   return row;
 }
 
