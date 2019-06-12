@@ -8,6 +8,7 @@
 import * as Bookmarks from './bookmarks.js';
 import * as EventUtils from './event-utils.js';
 
+const mSearchBox = document.getElementById('searchbox');
 const mRoot = document.getElementById('root');
 
 document.addEventListener('keydown', onKeyDown);
@@ -16,7 +17,9 @@ function onKeyDown(event) {
   if (event.isComposing)
     return;
 
-  const onTree = !EventUtils.getElementTarget(event).closest('#searchbar');
+  const target = EventUtils.getElementTarget(event);
+  const onSearchBox = target.closest('#searchbar');
+  const onTree = !target.closest('#searchbar');
   const hasItem = mRoot.hasChildNodes();
   const activeItem = Bookmarks.getActive();
 
@@ -88,8 +91,21 @@ function onKeyDown(event) {
       return;
 
     case 'Tab':
-      if (!onTree)
-        Bookmarks.setActive(mRoot.firstChild);
+      if (event.shiftKey) {
+        if (event.target == document.documentElement ||
+            event.target == mRoot ||
+            event.target == mSearchBox) {
+          return;
+        }
+        else {
+          mSearchBox.focus();
+          event.preventDefault();
+        }
+      }
+      if (onSearchBox) {
+        Bookmarks.setActive(activeItem || mRoot.firstChild);
+        event.preventDefault();
+      }
       return;
 
     case 'Enter':
