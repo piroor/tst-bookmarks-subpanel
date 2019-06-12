@@ -128,8 +128,14 @@ mRoot.addEventListener('mouseup', event => {
 
   if (item.classList.contains('bookmark') &&
       !item.classList.contains('unavailable')) {
-    if (!configs.openInTabAlways &&
-        configs.openInTabDefault == accel)
+    if (event.shiftKey)
+      Connection.sendMessage({
+        type:     Constants.COMMAND_OPEN_BOOKMARKS,
+        urls:     [item.raw.url],
+        inWindow: true
+      });
+    else if (!configs.openInTabAlways &&
+             configs.openInTabDefault == accel)
       Connection.sendMessage({
         type: Constants.COMMAND_LOAD_BOOKMARK,
         url:  item.raw.url
@@ -138,7 +144,7 @@ mRoot.addEventListener('mouseup', event => {
       Connection.sendMessage({
         type:       Constants.COMMAND_OPEN_BOOKMARKS,
         urls:       [item.raw.url],
-        background: configs.openAsActiveTab ? event.shiftKey : !event.shiftKey
+        background: !configs.openAsActiveTab
       });
     return;
   }

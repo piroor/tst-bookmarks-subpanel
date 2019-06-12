@@ -28,11 +28,21 @@ export async function openInTabs(urls, options = {}) {
   }
 }
 
-export function openInWindow(url, options = {}) {
-  browser.windows.create({
-    url,
+export async function openInWindow(urls, options = {}) {
+  if (!Array.isArray(urls))
+    urls = [urls];
+  const window = await browser.windows.create({
+    url:       urls[0],
     incognito: !!options.incognito
   });
+  if (urls.length > 1)
+    for (let i = 1, maxi = urls.length; i < maxi; i++) {
+      browser.tabs.create({
+        windowId: window.id,
+        url:      urls[i],
+        index:    i
+      });
+    }
 }
 
 export async function create(params = {}) {

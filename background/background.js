@@ -98,7 +98,10 @@ Connection.onMessage.addListener(async message => {
       break;
 
     case Constants.COMMAND_OPEN_BOOKMARKS:
-      Commands.openInTabs(message.urls, message);
+      if (message.inWindow)
+        Commands.openInWindow(message.urls, message);
+      else
+        Commands.openInTabs(message.urls, message);
       break;
 
     case Constants.COMMAND_CREATE_BOOKMARK:
