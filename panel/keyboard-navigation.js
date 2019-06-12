@@ -4,12 +4,20 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 'use strict';
+import * as Constants from '/common/constants.js';
 
+import * as Connection from './connection.js';
 import * as Bookmarks from './bookmarks.js';
 import * as EventUtils from './event-utils.js';
 
 const mSearchBox = document.getElementById('searchbox');
 const mRoot = document.getElementById('root');
+
+const configs = Connection.getConfigs([
+  'openInTabAlways',
+  'openInTabDefault',
+  'openAsActiveTab'
+]);
 
 document.addEventListener('keydown', onKeyDown);
 
@@ -22,6 +30,7 @@ function onKeyDown(event) {
   const onTree = !target.closest('#searchbar');
   const hasItem = mRoot.hasChildNodes();
   const activeItem = Bookmarks.getActive();
+  const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
   const walker = createVisibleItemWalker();
   if (activeItem)
@@ -109,8 +118,35 @@ function onKeyDown(event) {
       return;
 
     case 'Enter':
-      if (!onTree || !hasItem)
+      if (!onTree ||
+          onSearchBox ||
+          !activeItem ||
+          activeItem.raw.type == 'separator')
         return;
+      if (activeItem.raw.type == 'folder') {
+        Bookmarks.toggleOpenState(activeItem);
+        event.preventDefault();
+        return;
+      }
+      if (event.shiftKey)
+        Connection.sendMessage({
+          type:     Constants.COMMAND_OPEN_BOOKMARKS,
+          urls:     [activeItem.raw.url],
+          inWindow: true
+        });
+      else if (!configs.openInTabAlways &&
+               configs.openInTabDefault == accel)
+        Connection.sendMessage({
+          type: Constants.COMMAND_LOAD_BOOKMARK,
+          url:  activeItem.raw.url
+        });
+      else
+        Connection.sendMessage({
+          type:       Constants.COMMAND_OPEN_BOOKMARKS,
+          urls:       [activeItem.raw.url],
+          background: !configs.openAsActiveTab
+        });
+      event.preventDefault();
       return;
   }
 }
