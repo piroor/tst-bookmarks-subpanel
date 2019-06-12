@@ -51,12 +51,19 @@ export function getConfigs(keys) {
     }
     resolve();
   });
+  let registeredObserver;
+  configs.$addObserver = observer => {
+    registeredObserver = observer;
+  };
   onMessage.addListener(async message => {
     switch (message.type) {
       case Constants.NOTIFY_UPDATED_CONFIGS:
         for (const key of Object.keys(message.values)) {
-          if (key in configs)
+          if (key in configs) {
             configs[key] = message.values[key];
+            if (typeof registeredObserver == 'function')
+              registeredObserver(key);
+          }
         }
         break;
     }

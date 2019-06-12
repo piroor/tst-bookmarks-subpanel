@@ -42,8 +42,8 @@ async function init() {
 
     mContent.scrollTop = configs.scrollPosition;
 
-    if (configs.showScrollbarLeft)
-      document.documentElement.classList.add('left-scrollbar');
+    configs.$addObserver(onConfigChange);
+    onConfigChange('showScrollbarLeft')
 
     mInitiaized = true;
   }
@@ -52,6 +52,17 @@ async function init() {
 }
 
 init();
+
+function onConfigChange(key) {
+  switch (key) {
+    case 'showScrollbarLeft':
+      if (configs.showScrollbarLeft)
+        document.documentElement.classList.add('left-scrollbar');
+      else
+        document.documentElement.classList.remove('left-scrollbar');
+      break;
+  }
+}
 
 
 let mLastMouseDownTarget = null;
