@@ -180,6 +180,9 @@ function setActive(activeItem, options = {}) {
   const isBottomToTop = firstItem != lastItem && lastItem.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING;
 
   if (firstItem != lastItem) {
+    // When there is any unhighlighted item between highlighted items (they may
+    // be produced with expansion of a highlighted folder), we should restart
+    // multiselection from most nearest highlighted item.
     const nearestHighlightedWalker = createVisibleItemWalker();
     nearestHighlightedWalker.currentNode = lastItem;
     let lastHighlighted = lastItem;
