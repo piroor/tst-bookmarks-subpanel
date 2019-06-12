@@ -190,7 +190,7 @@ function setActive(activeItem, options = {}) {
     mFirstMultiselectId = lastActiveItem.raw.id;
 
   Bookmarks.setActive(activeItem, options);
-  activeItem.scrollIntoView({
+  activeItem.firstChild.scrollIntoView({
     behavior: 'smooth',
     block:    'nearest',
     inline:   'nearest'
