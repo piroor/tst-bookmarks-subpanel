@@ -21,6 +21,7 @@ async function registerToTST() {
       type: 'register-self',
       name: browser.i18n.getMessage('extensionName'),
       icons: browser.runtime.getManifest().icons,
+      listeningTypes: ['wait-for-shutdown'],
       subPanel: {
         title: 'Bookmarks',
         url:   `moz-extension://${location.host}/panel/panel.html`
@@ -32,6 +33,18 @@ async function registerToTST() {
   }
 }
 
+const promisedUnloaded = new Promise((resolve, _reject) => {
+  // If this promise doesn't do anything then there seems to be a timeout
+  // so it only works if the tracked extension (this extension) is disabled
+  // within about 10 seconds after this promise is used as a response to a
+  // message. After that it will not throw an error for the waiting extension.
+  // See also: https://github.com/piroor/treestyletab/issues/2313
+
+  // If we use the following then the returned promise will be rejected when
+  // the extension is disabled even for longer times:
+  window.addEventListener('beforeunload', () => resolve(true));
+});
+
 browser.runtime.onMessageExternal.addListener((message, sender) => {
   switch (sender.id) {
     case Constants.TST_ID:
@@ -39,6 +52,9 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
         case 'ready':
           registerToTST();
           break;
+
+        case 'wait-for-shutdown':
+          return promisedUnloaded;
       }
       break;
   }
