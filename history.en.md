@@ -1,6 +1,7 @@
 # History
 
  - master/HEAD
+ - 1.0.4 (2019.11.5)
    * Add `de` locale translated by Frank. Thanks!
  - 1.0.3 (2019.8.8)
    * Remove obsolete codes deprecated at Firefox 70.
