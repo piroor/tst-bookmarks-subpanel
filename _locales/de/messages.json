@@ -1,0 +1,50 @@
+{
+ " extensionName": { "message": "TST Bookmarks Subpanel" },
+  "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
+
+  "searchbox_placeholder": { "message": "Lesezeichen durchsuchen" },
+
+  "tabs_openWarningMultipleBrande": { "message": "Das Öffnen von $NUMBER$ Tabs könnte $BRAND$ verlangsamen während die Seiten laden. Möchten Sie fortfahren?",
+    "placeholders": {
+      "NUMBER": { "content": "$1", "example": "10" },
+      "BRAND": { "content": "$2", "example": "Firefox" }
+    }},
+  "tabs_openWarningPromptMeBranded": { "message": "Warnen wenn das Öffnen mehrerer Tabs $BRAND$ verlangsamt",
+    "placeholders": {
+      "BRAND": { "content": "$1", "example": "Firefox" }
+    }},
+  "tabs_openButtonMultiple": { "message": "Tabs öffnen" },
+  "tabs_openWarningMultiple_cancel": { "message": "Abbrechen" },
+
+  "blankTitle": { "message": "(kein Titel)" },
+  "defaultBookmarkTitle": { "message": "Neues Lesezeichen" },
+  "defaultFolderTitle": { "message": "Neuer Ordner" },
+
+  "bookmarkDialog_title":  { "message": "Name:" },
+  "bookmarkDialog_url":    { "message": "Speicherort:" },
+  "bookmarkDialog_save":   { "message": "Speichern" },
+  "bookmarkDialog_add":    { "message": "Hinzufügen" },
+  "bookmarkDialog_cancel": { "message": "Abbrechen" },
+
+  "menu_open_label": { "message": "&Öffnen" },
+  "menu_openTab_label": { "message": "In neuem &Tab öffen" },
+  "menu_openWindow_label": { "message": "In neuem &Fenster öffen" },
+  "menu_openPrivateWindow_label": { "message": "In neuem &privatem Fenster öffnen" },
+  "menu_openAllInTabs_label": { "message": "&Alle in Tabs öffnen" },
+  "menu_createBookmark_label": { "message": "&Neues Lesezeichen" },
+  "menu_createFolder_label": { "message": "Neuer &Ordner" },
+  "menu_createSeparator_label": { "message": "Neue &Trennlinie" },
+  "menu_cut_label": { "message": "&Ausschneiden" },
+  "menu_copy_label": { "message": "&Kopieren" },
+  "menu_paste_label": { "message": "&Einfügen" },
+  "menu_delete_label": { "message": "&Löschen" },
+  "menu_sortByName_label": { "message": "Nach Namen so&rtieren" },
+  "menu_properties_label": { "message": "Ei&genschaften" },
+
+  "config_openInTabAlways_label": { "message": "Lesezeichen immer in neuen Tabs öffnen" },
+  "config_openAsActiveTab_label": { "message": "Wenn ein Link in einem neuen Tab geöffnet wird, direkt zu diesem wechseln" },
+  "config_warnOnOpen_label":               { "message": "Warnen wenn das Öffnen mehrerer Tabs den Browser verlangsamen könnte" },
+  "config_maxOpenBeforeWarn_label_before": { "message": "(wenn " },
+  "config_maxOpenBeforeWarn_label_after":  { "message": " oder mehrere Tabs sich öffnen)" },
+  "config_showScrollbarLeft_label": { "message": "Scrollbar links" }
+  }
