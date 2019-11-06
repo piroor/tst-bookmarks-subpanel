@@ -43,6 +43,8 @@
   "menu_sortByName_label": { "message": "So&rt By Name" },
   "menu_properties_label": { "message": "Propert&ies" },
 
+  "menu_openAllBookmarksWithStructure_label": { "message": "Open &All as a Tree" },
+
   "config_openInTabAlways_label": { "message": "Open bookmarks in tabs always" },
   "config_openAsActiveTab_label": { "message": "When you open a link in a new tab, switch to it immediately" },
   "config_warnOnOpen_label":               { "message": "Warn you when opening multiple tabs might slow down the browser" },

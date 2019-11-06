@@ -69,6 +69,13 @@ const mItemsById = {
   },
   'properties': {
     title: browser.i18n.getMessage('menu_properties_label')
+  },
+
+  'separator:extra': {
+    type: 'separator'
+  },
+  'openAllBookmarksWithStructure': {
+    title: browser.i18n.getMessage('menu_openAllBookmarksWithStructure_label')
   }
 };
 const mItems = Array.from(Object.values(mItemsById));
@@ -221,6 +228,9 @@ async function onShown(contextItem, contextItems) {
   updateVisible('properties', !multiselected && !hasSeparator);
   updateEnabled('properties', modifiable);
 
+  updateVisible('openAllBookmarksWithStructure', !multiselected && (hasBookmark || hasFolder));
+  updateEnabled('openAllBookmarksWithStructure', !multiselected && (hasBookmark || hasFolder));
+
   for (const separator of mSeparators) {
     updateSeparator(separator.id);
   }
@@ -331,5 +341,12 @@ async function onClicked(info) {
     case 'properties':
       break;
       */
+
+    case 'openAllBookmarksWithStructure':
+      browser.runtime.sendMessage(Constants.TST_ID, {
+        type: 'open-all-bookmarks-with-structure',
+        id:   bookmark.id
+      });
+      break;
   }
 }

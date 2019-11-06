@@ -43,6 +43,8 @@
   "menu_sortByName_label": { "message": "名前順に並べ替える(&R)" },
   "menu_properties_label": { "message": "プロパティ(&I)" },
 
+  "menu_openAllBookmarksWithStructure_label": { "message": "ツリーとしてすべて開く(&A)" },
+
   "config_openInTabAlways_label": { "message": "ブックマークを常にタブで開く" },
   "config_openAsActiveTab_label": { "message": "ブックマークをタブを開いたとき、すぐにそのタブに切り替える" },
   "config_warnOnOpen_label":               { "message": "同時に複数のタブを開くときは確認する"},
