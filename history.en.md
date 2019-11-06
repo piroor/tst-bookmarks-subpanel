@@ -1,6 +1,9 @@
 # History
 
  - master/HEAD
+ - 1.0.5 (2019.11.7)
+   * Localize the name of the subpanel itself.
+   * Add a new context menu command "Open All as a Tree" for TST 3.2.4 and later.
  - 1.0.4 (2019.11.5)
    * Add `de` locale translated by Frank. Thanks!
  - 1.0.3 (2019.8.8)
