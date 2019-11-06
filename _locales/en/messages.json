@@ -2,6 +2,8 @@
   "extensionName": { "message": "TST Bookmarks Subpanel" },
   "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
 
+  "subpanelName": { "message": "Bookmarks" },
+
   "searchbox_placeholder": { "message": "Search bookmarks" },
 
   "tabs_openWarningMultipleBrande": { "message": "You are about to open $NUMBER$ tabs. This might slow down $BRAND$ while the pages are loading. Are you sure you want to continue?",

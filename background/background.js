@@ -23,7 +23,7 @@ async function registerToTST() {
       icons: browser.runtime.getManifest().icons,
       listeningTypes: ['wait-for-shutdown'],
       subPanel: {
-        title: 'Bookmarks',
+        title: browser.i18n.getMessage('subpanelName'),
         url:   `moz-extension://${location.host}/panel/panel.html`
       }
     });
