@@ -1,55 +1,55 @@
 {
-  "extensionName": { "message": "TST Bookmarks Subpanel" },
-  "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
+  "extensionName": { "message": "Подпанель закладок TST"},
+  "extensionDescription": { "message": "Предоставляет подпанель закладок для боковой панели Tree Style Tab." },
 
-  "subpanelName": { "message": "Bookmarks" },
+  "subpanelName": { "message": "Закладки"},
 
-  "searchbox_placeholder": { "message": "Search bookmarks" },
+  "searchbox_placeholder": { "message": "Поиск в закладках"},
 
-  "tabs_openWarningMultipleBrande": { "message": "You are about to open $NUMBER$ tabs. This might slow down $BRAND$ while the pages are loading. Are you sure you want to continue?",
+  "tabs_openWarningMultipleBrande": { "message": "Вы собираетесь открыть $NUMBER$ вкладок. Это может замедлить работу $BRAND$ во время загрузки страниц. Вы уверены, что хотите продолжить?",
     "placeholders": {
       "NUMBER": { "content": "$1", "example": "10" },
       "BRAND": { "content": "$2", "example": "Firefox" }
     }},
-  "tabs_openWarningPromptMeBranded": { "message": "Warn me when opening multiple tabs might slow down $BRAND$",
+  "tabs_openWarningPromptMeBranded": { "message": "Предупредить меня, если открытие нескольких вкладок может замедлить $BRAND$",
     "placeholders": {
       "BRAND": { "content": "$1", "example": "Firefox" }
     }},
-  "tabs_openButtonMultiple": { "message": "Open tabs" },
-  "tabs_openWarningMultiple_cancel": { "message": "Cancel" },
+  "tabs_openButtonMultiple": { "message": "Открыть вкладки" },
+  "tabs_openWarningMultiple_cancel": { "message": "Отмена" },
 
-  "blankTitle": { "message": "(no title)" },
-  "defaultBookmarkTitle": { "message": "New Bookmark" },
-  "defaultFolderTitle": { "message": "New Folder" },
+  "blankTitle": { "message": "(без заголовка)"},
+  "defaultBookmarkTitle": { "message": "Новая закладка"},
+  "defaultFolderTitle": { "message": "Новая папка"},
 
-  "bookmarkDialog_title":  { "message": "Name:" },
-  "bookmarkDialog_url":    { "message": "Location:" },
-  "bookmarkDialog_save":   { "message": "Save" },
-  "bookmarkDialog_add":    { "message": "Add" },
-  "bookmarkDialog_cancel": { "message": "Cancel" },
+  "bookmarkDialog_title":  { "message": "Имя:"},
+  "bookmarkDialog_url":    { "message": "Расположение:" },
+  "bookmarkDialog_save":   { "message": "Сохранить"},
+  "bookmarkDialog_add":    { "message": "Добавить"},
+  "bookmarkDialog_cancel": { "message": "Отмена"},
 
-  "menu_open_label": { "message": "&Open" },
-  "menu_openTab_label": { "message": "Open in a Ne&w Tab" },
-  "menu_openWindow_label": { "message": "Open in &New Window" },
-  "menu_openPrivateWindow_label": { "message": "Open in New &Private Window" },
-  "menu_openAllInTabs_label": { "message": "&Open All in Tabs" },
-  "menu_createBookmark_label": { "message": "New &Bookmark…" },
-  "menu_createFolder_label": { "message": "New &Folder…" },
-  "menu_createSeparator_label": { "message": "New &Separator" },
-  "menu_cut_label": { "message": "Cu&t" },
-  "menu_copy_label": { "message": "&Copy" },
-  "menu_paste_label": { "message": "&Paste" },
-  "menu_delete_label": { "message": "&Delete" },
-  "menu_sortByName_label": { "message": "So&rt By Name" },
-  "menu_properties_label": { "message": "Propert&ies" },
+  "menu_open_label": { "message": "&Открыть"},
+  "menu_openTab_label": { "message": "Открыть в новой вкладке"},
+  "menu_openWindow_label": { "message": "Открыть в &новом окне"},
+  "menu_openPrivateWindow_label": { "message": "Открыть в новом приватном окне"},
+  "menu_openAllInTabs_label": { "message": "& Открыть все на вкладках"},
+  "menu_createBookmark_label": { "message": "Новая &закладка…"},
+  "menu_createFolder_label": { "message": "Новая &Папка…"},
+  "menu_createSeparator_label": { "message": "Новый &разделитель"},
+  "menu_cut_label": { "message": "Вы&резать" },
+  "menu_copy_label": { "message": "&Копировать" },
+  "menu_paste_label": { "message": "&Вставить" },
+  "menu_delete_label": { "message": "&Удалить" },
+  "menu_sortByName_label": { "message": "&Сортировать по имени" },
+  "menu_properties_label": { "message": "&Свойства" },
 
-  "menu_openAllBookmarksWithStructure_label": { "message": "Open &All as a Tree" },
+  "menu_openAllBookmarksWithStructure_label": { "message": "Открыть &все как дерево"},
 
-  "config_openInTabAlways_label": { "message": "Open bookmarks in tabs always" },
-  "config_openAsActiveTab_label": { "message": "When you open a link in a new tab, switch to it immediately" },
-  "config_warnOnOpen_label":               { "message": "Warn you when opening multiple tabs might slow down the browser" },
-  "config_maxOpenBeforeWarn_label_before": { "message": "(when " },
-  "config_maxOpenBeforeWarn_label_after":  { "message": " or more tabs are opening)" },
-  "config_showScrollbarLeft_label": { "message": "Show scrollbar at left" }
+  "config_openInTabAlways_label": { "message": "Всегда открывать закладки на вкладках"},
+  "config_openAsActiveTab_label": { "message": "При открытии ссылки в новой вкладке, переключить на нее немедленно"},
+  "config_warnOnOpen_label": { "message": "Предупредить, что открытие нескольких вкладок может замедлить работу браузера"},
+  "config_maxOpenBeforeWarn_label_before": { "message": "(когда"},
+  "config_maxOpenBeforeWarn_label_after": { "message": " или открыто больше вкладок)" },
+  "config_showScrollbarLeft_label": { "message": "Показать полосу прокрутки слева" }
 
 }
