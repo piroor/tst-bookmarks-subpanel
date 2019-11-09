@@ -1,0 +1,55 @@
+{
+  "extensionName": { "message": "TST Bookmarks Subpanel" },
+  "extensionDescription": { "message": "Provides a bookmarks subpanel for Tree Style Tab's sidebar." },
+
+  "subpanelName": { "message": "Bookmarks" },
+
+  "searchbox_placeholder": { "message": "Search bookmarks" },
+
+  "tabs_openWarningMultipleBrande": { "message": "You are about to open $NUMBER$ tabs. This might slow down $BRAND$ while the pages are loading. Are you sure you want to continue?",
+    "placeholders": {
+      "NUMBER": { "content": "$1", "example": "10" },
+      "BRAND": { "content": "$2", "example": "Firefox" }
+    }},
+  "tabs_openWarningPromptMeBranded": { "message": "Warn me when opening multiple tabs might slow down $BRAND$",
+    "placeholders": {
+      "BRAND": { "content": "$1", "example": "Firefox" }
+    }},
+  "tabs_openButtonMultiple": { "message": "Open tabs" },
+  "tabs_openWarningMultiple_cancel": { "message": "Cancel" },
+
+  "blankTitle": { "message": "(no title)" },
+  "defaultBookmarkTitle": { "message": "New Bookmark" },
+  "defaultFolderTitle": { "message": "New Folder" },
+
+  "bookmarkDialog_title":  { "message": "Name:" },
+  "bookmarkDialog_url":    { "message": "Location:" },
+  "bookmarkDialog_save":   { "message": "Save" },
+  "bookmarkDialog_add":    { "message": "Add" },
+  "bookmarkDialog_cancel": { "message": "Cancel" },
+
+  "menu_open_label": { "message": "&Open" },
+  "menu_openTab_label": { "message": "Open in a Ne&w Tab" },
+  "menu_openWindow_label": { "message": "Open in &New Window" },
+  "menu_openPrivateWindow_label": { "message": "Open in New &Private Window" },
+  "menu_openAllInTabs_label": { "message": "&Open All in Tabs" },
+  "menu_createBookmark_label": { "message": "New &Bookmark…" },
+  "menu_createFolder_label": { "message": "New &Folder…" },
+  "menu_createSeparator_label": { "message": "New &Separator" },
+  "menu_cut_label": { "message": "Cu&t" },
+  "menu_copy_label": { "message": "&Copy" },
+  "menu_paste_label": { "message": "&Paste" },
+  "menu_delete_label": { "message": "&Delete" },
+  "menu_sortByName_label": { "message": "So&rt By Name" },
+  "menu_properties_label": { "message": "Propert&ies" },
+
+  "menu_openAllBookmarksWithStructure_label": { "message": "Open &All as a Tree" },
+
+  "config_openInTabAlways_label": { "message": "Open bookmarks in tabs always" },
+  "config_openAsActiveTab_label": { "message": "When you open a link in a new tab, switch to it immediately" },
+  "config_warnOnOpen_label":               { "message": "Warn you when opening multiple tabs might slow down the browser" },
+  "config_maxOpenBeforeWarn_label_before": { "message": "(when " },
+  "config_maxOpenBeforeWarn_label_after":  { "message": " or more tabs are opening)" },
+  "config_showScrollbarLeft_label": { "message": "Show scrollbar at left" }
+
+}
