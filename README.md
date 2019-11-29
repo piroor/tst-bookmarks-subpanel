@@ -5,6 +5,9 @@
 A Firefox addon providing the "Bookmarks" subpanel for Tree Style Tab.
 This has started mainly for demonstration of [TST's SubPanel API](https://github.com/piroor/treestyletab/wiki/SubPanel-API).
 
+Development builds for each commit are available at "Artifacts" of the CI/CD action:
+https://github.com/piroor/tst-bookmarks-subpanel/actions?query=workflow%3ACI%2FCD
+
 ## Known restrictions
 
 * Impossible to open non-regular URLs like `about:config`. This is due to a restriction of WebExtensions API.
