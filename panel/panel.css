@@ -5,8 +5,8 @@
 */
 
 :root {
-  background: -moz-field;
-  color: -moz-fieldText;
+  background: var(--in-content-box-background);
+  color: var(--text-color);
   cursor: default;
   font: message-box;
   --icon-size: 1.3em;
@@ -41,9 +41,9 @@ body {
 
 
 #searchbar {
-  background: -moz-field;
-  border: 1px solid GrayText;
-  color: -moz-fieldText;
+  background: -moz-Field;
+  border: 1px solid var(--in-content-box-border-color);
+  color: -moz-FieldText;
   display: flex;
   flex-direction: row;
   height: 1.5em;
@@ -61,7 +61,11 @@ body {
 }
 
 #searchbar.active {
-  border-color: Highlight;
+  border-color: var(--in-content-border-highlight);
+}
+
+input:focus {
+  box-shadow: none;
 }
 
 #searchbar::before,
@@ -74,7 +78,7 @@ body {
 #searchbox {
   background: transparent;
   border: none;
-  color: -moz-fieldText;
+  color: -moz-FieldText;
   flex-grow: 1;
   margin: 0;
   padding: 0;
@@ -144,8 +148,8 @@ ul#root li {
 }
 
 ul#root li[data-drop-position="self"] > .row {
-  color: HighlightText;
-  background: Highlight;
+  color: var(--in-content-selected-text);
+  background: var(--in-content-item-selected);
 }
 
 ul#root li[data-drop-position="before"] > .row {
@@ -158,8 +162,10 @@ ul#root li[data-drop-position="after"] > .row {
 
 .row:hover,
 .row:hover * {
-  color: ButtonText;
-  background: ThreeDFace;
+  color: var(--text-color);
+}
+.row:hover {
+  background: var(--in-content-button-background);
 }
 
 .row:focus {
@@ -170,16 +176,22 @@ ul#root li[data-drop-position="after"] > .row {
 .active > .row *,
 .highlighted > .row,
 .highlighted > .row * {
-  color: InactiveCaptionText;
-  background: InactiveCaption;
+  color: var(--text-color);
+}
+.active > .row,
+.highlighted > .row {
+  background: var(--in-content-button-background);
 }
 
 #root.active .active > .row,
 #root.active .active > .row *,
 #root.active .highlighted > .row,
 #root.active .highlighted > .row * {
-  color: HighlightText;
-  background: Highlight;
+  color: var(--in-content-selected-text);
+}
+#root.active .active > .row,
+#root.active .highlighted > .row {
+  background: var(--in-content-item-selected);
 }
 
 .folder > .row {
@@ -212,7 +224,7 @@ ul#root li[data-drop-position="after"] > .row {
 }
 
 .separator > .row::before {
-  border-top: 1px solid GrayText;
+  border-top: 1px solid var(--in-content-deemphasized-text);
   content: " ";
   display: block;
   font-size: 1px;
@@ -234,6 +246,7 @@ ul#root li[data-drop-position="after"] > .row {
 }
 
 .label::before {
+  background-color: var(--in-content-deemphasized-text);
   mask-image: url("/resources/Globe.svg");
 }
 
@@ -260,4 +273,18 @@ ul#root li[data-drop-position="after"] > .row {
 
 .folder.collapsed > .row > .twisty::before {
   mask-image: url("/resources/ArrowheadRight.svg");
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-color: var(--dark-sidebar);
+    --text-color: var(--grey-20);
+    background: var(--bg-color);
+  }
+
+  #root.active .active > .row,
+  #root.active .highlighted > .row {
+    background: var(--in-content-button-background);
+  }
 }
