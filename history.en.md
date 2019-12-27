@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.0.7 (2019.12.27)
+   * Don't apply button-like appearance to twisties.
  - 1.0.6 (2019.12.27)
    * Support Dark mode of the platform.
  - 1.0.5 (2019.11.7)
