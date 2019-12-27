@@ -281,6 +281,7 @@ ul#root li[data-drop-position="after"] > .row {
     --bg-color: var(--dark-sidebar);
     --text-color: var(--grey-20);
     background: var(--bg-color);
+    scrollbar-color: var(--in-content-border-hover) var(--in-content-page-background);
   }
 
   #root.active .active > .row,
