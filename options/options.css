@@ -4,6 +4,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
 :root:not(.debugging) #debug-configs {
   max-height: 0;
   overflow: hidden;

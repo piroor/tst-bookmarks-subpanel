@@ -287,4 +287,21 @@ ul#root li[data-drop-position="after"] > .row {
   #root.active .highlighted > .row {
     background: var(--in-content-button-background);
   }
+
+  .folder > .row > .label::before {
+    background: url("/resources/places/folder-dark.svg") no-repeat center / 100%;
+    mask: none;
+  }
+
+  .folder[data-id="menu________"] > .row > .label::before {
+    background-image: url("/resources/places/bookmarksMenu-dark.svg");
+  }
+
+  .folder[data-id="toolbar_____"] > .row > .label::before {
+    background-image: url("/resources/places/bookmarksToolbar-dark.svg");
+  }
+
+  .folder[data-id="unfiled_____"] > .row > .label::before {
+    background-image: url("/resources/places/unfiledBookmarks-dark.svg");
+  }
 }
