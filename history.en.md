@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.0.6 (2019.12.27)
+   * Support Dark mode of the platform.
  - 1.0.5 (2019.11.7)
    * Localize the name of the subpanel itself.
    * Add a new context menu command "Open All as a Tree" for TST 3.2.4 and later.
