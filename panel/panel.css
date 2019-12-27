@@ -244,6 +244,13 @@ ul#root li[data-drop-position="after"] > .row {
   width: var(--icon-size);
   --icon-size: var(--twisty-size);
 }
+.twisty:focus,
+.twisty:hover,
+.twisty:active {
+  background: none;
+  border: none;
+  box-shadow: none;
+}
 
 .label::before {
   background-color: var(--in-content-deemphasized-text);
