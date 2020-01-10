@@ -28,9 +28,11 @@ function onConfigChanged(key) {
 configs.$addObserver(onConfigChanged);
 */
 
-window.addEventListener('DOMContentLoaded', () => {
-  configs.$loaded.then(() => {
-    //options.buildUIForAllConfigs(document.querySelector('#debug-configs'));
-    //onConfigChanged('debug');
-  });
+window.addEventListener('DOMContentLoaded', async () => {
+  await configs.$loaded;
+
+  //options.buildUIForAllConfigs(document.querySelector('#debug-configs'));
+  //onConfigChanged('debug');
+
+  document.documentElement.classList.add('initialized');
 }, { once: true });
