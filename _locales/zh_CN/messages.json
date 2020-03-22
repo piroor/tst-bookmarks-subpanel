@@ -4,7 +4,7 @@
         "hash": "3b8e238b95fa57bedb2aca29f7c81479"
     },
     "extensionDescription": {
-        "message": "为 树状标签页 侧栏提供一个书签子面板",
+        "message": "为 Tree Style Tab 侧栏提供一个书签子面板",
         "hash": "db25d0f0b6a3cde4b0efad42b522694f"
     },
     "subpanelName": {
@@ -155,5 +155,5 @@
         "hash": "0658da7cca77951a97949b3af40daeb3"
     },
 
-    "__WET_LOCALE__": { "message": "zh" }
+    "__WET_LOCALE__": { "message": "zh-CN" }
 }
