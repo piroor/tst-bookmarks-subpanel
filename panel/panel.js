@@ -15,6 +15,7 @@ import './context-menu.js';
 import './drag-and-drop.js';
 import './keyboard-navigation.js';
 import './searchbar.js';
+import '/extlib/l10n.js';
 
 let mInitiaized = false;
 
