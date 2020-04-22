@@ -22,8 +22,10 @@
   "defaultBookmarkTitle": { "message": "新しいブックマーク" },
   "defaultFolderTitle": { "message": "新しいフォルダー" },
 
-  "bookmarkDialog_title":  { "message": "名前:" },
+  "bookmarkDialog_title":  { "message": "名前(N):" },
+  "bookmarkDialog_title_accessKey":  { "message": "n" },
   "bookmarkDialog_url":    { "message": "URL:" },
+  "bookmarkDialog_url_accessKey":    { "message": "l" },
   "bookmarkDialog_save":   { "message": "保存" },
   "bookmarkDialog_add":    { "message": "追加" },
   "bookmarkDialog_cancel": { "message": "キャンセル" },

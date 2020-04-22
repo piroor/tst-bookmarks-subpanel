@@ -52,7 +52,8 @@ export async function warnOnOpenTabs(count) {
 
 export async function showBookmarkDialog(params) {
   const urlField = `
-        <div><label>__MSG_bookmarkDialog_url__
+        <div><label accesskey="__MSG_bookmarkDialog_url_accessKey__"
+                   >__MSG_bookmarkDialog_url__
                     <input type="text"
                            name="url"
                            value=${JSON.stringify(params.url)}></label></div>
@@ -60,7 +61,8 @@ export async function showBookmarkDialog(params) {
   try {
     const result = await RichConfirm.show({
       content: `
-        <div><label>__MSG_bookmarkDialog_title__
+        <div><label accesskey="__MSG_bookmarkDialog_title_accessKey__"
+                   >__MSG_bookmarkDialog_title__
                     <input type="text"
                            name="title"
                            value=${JSON.stringify(params.title)}></label></div>

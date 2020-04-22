@@ -23,7 +23,9 @@
   "defaultFolderTitle": { "message": "New Folder" },
 
   "bookmarkDialog_title":  { "message": "Name:" },
+  "bookmarkDialog_title_accessKey":  { "message": "n" },
   "bookmarkDialog_url":    { "message": "Location:" },
+  "bookmarkDialog_url_accessKey":    { "message": "l" },
   "bookmarkDialog_save":   { "message": "Save" },
   "bookmarkDialog_add":    { "message": "Add" },
   "bookmarkDialog_cancel": { "message": "Cancel" },
