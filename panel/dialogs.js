@@ -50,10 +50,15 @@ export async function warnOnOpenTabs(count) {
   }
 }
 
+function sanitizeForHTMLText(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 export async function showBookmarkDialog(params) {
+  // Don't use "__MSG_XXX__" way because they can be modified by RichConfirm.js itself automatically.
   const urlField = `
-        <div><label accesskey="__MSG_bookmarkDialog_url_accessKey__"
-                   >__MSG_bookmarkDialog_url__
+        <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_url_accessKey'))}
+                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_url'))}
                     <input type="text"
                            name="url"
                            value=${JSON.stringify(params.url)}></label></div>
@@ -61,15 +66,14 @@ export async function showBookmarkDialog(params) {
   try {
     const result = await RichConfirm.show({
       content: `
-        <div><label accesskey="__MSG_bookmarkDialog_title_accessKey__"
-                   >__MSG_bookmarkDialog_title__
+        <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
+                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))}
                     <input type="text"
                            name="title"
                            value=${JSON.stringify(params.title)}></label></div>
         ${params.type == 'bookmark' ? urlField: ''}
       `,
       onShown(container) {
-        l10n.updateDocument();
         container.classList.add('bookmark-dialog');
         container.querySelector('[name="title"]').select();
       },
