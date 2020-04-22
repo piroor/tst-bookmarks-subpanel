@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.0.9 (2020.4.22)
+   * Localize UI correctly. (regression on 1.0.8)
  - 1.0.8 (2020.4.22)
    * Set accesskey for input fields in a properties dialog of a bookmark.
  - 1.0.7 (2019.12.27)
