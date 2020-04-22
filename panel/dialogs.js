@@ -8,7 +8,6 @@
 import * as Constants from '/common/constants.js';
 
 import RichConfirm from '/extlib/RichConfirm.js';
-import l10n from '/extlib/l10n.js';
 
 import * as Connection from './connection.js';
 
