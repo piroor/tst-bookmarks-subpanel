@@ -1,6 +1,7 @@
 # History
 
  - master/HEAD
+ - 1.0.8 (2020.4.22)
    * Set accesskey for input fields in a properties dialog of a bookmark.
  - 1.0.7 (2019.12.27)
    * Don't apply button-like appearance to twisties.
