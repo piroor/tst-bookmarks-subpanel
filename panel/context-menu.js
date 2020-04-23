@@ -92,9 +92,11 @@ function onCommand(target, _event) {
           return;
         Connection.sendMessage({
           type:    Constants.COMMAND_CREATE_BOOKMARK,
-          details: Object.assign({
-            type:  'bookmark'
-          }, details, destination)
+          details: {
+            type:  'bookmark',
+            ...details,
+            ...destination
+          }
         });
       });
       break;
@@ -109,9 +111,11 @@ function onCommand(target, _event) {
           return;
         Connection.sendMessage({
           type:    Constants.COMMAND_CREATE_BOOKMARK,
-          details: Object.assign({
-            type:  'folder'
-          }, details, destination)
+          details: {
+            type:  'folder',
+            ...details,
+            ...destination
+          }
         });
       });
       break;

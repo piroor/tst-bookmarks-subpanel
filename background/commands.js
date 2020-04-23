@@ -92,9 +92,10 @@ async function copyOne(original, destination) {
   }
   if (Array.isArray(original))
     original = original[0];
-  const details = Object.assign({
-    type: original.type
-  }, destination)
+  const details = {
+    type: original.type,
+    ...destination
+  };
   if (original.title)
     details.title = original.title;
   if (original.url)
