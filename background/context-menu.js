@@ -287,25 +287,28 @@ async function onClicked(info) {
 
       /*
     case 'createBookmark':
-      Commands.create(Object.assign({
+      Commands.create({
         type:  'bookmark',
         title: browser.i18n.getMessage('defaultBookmarkTitle'),
-        url:   ''
-      }, destination));
+        url:   '',
+        ...destination
+      });
       break;
 
     case 'createFolder':
-      Commands.create(Object.assign({
+      Commands.create({
         type:  'folder',
-        title: browser.i18n.getMessage('defaultFolderTitle')
-      }, destination));
+        title: browser.i18n.getMessage('defaultFolderTitle'),
+        ...destination
+      });
       break;
       */
 
     case 'createSeparator':
-      Commands.create(Object.assign({
-        type: 'separator'
-      }, destination));
+      Commands.create({
+        type: 'separator',
+        ...destination
+      });
       break;
 
 
