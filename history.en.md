@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.1.0 (2020.4.28)
+   * Optimize for very large number of bookmarks.
  - 1.0.10 (2020.4.25)
    * Improve implementation of semi-modal dialogs. Now it is more similar to native dialogs and more friendly for dark color scheme.
  - 1.0.9 (2020.4.22)
