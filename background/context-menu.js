@@ -211,6 +211,10 @@ async function onShown(contextItem, contextItems) {
   const modifiable   = contextItems.every(item => !item.unmodifiable && !Constants.UNMODIFIABLE_ITEMS.has(item.id));
   const multiselected = contextItems.length > 1;
 
+  if (contextItem.type == 'folder' &&
+      !contextItem.children)
+    contextItem.children = await browser.bookmarks.getChildren(contextItem.id);
+
   updateVisible('open', !multiselected && hasBookmark);
   updateVisible('openTab', !multiselected && hasBookmark);
   updateVisible('openWindow', !multiselected && hasBookmark);
