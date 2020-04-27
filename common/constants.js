@@ -13,6 +13,8 @@ export const NOTIFY_UPDATED_CONFIGS = 'configs-updated';
 export const COMMAND_GET_BROWSER_NAME = 'get-browser-name';
 
 export const COMMAND_GET_ALL_BOOKMARKS = 'get-all-bookmarks';
+export const COMMAND_GET_ROOT          = 'get-root';
+export const COMMAND_GET_CHILDREN      = 'get-children';
 export const COMMAND_SEARCH_BOOKMARKS  = 'search-bookmarks';
 export const COMMAND_OPEN_BOOKMARKS    = 'open-bookmarks';
 export const COMMAND_LOAD_BOOKMARK     = 'load-bookmark';

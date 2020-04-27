@@ -92,6 +92,39 @@ browser.runtime.onMessage.addListener((message, _sender) => {
     case Constants.COMMAND_GET_ALL_BOOKMARKS:
       return browser.bookmarks.getTree();
 
+    case Constants.COMMAND_GET_ROOT:
+      return (async () => {
+        const [items, children] = await Promise.all([
+          browser.bookmarks.get(Constants.ROOT_ID),
+          browser.bookmarks.getChildren(Constants.ROOT_ID)
+        ]);
+        const root = items[0];
+        root.children = children;
+        return root;
+      })();
+
+    case Constants.COMMAND_GET_CHILDREN:
+      return (async () => {
+        console.log('GET CHILDREN ', message.id);
+        const children = await browser.bookmarks.getChildren(message.id);
+        const promises = [];
+        for (const item of children) {
+          if (item.type == 'bookmark' &&
+              /^place:parent=([^&]+)$/.test(item.url)) { // alias for special folders
+            promises.push(
+              browser.bookmarks.get(RegExp.$1).then(realItems => {
+                item.id    = realItems[0].id;
+                item.type  = realItems[0].type;
+                item.title = realItems[0].title;
+              })
+            );
+          }
+        }
+        await Promise.all(promises);
+        console.log(children);
+        return children;
+      })();
+
     case Constants.COMMAND_SEARCH_BOOKMARKS:
       return browser.bookmarks.search(message.query);
 

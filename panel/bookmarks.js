@@ -15,10 +15,11 @@ let mOpenedFolders;
 
 const mRoot = document.getElementById('root');
 
+
 export async function init() {
-  const [rootItems] = await Promise.all([
+  const [rootItem] = await Promise.all([
     browser.runtime.sendMessage({
-      type: Constants.COMMAND_GET_ALL_BOOKMARKS
+      type: Constants.COMMAND_GET_ROOT
     }),
     (async () => {
       const configs = await browser.runtime.sendMessage({
@@ -31,7 +32,7 @@ export async function init() {
     })()
   ]);
 
-  storeRawItem(rootItems[0]);
+  storeRawItem(rootItem);
 
   buildItems(Constants.ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
 }
@@ -103,7 +104,7 @@ export function toggleOpenState(item) {
 }
 
 
-function buildFolder(folder, options = {}) {
+async function buildFolder(folder, options = {}) {
   const item = document.createElement('li');
   item.raw = folder;
   item.level = options.level || 0;
@@ -118,11 +119,11 @@ function buildFolder(folder, options = {}) {
   label.appendChild(document.createTextNode(folder.title || browser.i18n.getMessage('blankTitle')));
   item.classList.add('folder');
 
-  if (folder.children.length == 0)
+  if (folder.children && folder.children.length == 0)
     item.classList.add('blank');
 
   if (mOpenedFolders.has(folder.id)) {
-    buildChildren(item);
+    await buildChildren(item);
   }
   else {
     item.classList.add('collapsed');
@@ -142,7 +143,7 @@ function buildRow(item) {
   return row;
 }
 
-function buildChildren(folderItem, options = {}) {
+async function buildChildren(folderItem, options = {}) {
   if (folderItem.classList.contains('collapsed'))
     return;
   if (folderItem.lastChild.localName == 'ul') {
@@ -151,7 +152,14 @@ function buildChildren(folderItem, options = {}) {
     folderItem.removeChild(folderItem.lastChild);
   }
   folderItem.appendChild(document.createElement('ul'));
-  buildItems(folderItem.raw.children, folderItem.lastChild, { level: folderItem.level + 1 });
+  if (!folderItem.raw.children) {
+    folderItem.raw.children = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_CHILDREN,
+      id:   folderItem.raw.id
+    });
+    storeRawItem(folderItem.raw);
+  }
+  await buildItems(folderItem.raw.children, folderItem.lastChild, { level: folderItem.level + 1 });
   folderItem.dirty = false;
 }
 
@@ -187,14 +195,14 @@ function buildSeparator(separator, options = {}) {
   return item;
 }
 
-function buildItems(items, container, options = {}) {
+async function buildItems(items, container, options = {}) {
   const level = options.level || 0;
   for (const item of items) {
     if (!item)
       continue;
     switch (item.type) {
       case 'folder':
-        container.appendChild(buildFolder(item, { level }));
+        container.appendChild(await buildFolder(item, { level }));
         break;
 
       case 'bookmark':
@@ -218,10 +226,10 @@ export async function search(query) {
   mRawItemsById.clear();
 
   if (!query) {
-    const rootItems = await browser.runtime.sendMessage({
-      type: Constants.COMMAND_GET_ALL_BOOKMARKS
+    const rootItem = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_ROOT
     });
-    storeRawItem(rootItems[0]);
+    storeRawItem(rootItem);
     buildItems(Constants.ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
     return;
   }
