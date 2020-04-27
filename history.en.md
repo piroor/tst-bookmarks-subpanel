@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.0.10 (2020.4.25)
+   * Improve implementation of semi-modal dialogs. Now it is more similar to native dialogs and more friendly for dark color scheme.
  - 1.0.9 (2020.4.22)
    * Localize UI correctly. (regression on 1.0.8)
  - 1.0.8 (2020.4.22)

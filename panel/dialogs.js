@@ -25,6 +25,7 @@ export async function warnOnOpenTabs(count) {
     type: Constants.COMMAND_GET_BROWSER_NAME
   });
   const result = await RichConfirm.show({
+    type:    'common-dialog',
     message: browser.i18n.getMessage('tabs_openWarningMultipleBrande', [count, brandName]),
     buttons: [
       browser.i18n.getMessage('tabs_openButtonMultiple'),
@@ -64,6 +65,7 @@ export async function showBookmarkDialog(params) {
   `;
   try {
     const result = await RichConfirm.show({
+      type: 'dialog',
       content: `
         <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
                    >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))}
