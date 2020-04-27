@@ -105,7 +105,6 @@ browser.runtime.onMessage.addListener((message, _sender) => {
 
     case Constants.COMMAND_GET_CHILDREN:
       return (async () => {
-        console.log('GET CHILDREN ', message.id);
         const children = await browser.bookmarks.getChildren(message.id);
         const promises = [];
         for (const item of children) {
@@ -121,7 +120,6 @@ browser.runtime.onMessage.addListener((message, _sender) => {
           }
         }
         await Promise.all(promises);
-        console.log(children);
         return children;
       })();
 
