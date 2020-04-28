@@ -134,16 +134,23 @@ function init() {
     }
     const info = {
       id,
-      title:    item.title,
-      type:     item.type || 'normal',
-      //contexts: ['bookmark'],
-      //viewTypes: ['sidebar'],
-      //visible:  false, // hide all by default
-      //documentUrlPatterns: SIDEBAR_URL_PATTERN
+      title: item.title,
+      type:  item.type || 'normal',
     };
     if (item.parentId)
       info.parentId = item.parentId;
-    //browser.menus.create(info);
+    const createInfo = {
+      ...info,
+      contexts: ['bookmark'],
+      viewTypes: ['sidebar'],
+      visible:  false, // hide all by default
+      //documentUrlPatterns: SIDEBAR_URL_PATTERN
+    };
+    browser.runtime.sendMessage(Constants.TST_ID, {
+      type:   'fake-contextMenu-create',
+      params: createInfo
+    });
+    //browser.menus.create(createInfo);
     mMenuItemDefinitions.push(info);
   }
   //browser.menus.onShown.addListener(onShown);
@@ -177,11 +184,21 @@ Connection.onMessage.addListener(message => {
 function updateVisible(id, visible) {
   const item = mItemsById[id];
   item.visible = item.lastVisible = visible;
+  browser.runtime.sendMessage(Constants.TST_ID, {
+    type:   'fake-contextMenu-update',
+    params: [id, { visible }]
+  });
+  //browser.menus.update(id, { visible });
 }
 
 function updateEnabled(id, enabled) {
   const item = mItemsById[id];
   item.enabled = item.lastEnabled = enabled;
+  browser.runtime.sendMessage(Constants.TST_ID, {
+    type:   'fake-contextMenu-update',
+    params: [id, { enabled }]
+  });
+  //browser.menus.update(id, { enabled });
 }
 
 function updateSeparator(id, options = {}) {
@@ -222,9 +239,17 @@ async function onShown(contextItem, contextItems) {
   updateVisible('openAllInTabs', multiselected ? allBookmarks : hasFolder);
   updateEnabled('openAllInTabs', multiselected ? allBookmarks : (hasFolder && contextItem.children.length > 0));
 
+  updateVisible('createBookmark', true);
+  updateVisible('createFolder', true);
+  updateVisible('createSeparator', true);
+
+  updateVisible('cut', true);
   updateEnabled('cut', modifiable);
+  updateVisible('copy', true);
+  updateVisible('paste', true);
   updateEnabled('paste', !multiselected && mCopiedItems.length > 0);
 
+  updateVisible('delete', true);
   updateEnabled('delete', modifiable);
 
   updateVisible('sortByName', !multiselected && hasFolder);
@@ -357,3 +382,34 @@ async function onClicked(info) {
       break;
   }
 }
+
+
+browser.runtime.onMessageExternal.addListener((message, sender) => {
+  switch (sender.id) {
+    case Constants.TST_ID:
+      switch (message.type) {
+        case 'fake-contextMenu-shown':
+          if (message.info.bookmarkId) {
+            browser.bookmarks.get(message.info.bookmarkId).then(items => {
+              const contextItem = items[0];
+              onShown(contextItem, [contextItem]);
+            });
+          }
+          break;
+
+        case 'fake-contextMenu-click':
+          if (message.info.bookmarkId) {
+            browser.bookmarks.get(message.info.bookmarkId).then(items => {
+              const bookmark = items[0];
+              onClicked({
+                ...message.info,
+                bookmark,
+                bookmarks: [bookmark]
+              });
+            });
+          }
+          break;
+      }
+      break;
+  }
+});

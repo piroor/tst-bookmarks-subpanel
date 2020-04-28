@@ -22,7 +22,9 @@ async function registerToTST() {
       name: browser.i18n.getMessage('extensionName'),
       icons: browser.runtime.getManifest().icons,
       listeningTypes: [
-        'wait-for-shutdown'
+        'wait-for-shutdown',
+        'fake-contextMenu-shown',
+        'fake-contextMenu-click'
       ],
       subPanel: {
         title: browser.i18n.getMessage('subpanelName'),

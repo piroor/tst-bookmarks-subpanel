@@ -160,6 +160,27 @@ async function onShown() {
   });
 }
 
+window.addEventListener('mousedown', event => {
+  const target = EventUtils.getElementTarget(event);
+  if (target && target.closest('input, textarea'))
+    return;
+
+  if (event.button != 2 ||
+      (/mac/.test(navigator.platform) &&
+       event.button == 0 &&
+       event.ctrlKey))
+    return;
+
+  const item = EventUtils.getItemFromEvent(event);
+  if (item)
+    browser.runtime.sendMessage(Constants.TST_ID, {
+      type:       'override-context',
+      context:    'bookmark',
+      bookmarkId: item.raw.id
+    });
+}, { useCapture: true });
+
+/*
 window.addEventListener('contextmenu', async event => {
   const target = EventUtils.getElementTarget(event);
   if (target && target.closest('input, textarea'))
@@ -188,6 +209,7 @@ window.addEventListener('contextmenu', async event => {
     top:  event.clientY
   });
 }, { useCapture: true });
+*/
 
 async function open(options = {}) {
   await close();
