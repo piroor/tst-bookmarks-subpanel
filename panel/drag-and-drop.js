@@ -29,16 +29,7 @@ const TYPE_BOOKMARK_ITEMS = 'application/x-tst-bookmarks-subpanel-bookmark-items
 const TYPE_X_MOZ_URL      = 'text/x-moz-url';
 const TYPE_URI_LIST       = 'text/uri-list';
 const TYPE_TEXT_PLAIN     = 'text/plain';
-
-let mDragData;
-
-Connection.onMessage.addListener(message => {
-  switch (message.type) {
-    case Constants.NOTIFY_DRAG_DATA_UPDATED:
-      mDragData = message.data;
-      break;
-  }
-});
+const kTYPE_ADDON_DRAG_DATA = `application/x-moz-addon-drag-data;${browser.runtime.id}`;
 
 function isRootItem(id) {
   return Constants.ROOT_ITEMS.includes(id);
@@ -51,21 +42,22 @@ function onDragStart(event) {
 
   const items = Array.from(mRoot.querySelectorAll('li.highlighted, li.active'));
 
-  const data = {};
+  const dragDataForExternals = {};
   const dt = event.dataTransfer;
   dt.effectAllowed = items.some(item => isRootItem(item.raw.id)) ? 'copy' : 'copyMove';
-  dt.setData(TYPE_BOOKMARK_ITEMS, data[TYPE_BOOKMARK_ITEMS] = items.map(item => item.raw.id).join(','));
-  dt.setData(TYPE_X_MOZ_URL, data[TYPE_X_MOZ_URL] = items.map(item => `${item.raw.url}\n${item.raw.title}`).join('\n'));
-  dt.setData(TYPE_URI_LIST, data[TYPE_URI_LIST] = items.map(item => `#${item.raw.title}\n${item.raw.url}`).join('\n'));
-  dt.setData(TYPE_TEXT_PLAIN, data[TYPE_TEXT_PLAIN] = items.map(item => item.raw.url).join('\n'));
+  dt.setData(TYPE_BOOKMARK_ITEMS, dragDataForExternals[TYPE_BOOKMARK_ITEMS] = items.map(item => item.raw.id).join(','));
+  dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = items.map(item => `${item.raw.url}\n${item.raw.title}`).join('\n'));
+  dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = items.map(item => `#${item.raw.title}\n${item.raw.url}`).join('\n'));
+  dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = items.map(item => item.raw.url).join('\n'));
+  dt.setData(kTYPE_ADDON_DRAG_DATA, JSON.stringify(dragDataForExternals));
+
+  Connection.sendMessage({
+    type: Constants.COMMAND_UPDATE_DRAG_DATA,
+    data: dragDataForExternals
+  });
 
   const itemRect = item.firstChild.getBoundingClientRect();
   dt.setDragImage(item.firstChild, event.clientX - itemRect.left, event.clientY - itemRect.top);
-
-  browser.runtime.sendMessage(Constants.TST_ID, {
-    type: 'set-drag-data',
-    data
-  });
 }
 
 const DROP_POSITION_NONE   = '';
@@ -153,27 +145,47 @@ function getDraggedItems(event) {
   return draggedIds ? draggedIds.split(',').map(id => id && Bookmarks.get(id)).filter(item => !!item) : [];
 }
 
+const ACCEPTABLE_DRAG_DATA_TYPES = [
+  TYPE_URI_LIST,
+  TYPE_X_MOZ_URL,
+  TYPE_TEXT_PLAIN
+];
+
 function retrievePlacesFromDragEvent(event) {
-  const dt    = event.dataTransfer;
-  const types = [
-    TYPE_URI_LIST,
-    TYPE_X_MOZ_URL,
-    TYPE_TEXT_PLAIN
-  ];
+  const dt   = event.dataTransfer;
   let places = [];
-  for (const type of types) {
+  for (const type of ACCEPTABLE_DRAG_DATA_TYPES) {
     const placeData = dt.getData(type);
-    if (placeData) {
+    if (placeData)
       places = places.concat(retrievePlacesFromData(placeData, type));
-    }
-    else {
-      if (mDragData && mDragData[type])
-        places = places.concat(retrievePlacesFromData(mDragData[type], type));
-    }
-    if (places.length)
+    if (places.length > 0)
       break;
   }
-  return places.filter(place => place && place.url);
+  for (const type of dt.types) {
+    if (!/^application\/x-moz-addon-drag-data;(.+)$/.test(type))
+      continue;
+    const providerId = RegExp.$1;
+    places.push(browser.runtime.sendMessage(providerId, {
+      'type': 'get-drag-data'
+    }).then(dragData => {
+      let places = [];
+      if (!dragData || typeof dragData != 'object')
+        return places;
+      for (const type of ACCEPTABLE_DRAG_DATA_TYPES) {
+        const placeData = dragData[type];
+        if (placeData)
+          places = places.concat(retrievePlacesFromData(placeData, type));
+        if (places.length > 0)
+          break;
+      }
+      return places;
+    }));
+  }
+  return places.filter(place =>
+    place &&
+    typeof place == 'object' &&
+    (typeof place.then == 'function' ||
+     place.url));
 }
 
 function retrievePlacesFromData(data, type) {
@@ -303,10 +315,13 @@ function onDragLeave(event) {
 }
 
 function onDragEnd(_event) {
-  browser.runtime.sendMessage(Constants.TST_ID, {
-    type: 'clear-drag-data'
-  });
   creatDropPositionMarker();
+  setTimeout(() => {
+    Connection.sendMessage({
+      type: Constants.COMMAND_UPDATE_DRAG_DATA,
+      data: null
+    });
+  }, 500);
 }
 
 function getLastVisibleItem(item) {
@@ -316,7 +331,7 @@ function getLastVisibleItem(item) {
   return getLastVisibleItem(item.lastChild.lastChild);
 }
 
-function onDrop(event) {
+async function onDrop(event) {
   creatDropPositionMarker();
 
   const destination = getDropDestination(event);
@@ -347,7 +362,7 @@ function onDrop(event) {
     return;
   }
 
-  const places = retrievePlacesFromDragEvent(event);
+  const places = (await Promise.all(retrievePlacesFromDragEvent(event))).flat();
   if (places.length > 0) {
     event.preventDefault();
     Connection.sendMessage({

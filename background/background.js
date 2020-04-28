@@ -22,9 +22,7 @@ async function registerToTST() {
       name: browser.i18n.getMessage('extensionName'),
       icons: browser.runtime.getManifest().icons,
       listeningTypes: [
-        'wait-for-shutdown',
-        'native-tab-dragstart',
-        'native-tab-dragend'
+        'wait-for-shutdown'
       ],
       subPanel: {
         title: browser.i18n.getMessage('subpanelName'),
@@ -49,6 +47,8 @@ const promisedUnloaded = new Promise((resolve, _reject) => {
   window.addEventListener('beforeunload', () => resolve(true));
 });
 
+let mCurrentDragDataForExternals = null;
+
 browser.runtime.onMessageExternal.addListener((message, sender) => {
   switch (sender.id) {
     case Constants.TST_ID:
@@ -59,21 +59,14 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 
         case 'wait-for-shutdown':
           return promisedUnloaded;
-
-        case 'native-tab-dragstart':
-          Connection.broadcastMessage({
-            type: Constants.NOTIFY_DRAG_DATA_UPDATED,
-            data: message.data
-          });
-          break;
-
-        case 'native-tab-dragend':
-          Connection.broadcastMessage({
-            type: Constants.NOTIFY_DRAG_DATA_UPDATED,
-            data: null
-          });
-          break;
       }
+      break;
+  }
+
+  switch (message && typeof message == 'object' && message.type) {
+    case 'get-drag-data':
+      if (mCurrentDragDataForExternals)
+        return Promise.resolve(mCurrentDragDataForExternals);
       break;
   }
 });
@@ -199,6 +192,10 @@ Connection.onMessage.addListener(async message => {
         destination.index = message.destination.index;
       Commands.copy(message.ids || [message.id], destination);
     }; break;
+
+    case Constants.COMMAND_UPDATE_DRAG_DATA:
+      mCurrentDragDataForExternals = message.data || null;
+      break;
   }
 });
 
