@@ -185,7 +185,7 @@ function retrievePlacesFromDragEvent(event) {
           break;
       }
       return places;
-    }));
+    }).catch(_error => []));
   }
   return places.filter(place =>
     place &&
