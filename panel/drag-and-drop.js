@@ -30,6 +30,16 @@ const TYPE_X_MOZ_URL      = 'text/x-moz-url';
 const TYPE_URI_LIST       = 'text/uri-list';
 const TYPE_TEXT_PLAIN     = 'text/plain';
 
+let mDragData;
+
+Connection.onMessage.addListener(message => {
+  switch (message.type) {
+    case Constants.NOTIFY_DRAG_DATA_UPDATED:
+      mDragData = message.data;
+      break;
+  }
+});
+
 function isRootItem(id) {
   return Constants.ROOT_ITEMS.includes(id);
 }
@@ -153,8 +163,13 @@ function retrievePlacesFromDragEvent(event) {
   let places = [];
   for (const type of types) {
     const placeData = dt.getData(type);
-    if (placeData)
+    if (placeData) {
       places = places.concat(retrievePlacesFromData(placeData, type));
+    }
+    else {
+      if (mDragData && mDragData[type])
+        places = places.concat(retrievePlacesFromData(mDragData[type], type));
+    }
     if (places.length)
       break;
   }

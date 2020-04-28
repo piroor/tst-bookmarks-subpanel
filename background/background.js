@@ -21,7 +21,11 @@ async function registerToTST() {
       type: 'register-self',
       name: browser.i18n.getMessage('extensionName'),
       icons: browser.runtime.getManifest().icons,
-      listeningTypes: ['wait-for-shutdown'],
+      listeningTypes: [
+        'wait-for-shutdown',
+        'native-tab-dragstart',
+        'native-tab-dragend'
+      ],
       subPanel: {
         title: browser.i18n.getMessage('subpanelName'),
         url:   `moz-extension://${location.host}/panel/panel.html`
@@ -55,6 +59,20 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 
         case 'wait-for-shutdown':
           return promisedUnloaded;
+
+        case 'native-tab-dragstart':
+          Connection.broadcastMessage({
+            type: Constants.NOTIFY_DRAG_DATA_UPDATED,
+            data: message.data
+          });
+          break;
+
+        case 'native-tab-dragend':
+          Connection.broadcastMessage({
+            type: Constants.NOTIFY_DRAG_DATA_UPDATED,
+            data: null
+          });
+          break;
       }
       break;
   }
