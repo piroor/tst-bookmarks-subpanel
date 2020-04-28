@@ -143,7 +143,6 @@ function init() {
       ...info,
       contexts: ['bookmark'],
       viewTypes: ['sidebar'],
-      visible:  false, // hide all by default
       //documentUrlPatterns: SIDEBAR_URL_PATTERN
     };
     browser.runtime.sendMessage(Constants.TST_ID, {
@@ -239,17 +238,9 @@ async function onShown(contextItem, contextItems) {
   updateVisible('openAllInTabs', multiselected ? allBookmarks : hasFolder);
   updateEnabled('openAllInTabs', multiselected ? allBookmarks : (hasFolder && contextItem.children.length > 0));
 
-  updateVisible('createBookmark', true);
-  updateVisible('createFolder', true);
-  updateVisible('createSeparator', true);
-
-  updateVisible('cut', true);
   updateEnabled('cut', modifiable);
-  updateVisible('copy', true);
-  updateVisible('paste', true);
   updateEnabled('paste', !multiselected && mCopiedItems.length > 0);
 
-  updateVisible('delete', true);
   updateEnabled('delete', modifiable);
 
   updateVisible('sortByName', !multiselected && hasFolder);
