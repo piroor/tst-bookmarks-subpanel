@@ -187,7 +187,7 @@ function retrievePlacesFromData(data, type) {
       const places = [];
       for (const line of lines) {
         if (line.startsWith('#')) {
-          lastComment = line;
+          lastComment = line.replace(/^#\s*/, '');
           continue;
         }
         const url = fixupURIFromText(line);
