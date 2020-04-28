@@ -41,15 +41,21 @@ function onDragStart(event) {
 
   const items = Array.from(mRoot.querySelectorAll('li.highlighted, li.active'));
 
+  const data = {};
   const dt = event.dataTransfer;
   dt.effectAllowed = items.some(item => isRootItem(item.raw.id)) ? 'copy' : 'copyMove';
-  dt.setData(TYPE_BOOKMARK_ITEMS, items.map(item => item.raw.id).join(','));
-  dt.setData(TYPE_X_MOZ_URL, items.map(item => `${item.raw.url}\n${item.raw.title}`).join('\n'));
-  dt.setData(TYPE_URI_LIST, items.map(item => `#${item.raw.title}\n${item.raw.url}`).join('\n'));
-  dt.setData(TYPE_TEXT_PLAIN, items.map(item => item.raw.url).join('\n'));
+  dt.setData(TYPE_BOOKMARK_ITEMS, data[TYPE_BOOKMARK_ITEMS] = items.map(item => item.raw.id).join(','));
+  dt.setData(TYPE_X_MOZ_URL, data[TYPE_X_MOZ_URL] = items.map(item => `${item.raw.url}\n${item.raw.title}`).join('\n'));
+  dt.setData(TYPE_URI_LIST, data[TYPE_URI_LIST] = items.map(item => `#${item.raw.title}\n${item.raw.url}`).join('\n'));
+  dt.setData(TYPE_TEXT_PLAIN, data[TYPE_TEXT_PLAIN] = items.map(item => item.raw.url).join('\n'));
 
   const itemRect = item.firstChild.getBoundingClientRect();
   dt.setDragImage(item.firstChild, event.clientX - itemRect.left, event.clientY - itemRect.top);
+
+  browser.runtime.sendMessage(Constants.TST_ID, {
+    type: 'set-drag-data',
+    data
+  });
 }
 
 const DROP_POSITION_NONE   = '';
@@ -282,6 +288,9 @@ function onDragLeave(event) {
 }
 
 function onDragEnd(_event) {
+  browser.runtime.sendMessage(Constants.TST_ID, {
+    type: 'clear-drag-data'
+  });
   creatDropPositionMarker();
 }
 
