@@ -47,6 +47,7 @@ const promisedUnloaded = new Promise((resolve, _reject) => {
   window.addEventListener('beforeunload', () => resolve(true));
 });
 
+let mCurrentDragDataForExternalsId = null;
 let mCurrentDragDataForExternals = null;
 
 browser.runtime.onMessageExternal.addListener((message, sender) => {
@@ -65,7 +66,8 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
 
   switch (message && typeof message == 'object' && message.type) {
     case 'get-drag-data':
-      if (mCurrentDragDataForExternals)
+      if (message.id == mCurrentDragDataForExternalsId &&
+          mCurrentDragDataForExternals)
         return Promise.resolve(mCurrentDragDataForExternals);
       break;
   }
@@ -194,6 +196,7 @@ Connection.onMessage.addListener(async message => {
     }; break;
 
     case Constants.COMMAND_UPDATE_DRAG_DATA:
+      mCurrentDragDataForExternalsId = message.id || null;
       mCurrentDragDataForExternals = message.data || null;
       break;
   }
