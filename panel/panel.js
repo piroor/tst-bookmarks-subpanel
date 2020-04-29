@@ -42,10 +42,11 @@ async function init() {
     mContent.scrollTop = configs.scrollPosition;
 
     configs.$addObserver(onConfigChange);
-    onConfigChange('showScrollbarLeft')
+    onConfigChange('showScrollbarLeft');
 
-    const window = await browser.windows.getCurrent({});
-    mWindowId = window.id;
+    mWindowId = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_CURRENT_WINDOW_ID
+    });
 
     mInitiaized = true;
   }

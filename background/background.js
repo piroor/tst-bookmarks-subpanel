@@ -109,6 +109,9 @@ browser.runtime.onMessage.addListener((message, _sender) => {
         return values;
       });
 
+    case Constants.COMMAND_GET_CURRENT_WINDOW_ID:
+      return browser.windows.getCurrent({}).then(window => window.id);
+
     case Constants.COMMAND_GET_ALL_BOOKMARKS:
       return browser.bookmarks.getTree();
 

@@ -11,6 +11,7 @@ export const COMMAND_GET_CONFIGS = 'get-configs';
 export const COMMAND_SET_CONFIGS = 'set-configs';
 export const NOTIFY_UPDATED_CONFIGS = 'configs-updated';
 export const COMMAND_GET_BROWSER_NAME = 'get-browser-name';
+export const COMMAND_GET_CURRENT_WINDOW_ID = 'get-current-window-id';
 export const COMMAND_UPDATE_DRAG_DATA = 'update-drag-data';
 
 export const COMMAND_GET_ALL_BOOKMARKS = 'get-all-bookmarks';
