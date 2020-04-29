@@ -28,6 +28,7 @@ const configs = Connection.getConfigs([
 const mSearchBox = document.getElementById('searchbox');
 const mContent = document.getElementById('content');
 const mRoot = document.getElementById('root');
+let mWindowId;
 
 async function init() {
   if (mInitiaized)
@@ -42,6 +43,9 @@ async function init() {
 
     configs.$addObserver(onConfigChange);
     onConfigChange('showScrollbarLeft')
+
+    const window = await browser.windows.getCurrent({});
+    mWindowId = window.id;
 
     mInitiaized = true;
   }
@@ -96,7 +100,8 @@ mContent.addEventListener('mousedown', event => {
       browser.runtime.sendMessage(Constants.TST_ID, {
         type:       'override-context',
         context:    'bookmark',
-        bookmarkId: item.raw.id
+        bookmarkId: item.raw.id,
+        windowId:   mWindowId
       });
     return;
   }
