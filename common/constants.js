@@ -20,7 +20,6 @@ export const COMMAND_SEARCH_BOOKMARKS  = 'search-bookmarks';
 export const COMMAND_OPEN_BOOKMARKS    = 'open-bookmarks';
 export const COMMAND_LOAD_BOOKMARK     = 'load-bookmark';
 export const COMMAND_CREATE_BOOKMARK   = 'create-bookmark';
-export const COMMAND_UPDATE_BOOKMARK   = 'update-bookmark';
 export const COMMAND_MOVE_BOOKMARK     = 'move-bookmark';
 export const COMMAND_COPY_BOOKMARK     = 'copy-bookmark';
 

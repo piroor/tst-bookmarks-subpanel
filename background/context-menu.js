@@ -270,27 +270,52 @@ async function onClicked(info) {
       break;
 
       /*
-    case 'openAllInTabs':
-      Commands.openInTabs(bookmark.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url)));
-      break;
+    case 'openAllInTabs': {
+      const urls = (
+        bookmark.type == 'folder' ?
+          bookmark.children.map(item => item.url) :
+          contextItems.map(item => item.url)
+      ).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      Dialogs.warnOnOpenTabs(urls.length).then(granted => {
+        if (!granted)
+          return;
+        Commands.openInTabs(urls);
+      });
+    }; break;
       */
 
 
       /*
     case 'createBookmark':
-      Commands.create({
+      Dialogs.showBookmarkDialog({
+        mode:  'add',
         type:  'bookmark',
         title: browser.i18n.getMessage('defaultBookmarkTitle'),
-        url:   '',
-        ...destination
+        url:   ''
+      }).then(details => {
+        if (!details)
+          return;
+        Commands.create({
+          type:  'bookmark',
+          ...details,
+          ...destination
+        });
       });
       break;
 
     case 'createFolder':
-      Commands.create({
+      Dialogs.showBookmarkDialog({
+        mode:  'add',
         type:  'folder',
-        title: browser.i18n.getMessage('defaultFolderTitle'),
-        ...destination
+        title: browser.i18n.getMessage('defaultFolderTitle')
+      }).then(details => {
+        if (!details)
+          return;
+        Commands.create({
+          type:  'folder',
+          ...details,
+          ...destination
+        });
       });
       break;
       */
@@ -333,6 +358,16 @@ async function onClicked(info) {
 
       /*
     case 'properties':
+      Dialogs.showBookmarkDialog({
+        mode:  'save',
+        type:  bookmark.type,
+        title: bookmark.title,
+        url:   bookmark.url
+      }).then(details => {
+        if (!details)
+          return;
+        Commands.update(bookmark.id, details);
+      });
       break;
       */
   }
