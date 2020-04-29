@@ -29,10 +29,6 @@ export const NOTIFY_BOOKMARK_REMOVED = 'bookmark-removed';
 export const NOTIFY_BOOKMARK_MOVED   = 'bookmark-moved';
 export const NOTIFY_BOOKMARK_CHANGED = 'bookmark-changed';
 
-export const COMMAND_GET_MENU_ITEMS = 'get-menu-items';
-export const NOTIFY_MENU_SHOWN      = 'menu-shown';
-export const NOTIFY_MENU_CLICKED    = 'menu-clicked';
-
 export const LOADABLE_URL_MATCHER = /^(https?|ftp|moz-extension):/;
 
 export const ROOT_ID = 'root________';

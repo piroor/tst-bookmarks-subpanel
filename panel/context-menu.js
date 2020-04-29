@@ -7,47 +7,11 @@
 
 import * as Constants from '/common/constants.js';
 
-import MenuUI from '/extlib/MenuUI.js';
-
-import * as EventUtils from './event-utils.js';
 import * as Connection from './connection.js';
 import * as Dialogs from './dialogs.js';
 import * as Bookmarks from './bookmarks.js';
 
-const mRoot = document.getElementById('context-menu');
-let mUI;
-
-const mItemsById = {};
 let mContextItemId;
-
-async function init() {
-  const items = await browser.runtime.sendMessage({
-    type: Constants.COMMAND_GET_MENU_ITEMS
-  });
-
-  for (const item of items) {
-    const node = document.createElement('li');
-    if (item.title)
-      node.textContent = item.title;
-    node.dataset.command = item.id;
-    node.classList.add(item.type);
-    mRoot.appendChild(node);
-    item.node = node;
-    mItemsById[item.id] = item;
-  }
-
-  mUI = new MenuUI({
-    root: mRoot,
-    onCommand,
-    //onShown,
-    //onHidden,
-    appearance:        'menu',
-    animationDuration: 150, // configs.collapseDuration,
-    subMenuOpenDelay:  300, // configs.subMenuOpenDelay,
-    subMenuCloseDelay: 300  // configs.subMenuCloseDelay
-  });
-}
-init();
 
 function getContextItems() {
   const contextItem = Bookmarks.get(mContextItemId);
@@ -138,84 +102,7 @@ function onCommand(target, _event) {
       break;
 
     default:
-      Connection.sendMessage({
-        type: Constants.NOTIFY_MENU_CLICKED,
-        menuItemId,
-        bookmarkId: contextItem.raw.id,
-        bookmark:   contextItem.raw,
-        bookmarks:  contextItems.map(item => item.raw)
-      });
       break;
   }
   close();
-}
-
-async function onShown() {
-  const contextItem = Bookmarks.get(mContextItemId);
-  const contextItems = getContextItems();
-  return browser.runtime.sendMessage({
-    type: Constants.NOTIFY_MENU_SHOWN,
-    contextItem:  contextItem && contextItem.raw,
-    contextItems: contextItems.map(item => item.raw)
-  });
-}
-
-window.addEventListener('mousedown', event => {
-  const target = EventUtils.getElementTarget(event);
-  if (target && target.closest('input, textarea'))
-    return;
-
-  if (event.button != 2 ||
-      (/mac/.test(navigator.platform) &&
-       event.button == 0 &&
-       event.ctrlKey))
-    return;
-
-  const item = EventUtils.getItemFromEvent(event);
-  if (item)
-    browser.runtime.sendMessage(Constants.TST_ID, {
-      type:       'override-context',
-      context:    'bookmark',
-      bookmarkId: item.raw.id
-    });
-}, { useCapture: true });
-
-/*
-window.addEventListener('contextmenu', async event => {
-  const target = EventUtils.getElementTarget(event);
-  if (target && target.closest('input, textarea'))
-    return;
-
-  const item = EventUtils.getItemFromEvent(event);
-  mContextItemId = item && item.raw.id;
-
-  event.stopPropagation();
-  event.preventDefault();
-  const updatedItems = await onShown();
-  for (const updatedItem of updatedItems) {
-    const item = mItemsById[updatedItem.id];
-    if ('visible' in updatedItem) {
-      item.visible = updatedItem.visible;
-      item.node.style.display = item.visible ? 'block' : 'none';
-    }
-    if ('enabled' in updatedItem) {
-      item.enabled = updatedItem.enabled;
-      if (item.node.classList.contains('disabled') == item.enabled)
-        item.node.classList.toggle('disabled');
-    }
-  }
-  await open({
-    left: event.clientX,
-    top:  event.clientY
-  });
-}, { useCapture: true });
-*/
-
-async function open(options = {}) {
-  await close();
-  await mUI.open(options);
-}
-
-async function close() {
-  await mUI.close();
 }

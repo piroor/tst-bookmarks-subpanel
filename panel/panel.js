@@ -74,7 +74,8 @@ mContent.addEventListener('mousedown', event => {
 
   mLastMouseDownTarget = item.raw.id;
 
-  if (!EventUtils.getElementTarget(event).classList.contains('twisty'))
+  const target = EventUtils.getElementTarget(event);
+  if (!target.classList.contains('twisty'))
     Bookmarks.setActive(item, {
       multiselect: item.classList.contains('highlighted') && mRoot.querySelectorAll('li.highlighted').length > 1
     });
@@ -87,9 +88,18 @@ mContent.addEventListener('mousedown', event => {
   }
 
   if (event.button == 2 ||
-      (event.button == 0 &&
+      (/mac/.test(navigator.platform) &&
+       event.button == 0 &&
        event.ctrlKey)) {
     // context menu
+    if (target.closest('input, textarea'))
+      return;
+    if (item)
+      browser.runtime.sendMessage(Constants.TST_ID, {
+        type:       'override-context',
+        context:    'bookmark',
+        bookmarkId: item.raw.id
+      });
     return;
   }
 }, { capture: true });

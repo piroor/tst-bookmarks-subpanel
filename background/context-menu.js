@@ -7,7 +7,6 @@
 
 import * as Constants from '/common/constants.js';
 
-import * as Connection from './connection.js';
 import * as Commands from './commands.js';
 
 let mCopiedItems = [];
@@ -69,19 +68,10 @@ const mItemsById = {
   },
   'properties': {
     title: browser.i18n.getMessage('menu_properties_label')
-  },
-
-  'separator:extra': {
-    type: 'separator'
-  },
-  'openAllBookmarksWithStructure': {
-    title: browser.i18n.getMessage('menu_openAllBookmarksWithStructure_label')
   }
 };
 const mItems = Array.from(Object.values(mItemsById));
 const mSeparators = mItems.filter(item => item.type == 'separator');
-
-const mMenuItemDefinitions = [];
 
 //const SIDEBAR_URL_PATTERN = [`moz-extension://${location.host}/*`];
 
@@ -132,6 +122,17 @@ function init() {
         }
       }
     }
+  }
+  //browser.menus.onShown.addListener(onShown);
+  //browser.menus.onClicked.addListener(onClicked);
+  createItems();
+}
+init();
+
+function createItems() {
+  const itemIds = Object.keys(mItemsById);
+  for (const id of itemIds) {
+    const item = mItemsById[id];
     const info = {
       id,
       title: item.title,
@@ -150,35 +151,8 @@ function init() {
       params: createInfo
     });
     //browser.menus.create(createInfo);
-    mMenuItemDefinitions.push(info);
   }
-  //browser.menus.onShown.addListener(onShown);
-  //browser.menus.onClicked.addListener(onClicked);
 }
-init();
-
-browser.runtime.onMessage.addListener((message, _sender) => {
-  switch (message.type) {
-    case Constants.COMMAND_GET_MENU_ITEMS:
-      return Promise.resolve(mMenuItemDefinitions);
-
-    case Constants.NOTIFY_MENU_SHOWN:
-      return onShown(message.contextItem, message.contextItems);
-  }
-});
-
-Connection.onMessage.addListener(message => {
-  switch (message.type) {
-    case Constants.NOTIFY_MENU_CLICKED:
-      onClicked({
-        bookmarkId: message.bookmarkId,
-        bookmark:   message.bookmark,
-        bookmarks:  message.bookmarks,
-        menuItemId: message.menuItemId
-      });
-      break
-  }
-});
 
 function updateVisible(id, visible) {
   const item = mItemsById[id];
@@ -247,9 +221,6 @@ async function onShown(contextItem, contextItems) {
 
   updateVisible('properties', !multiselected && !hasSeparator);
   updateEnabled('properties', modifiable);
-
-  updateVisible('openAllBookmarksWithStructure', !multiselected && (hasBookmark || hasFolder));
-  updateEnabled('openAllBookmarksWithStructure', !multiselected && (hasBookmark || hasFolder));
 
   for (const separator of mSeparators) {
     updateSeparator(separator.id);
@@ -364,13 +335,6 @@ async function onClicked(info) {
     case 'properties':
       break;
       */
-
-    case 'openAllBookmarksWithStructure':
-      browser.runtime.sendMessage(Constants.TST_ID, {
-        type: 'open-all-bookmarks-with-structure',
-        id:   bookmark.id
-      });
-      break;
   }
 }
 
@@ -379,6 +343,10 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
   switch (sender.id) {
     case Constants.TST_ID:
       switch (message.type) {
+        case 'ready':
+          createItems();
+          break;
+
         case 'fake-contextMenu-shown':
           if (message.info.bookmarkId) {
             browser.bookmarks.get(message.info.bookmarkId).then(items => {
