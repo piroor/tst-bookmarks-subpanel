@@ -10,7 +10,6 @@ import * as Constants from '/common/constants.js';
 import * as Connection from './connection.js';
 import * as EventUtils from './event-utils.js';
 import * as Bookmarks from './bookmarks.js';
-import * as Dialogs from './dialogs.js';
 import './drag-and-drop.js';
 import './keyboard-navigation.js';
 import './searchbar.js';
@@ -125,7 +124,10 @@ mContent.addEventListener('mouseup', event => {
   if (item.classList.contains('folder')) {
     if (accel || event.shiftKey) {
       const urls = item.raw.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
-      Dialogs.warnOnOpenTabs(urls.length).then(granted => {
+      browser.runtime.sendMessage({
+        type:  Constants.COMMAND_CONFIRM_TO_OPEN_TABS,
+        count: urls.length
+      }).then(granted => {
         if (!granted)
           return;
         Connection.sendMessage({

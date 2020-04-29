@@ -8,6 +8,7 @@
 import * as Constants from '/common/constants.js';
 
 import * as Commands from './commands.js';
+import * as Dialogs from './dialogs.js';
 
 let mCopiedItems = [];
 
@@ -269,12 +270,11 @@ async function onClicked(info) {
       Commands.openInWindow(bookmark.url, { incognito: true });
       break;
 
-      /*
     case 'openAllInTabs': {
       const urls = (
         bookmark.type == 'folder' ?
           bookmark.children.map(item => item.url) :
-          contextItems.map(item => item.url)
+          bookmarks.map(item => item.url)
       ).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       Dialogs.warnOnOpenTabs(urls.length).then(granted => {
         if (!granted)
@@ -282,10 +282,8 @@ async function onClicked(info) {
         Commands.openInTabs(urls);
       });
     }; break;
-      */
 
 
-      /*
     case 'createBookmark':
       Dialogs.showBookmarkDialog({
         mode:  'add',
@@ -318,7 +316,6 @@ async function onClicked(info) {
         });
       });
       break;
-      */
 
     case 'createSeparator':
       Commands.create({
@@ -356,7 +353,6 @@ async function onClicked(info) {
       }
       break;
 
-      /*
     case 'properties':
       Dialogs.showBookmarkDialog({
         mode:  'save',
@@ -369,7 +365,6 @@ async function onClicked(info) {
         Commands.update(bookmark.id, details);
       });
       break;
-      */
   }
 }
 

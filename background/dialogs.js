@@ -5,16 +5,13 @@
 */
 'use strict';
 
+import {
+  configs
+} from '/common/common.js';
+
 import * as Constants from '/common/constants.js';
 
 import RichConfirm from '/extlib/RichConfirm.js';
-
-import * as Connection from './connection.js';
-
-const configs = Connection.getConfigs([
-  'warnOnOpen',
-  'maxOpenBeforeWarn'
-]);
 
 export async function warnOnOpenTabs(count) {
   if (!configs.warnOnOpen ||
@@ -24,7 +21,8 @@ export async function warnOnOpenTabs(count) {
   const brandName = await browser.runtime.sendMessage({
     type: Constants.COMMAND_GET_BROWSER_NAME
   });
-  const result = await RichConfirm.show({
+  const result = await RichConfirm.showInPopup({
+    modal:   true,
     type:    'common-dialog',
     message: browser.i18n.getMessage('tabs_openWarningMultipleBrande', [count, brandName]),
     buttons: [
@@ -36,14 +34,8 @@ export async function warnOnOpenTabs(count) {
   });
   switch (result.buttonIndex) {
     case 0:
-      if (!result.checked) {
-        Connection.sendMessage({
-          type:   Constants.COMMAND_SET_CONFIGS,
-          values: {
-            warnOnOpen: false
-          }
-        });
-      }
+      if (!result.checked)
+        configs.warnOnOpen = false;
       return true;
     default:
       return false;
@@ -64,7 +56,7 @@ export async function showBookmarkDialog(params) {
                            value=${JSON.stringify(params.url)}></label></div>
   `;
   try {
-    const result = await RichConfirm.show({
+    const result = await RichConfirm.showInPopup({
       type: 'dialog',
       content: `
         <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}

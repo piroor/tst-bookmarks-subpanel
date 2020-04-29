@@ -13,6 +13,7 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 import * as Commands from './commands.js';
+import * as Dialogs from './dialogs.js';
 import './context-menu.js';
 
 async function registerToTST() {
@@ -147,6 +148,9 @@ browser.runtime.onMessage.addListener((message, _sender) => {
 
     case Constants.COMMAND_GET_BROWSER_NAME:
       return browser.runtime.getBrowserInfo().then(info => info.name);
+
+    case Constants.COMMAND_CONFIRM_TO_OPEN_TABS:
+      return Dialogs.warnOnOpenTabs(message.count);
   }
 });
 

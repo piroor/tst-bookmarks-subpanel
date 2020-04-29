@@ -23,6 +23,8 @@ export const COMMAND_CREATE_BOOKMARK   = 'create-bookmark';
 export const COMMAND_MOVE_BOOKMARK     = 'move-bookmark';
 export const COMMAND_COPY_BOOKMARK     = 'copy-bookmark';
 
+export const COMMAND_CONFIRM_TO_OPEN_TABS = 'confirm-to-open-tabs';
+
 export const NOTIFY_BOOKMARK_CREATED = 'bookmark-created';
 export const NOTIFY_BOOKMARK_REMOVED = 'bookmark-removed';
 export const NOTIFY_BOOKMARK_MOVED   = 'bookmark-moved';
