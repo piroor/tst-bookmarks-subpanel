@@ -6,6 +6,7 @@
   "description": "__MSG_extensionDescription__",
   "permissions": [
     "bookmarks",
+    "browserSettings",
     "storage"
   ],
   "background": {

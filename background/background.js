@@ -31,6 +31,10 @@ async function registerToTST() {
         url:   `moz-extension://${location.host}/panel/panel.html`
       }
     });
+    // This is required to override the context menu.
+    browser.browserSettings.contextMenuShowEvent.set({
+      value: 'mouseup'
+    });
   }
   catch(_error) {
     // TST is not available
