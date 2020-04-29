@@ -31,7 +31,7 @@ async function registerToTST() {
         url:   `moz-extension://${location.host}/panel/panel.html`
       }
     });
-    // This is required to override the context menu.
+    // This is required to override the context menu on macOS and Linux.
     browser.browserSettings.contextMenuShowEvent.set({
       value: 'mouseup'
     });
