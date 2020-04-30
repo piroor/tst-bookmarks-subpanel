@@ -16,8 +16,6 @@ import * as Commands from './commands.js';
 import * as Dialogs from './dialogs.js';
 import './context-menu.js';
 
-let mConnectionToTST;
-
 async function registerToTST() {
   try {
     await browser.runtime.sendMessage(Constants.TST_ID, {
@@ -37,10 +35,6 @@ async function registerToTST() {
     // This is required to override the context menu on macOS and Linux.
     browser.browserSettings.contextMenuShowEvent.set({
       value: 'mouseup'
-    });
-    // This is required to detect unloading of this addon on TST side.
-    mConnectionToTST = browser.runtime.connect(Constants.TST_ID, {
-      name: `connection with ${browser.runtime.id}`
     });
   }
   catch(_error) {
