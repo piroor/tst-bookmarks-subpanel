@@ -243,21 +243,24 @@ async function onShown(info) {
 }
 
 async function onClicked(info) {
-  /*
-  let bookmark = info.bookmarkId && await browser.bookmarks.get(info.bookmarkId);
-  if (Array.isArray(bookmark))
-    bookmark = bookmark[0];
+  let [bookmark,] = info.bookmarkId && await browser.bookmarks.get(info.bookmarkId);
+  if (bookmark.type == 'bookmark' &&
+      /^place:parent=([^&]+)$/.test(bookmark.url)) { // alias for special folders
+    const [realItem,] = await browser.bookmarks.get(RegExp.$1);
+    bookmark.id    = realItem.id;
+    bookmark.type  = realItem.type;
+    bookmark.title = realItem.title;
+  }
   if (bookmark && bookmark.type == 'folder') {
     bookmark = await browser.bookmarks.getSubTree(bookmark.id);
     if (Array.isArray(bookmark))
       bookmark = bookmark[0];
   }
-  */
-  const bookmark  = info.bookmark;
-  const bookmarks = info.bookmarks;
 
   if (!bookmark)
     return;
+
+  const bookmarks = [bookmark];
 
   const destination = {
     parentId: bookmark.type == 'folder' ? bookmark.id : bookmark.parentId
@@ -395,16 +398,8 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
           break;
 
         case 'fake-contextMenu-click':
-          if (message.info.bookmarkId) {
-            browser.bookmarks.get(message.info.bookmarkId).then(items => {
-              const bookmark = items[0];
-              onClicked({
-                ...message.info,
-                bookmark,
-                bookmarks: [bookmark]
-              });
-            });
-          }
+          if (message.info.bookmarkId)
+            onClicked(message.info);
           break;
       }
       break;
