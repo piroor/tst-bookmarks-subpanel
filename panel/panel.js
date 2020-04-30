@@ -111,7 +111,10 @@ mContent.addEventListener('mousedown', event => {
 // We need to handle mouseup instead of click to bypass the "auto scroll"
 // behavior of Firefox itself.
 mContent.addEventListener('mouseup', event => {
-  if (event.button == 2)
+  if (event.button == 2 ||
+      (/mac/.test(navigator.platform) &&
+       event.button == 0 &&
+       event.ctrlKey))
     return;
 
   const item = EventUtils.getItemFromEvent(event);
