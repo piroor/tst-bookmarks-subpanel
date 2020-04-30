@@ -91,7 +91,7 @@ mContent.addEventListener('mousedown', event => {
   }
 
   if (event.button == 2 ||
-      (/mac/.test(navigator.platform) &&
+      (/^Mac/i.test(navigator.platform) &&
        event.button == 0 &&
        event.ctrlKey)) {
     // context menu
@@ -112,7 +112,7 @@ mContent.addEventListener('mousedown', event => {
 // behavior of Firefox itself.
 mContent.addEventListener('mouseup', event => {
   if (event.button == 2 ||
-      (/mac/.test(navigator.platform) &&
+      (/^Mac/i.test(navigator.platform) &&
        event.button == 0 &&
        event.ctrlKey))
     return;
