@@ -242,19 +242,6 @@ async function onShown(info) {
   return mItems;
 }
 
-function onHidden() {
-  updateVisible('open', false);
-  updateVisible('openTab', false);
-  updateVisible('openWindow', false);
-  updateVisible('openPrivateWindow', false);
-  updateVisible('openAllInTabs', false);
-  updateVisible('sortByName', false);
-  updateVisible('properties', false);
-  for (const separator of mSeparators) {
-    updateSeparator(separator.id);
-  }
-}
-
 async function onClicked(info) {
   let [bookmark,] = info.bookmarkId && await browser.bookmarks.get(info.bookmarkId);
   if (bookmark.type == 'bookmark' &&
@@ -408,11 +395,6 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
         case 'fake-contextMenu-shown':
           if (message.info.bookmarkId)
             onShown(message.info);
-          break;
-
-        case 'fake-contextMenu-hidden':
-          if (message.info.bookmarkId)
-            onHidden();
           break;
 
         case 'fake-contextMenu-click':
