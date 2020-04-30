@@ -214,10 +214,6 @@ Connection.onMessage.addListener(async message => {
       mCurrentDragDataForExternalsId = message.id || null;
       mCurrentDragDataForExternals = message.data || null;
       break;
-
-    case Constants.COMMAND_SEND_TO_TST:
-      mConnectionToTST.postMessage(message.message);
-      break;
   }
 });
 
