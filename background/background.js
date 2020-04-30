@@ -27,6 +27,7 @@ async function registerToTST() {
       listeningTypes: [
         'wait-for-shutdown',
         'fake-contextMenu-shown',
+        'fake-contextMenu-hidden',
         'fake-contextMenu-click'
       ],
       subPanel: {
