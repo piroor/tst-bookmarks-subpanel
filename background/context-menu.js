@@ -194,7 +194,19 @@ function hasVisiblePrecedingItem(separator) {
   );
 }
 
-async function onShown(contextItem, contextItems) {
+async function onShown(info) {
+  const contextItems = await browser.bookmarks.get(info.bookmarkId);
+  for (const item of contextItems) {
+    if (item.type == 'bookmark' &&
+        /^place:parent=([^&]+)$/.test(item.url)) { // alias for special folders
+      const [realItem,] = await browser.bookmarks.get(RegExp.$1);
+      item.id    = realItem.id;
+      item.type  = realItem.type;
+      item.title = realItem.title;
+    }
+  }
+
+  const contextItem  = contextItems[0];
   const hasFolder    = contextItems.some(item => item.type == 'folder');
   const hasBookmark  = contextItems.some(item => item.type == 'bookmark');
   const hasSeparator = contextItems.some(item => item.type == 'separator');
@@ -378,12 +390,8 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
           break;
 
         case 'fake-contextMenu-shown':
-          if (message.info.bookmarkId) {
-            browser.bookmarks.get(message.info.bookmarkId).then(items => {
-              const contextItem = items[0];
-              onShown(contextItem, [contextItem]);
-            });
-          }
+          if (message.info.bookmarkId)
+            onShown(message.info);
           break;
 
         case 'fake-contextMenu-click':
