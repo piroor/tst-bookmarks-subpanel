@@ -98,12 +98,23 @@ mContent.addEventListener('mousedown', event => {
     if (target.closest('input, textarea'))
       return;
     if (item)
+      Connection.sendMessage({
+        type: Constants.COMMAND_SEND_TO_TST,
+        message: {
+          type:       'override-context',
+          context:    'bookmark',
+          bookmarkId: item.raw.id,
+          windowId:   mWindowId
+        }
+      });
+/*
       browser.runtime.sendMessage(Constants.TST_ID, {
         type:       'override-context',
         context:    'bookmark',
         bookmarkId: item.raw.id,
         windowId:   mWindowId
       });
+*/
     return;
   }
 }, { capture: true });
