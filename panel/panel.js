@@ -107,14 +107,14 @@ mContent.addEventListener('mousedown', event => {
           windowId:   mWindowId
         }
       });
-/*
+      /*
       browser.runtime.sendMessage(Constants.TST_ID, {
         type:       'override-context',
         context:    'bookmark',
         bookmarkId: item.raw.id,
         windowId:   mWindowId
       });
-*/
+      */
     return;
   }
 }, { capture: true });
