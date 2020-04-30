@@ -97,7 +97,6 @@ mContent.addEventListener('mousedown', event => {
     // context menu
     if (target.closest('input, textarea'))
       return;
-console.log('CONTEXT MENU');
     if (item)
       browser.runtime.sendMessage(Constants.TST_ID, {
         type:       'override-context',
