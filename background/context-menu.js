@@ -148,7 +148,7 @@ function createItems() {
       //documentUrlPatterns: SIDEBAR_URL_PATTERN
     };
     browser.runtime.sendMessage(Constants.TST_ID, {
-      type:   'fake-contextMenu-create',
+      type:   'contextMenu-create',
       params: createInfo
     });
     //browser.menus.create(createInfo);
@@ -159,7 +159,7 @@ function updateVisible(id, visible) {
   const item = mItemsById[id];
   item.visible = item.lastVisible = visible;
   browser.runtime.sendMessage(Constants.TST_ID, {
-    type:   'fake-contextMenu-update',
+    type:   'contextMenu-update',
     params: [id, { visible }]
   });
   //browser.menus.update(id, { visible });
@@ -169,7 +169,7 @@ function updateEnabled(id, enabled) {
   const item = mItemsById[id];
   item.enabled = item.lastEnabled = enabled;
   browser.runtime.sendMessage(Constants.TST_ID, {
-    type:   'fake-contextMenu-update',
+    type:   'contextMenu-update',
     params: [id, { enabled }]
   });
   //browser.menus.update(id, { enabled });
@@ -392,12 +392,12 @@ browser.runtime.onMessageExternal.addListener((message, sender) => {
           createItems();
           break;
 
-        case 'fake-contextMenu-shown':
+        case 'contextMenu-shown':
           if (message.info.bookmarkId)
             onShown(message.info);
           break;
 
-        case 'fake-contextMenu-click':
+        case 'contextMenu-click':
           if (message.info.bookmarkId)
             onClicked(message.info);
           break;

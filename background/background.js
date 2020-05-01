@@ -24,8 +24,8 @@ async function registerToTST() {
       icons: browser.runtime.getManifest().icons,
       listeningTypes: [
         'wait-for-shutdown',
-        'fake-contextMenu-shown',
-        'fake-contextMenu-click'
+        'contextMenu-shown',
+        'contextMenu-click'
       ],
       subPanel: {
         title: browser.i18n.getMessage('subpanelName'),
