@@ -1,6 +1,10 @@
 # History
 
  - master/HEAD
+ - 1.2.0 (2020.5.5)
+   * Improve compatibility with other addons around bookmarks context menu. This depends on Tree Style Tab 3.5.4 and later.
+   * Allow to drag and drop between TST's sidebar and bookmarks. This depends on Tree Style Tab 3.5.4 and later.
+   * Remove "Open All as a Tree" context menu command, because TST's built-in feature is now available via the context menu on bookmarks.
  - 1.1.0 (2020.4.28)
    * Optimize for very large number of bookmarks.
  - 1.0.10 (2020.4.25)
