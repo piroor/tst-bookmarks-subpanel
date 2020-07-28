@@ -48,28 +48,39 @@ function sanitizeForHTMLText(text) {
 
 export async function showBookmarkDialog(params) {
   // Don't use "__MSG_XXX__" way because they can be modified by RichConfirm.js itself automatically.
-  /* eslint-disable indent */
   const urlField = `
-        <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_url_accessKey'))}
-                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_url'))
-                   }<input type="text"
+        <div style="display: flex;
+                    flex-direction: column;"
+            ><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_url_accessKey'))}
+                    style="display: flex;
+                           flex-direction: row;"
+                   ><span>${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_url'))}</span
+                   ><input type="text"
                            name="url"
-                           value=${JSON.stringify(params.url)}></label></div>
+                           value=${JSON.stringify(params.url)}
+                           style="display: flex;
+                                  flex-grow: 1;
+                                  flex-shrink: 1;
+                                  min-width: 20em;"></label></div>
   `.trim();
-  /* eslint-enable indent */
   try {
     const result = await RichConfirm.showInPopup({
       type: 'dialog',
-      /* eslint-disable indent */
       content: `
-        <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
-                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))
-                   }<input type="text"
+        <div style="display: flex;
+                    flex-direction: column;"
+            ><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
+                    style="display: flex;
+                           flex-direction: row;"
+                   ><span>${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))}</span
+                   ><input type="text"
                            name="title"
-                           value=${JSON.stringify(params.title)}></label></div
+                           value=${JSON.stringify(params.title)}
+                           style="display: flex;
+                                  flex-grow: 1;
+                                  flex-shrink: 1;"></label></div
        >${params.type == 'bookmark' ? urlField: ''}
       `.trim(),
-      /* eslint-enable indent */
       onShown(container) {
         container.classList.add('bookmark-dialog');
         container.querySelector('[name="title"]').select();
