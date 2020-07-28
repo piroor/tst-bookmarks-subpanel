@@ -48,24 +48,28 @@ function sanitizeForHTMLText(text) {
 
 export async function showBookmarkDialog(params) {
   // Don't use "__MSG_XXX__" way because they can be modified by RichConfirm.js itself automatically.
+  /* eslint-disable indent */
   const urlField = `
         <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_url_accessKey'))}
-                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_url'))}
-                    <input type="text"
+                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_url'))
+                   }<input type="text"
                            name="url"
                            value=${JSON.stringify(params.url)}></label></div>
-  `;
+  `.trim();
+  /* eslint-enable indent */
   try {
     const result = await RichConfirm.showInPopup({
       type: 'dialog',
+      /* eslint-disable indent */
       content: `
         <div><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
-                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))}
-                    <input type="text"
+                   >${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))
+                   }<input type="text"
                            name="title"
-                           value=${JSON.stringify(params.title)}></label></div>
-        ${params.type == 'bookmark' ? urlField: ''}
-      `,
+                           value=${JSON.stringify(params.title)}></label></div
+       >${params.type == 'bookmark' ? urlField: ''}
+      `.trim(),
+      /* eslint-enable indent */
       onShown(container) {
         container.classList.add('bookmark-dialog');
         container.querySelector('[name="title"]').select();
