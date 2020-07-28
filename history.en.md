@@ -1,6 +1,9 @@
 # History
 
  - master/HEAD
+ - 1.2.1 (2020.7.29)
+   * Better support for the Managed Storage.
+   * Flexible width input field in the bookmark properties dialog.
  - 1.2.0 (2020.5.5)
    * Improve compatibility with other addons around bookmarks context menu. This depends on Tree Style Tab 3.5.4 and later.
    * Allow to drag and drop between TST's sidebar and bookmarks. This depends on Tree Style Tab 3.5.4 and later.
