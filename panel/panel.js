@@ -162,16 +162,16 @@ mContent.addEventListener('mouseup', event => {
         urls:     [item.raw.url],
         inWindow: true
       });
-    else if (!configs.openInTabAlways)
-      Connection.sendMessage({
-        type: Constants.COMMAND_LOAD_BOOKMARK,
-        url:  item.raw.url
-      });
-    else
+    else if (configs.openInTabAlways || event.button == 1)
       Connection.sendMessage({
         type:       Constants.COMMAND_OPEN_BOOKMARKS,
         urls:       [item.raw.url],
         background: !configs.openAsActiveTab
+      });
+    else
+      Connection.sendMessage({
+        type: Constants.COMMAND_LOAD_BOOKMARK,
+        url:  item.raw.url
       });
     return;
   }
