@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.2.2 (2020.12.25)
+   * Allow to open bookmarks in tabs when "Open bookmarks in tabs always" is unchecked.
  - 1.2.1 (2020.7.29)
    * Better support for the Managed Storage.
    * Flexible width input field in the bookmark properties dialog.
