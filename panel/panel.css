@@ -41,9 +41,9 @@ body {
 
 
 #searchbar {
-  background: -moz-Field;
+  background: var(--in-content-box-background);
   border: 1px solid var(--in-content-box-border-color);
-  color: -moz-FieldText;
+  color: var(--in-content-text-color);
   display: flex;
   flex-direction: row;
   height: 1.5em;
