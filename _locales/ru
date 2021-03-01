@@ -1,0 +1,55 @@
+{
+  "extensionName": { "message": "Субпанель закладок для TST" },
+  "extensionDescription": { "message": "Создает подпанель закладок для Tree Style Tab." },
+
+  "subpanelName": { "message": "Закладки" },
+
+  "searchbox_placeholder": { "message": "Поиск закладок" },
+
+  "tabs_openWarningMultipleBrande": { "message": "Вы собираетесь открыть $NUMBER$ вкладок. Это может замедлить работу $BRAND$. Вы уверены, что хотите продолжить?",
+    "placeholders": {
+      "NUMBER": { "content": "$1", "example": "10" },
+      "BRAND": { "content": "$2", "example": "Firefox" }
+    }},
+  "tabs_openWarningPromptMeBranded": { "message": "Предупреждать при открытии нескольких вкладок",
+    "placeholders": {
+      "BRAND": { "content": "$1", "example": "Firefox" }
+    }},
+  "tabs_openButtonMultiple": { "message": "Открыть вкладки" },
+  "tabs_openWarningMultiple_cancel": { "message": "Отмена" },
+
+  "blankTitle": { "message": "(без заголовка)" },
+  "defaultBookmarkTitle": { "message": "Новая закладка" },
+  "defaultFolderTitle": { "message": "Новая папка" },
+
+  "bookmarkDialog_title":  { "message": "Заголовок:" },
+  "bookmarkDialog_url":    { "message": "Расположение:" },
+  "bookmarkDialog_save":   { "message": "Сохранить" },
+  "bookmarkDialog_add":    { "message": "Добавить" },
+  "bookmarkDialog_cancel": { "message": "Отмена" },
+
+  "menu_open_label": { "message": "&Открыть" },
+  "menu_openTab_label": { "message": "О&ткрыть в новой вкладке" },
+  "menu_openWindow_label": { "message": "Открыть в &новом окне" },
+  "menu_openPrivateWindow_label": { "message": "Открыть в новом &приватном окне" },
+  "menu_openAllInTabs_label": { "message": "Открыть вс&е во вкладках" },
+  "menu_createBookmark_label": { "message": "Новая &закладка…" },
+  "menu_createFolder_label": { "message": "Нов&ая папка…" },
+  "menu_createSeparator_label": { "message": "Новый &разделитель" },
+  "menu_cut_label": { "message": "&Вырезать" },
+  "menu_copy_label": { "message": "&Копировать" },
+  "menu_paste_label": { "message": "В&ставить" },
+  "menu_delete_label": { "message": "&Удалить" },
+  "menu_sortByName_label": { "message": "Сортировать по &имени" },
+  "menu_properties_label": { "message": "Св&ойства" },
+
+  "menu_openAllBookmarksWithStructure_label": { "message": "Открыть все как &дерево" },
+
+  "config_openInTabAlways_label": { "message": "Всегда открывать во вкладках" },
+  "config_openAsActiveTab_label": { "message": "Переключаться на открытую вкладку" },
+  "config_warnOnOpen_label":               { "message": "Предупреждать, о возможном замедлении, при открытии" },
+  "config_maxOpenBeforeWarn_label_before": { "message": "более " },
+  "config_maxOpenBeforeWarn_label_after":  { "message": " вкладок)" },
+  "config_showScrollbarLeft_label": { "message": "Показать прокрутку слева" }
+
+}
