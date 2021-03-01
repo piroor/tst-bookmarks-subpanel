@@ -77,7 +77,8 @@ input:focus {
 
 #searchbox {
   background: transparent;
-  border: none;
+  border: none transparent 0;
+  box-shadow: none;
   color: var(--in-content-text-color);
   flex-grow: 1;
   margin: 0;
