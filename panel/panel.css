@@ -82,6 +82,7 @@ input:focus {
   color: var(--in-content-text-color);
   flex-grow: 1;
   margin: 0;
+  outline: none;
   padding: 0;
 }
 
