@@ -1,0 +1,159 @@
+{
+    "extensionName": {
+        "message": "TST Bookmarks Subpanel - TST 书签子面板",
+        "hash": "3b8e238b95fa57bedb2aca29f7c81479"
+    },
+    "extensionDescription": {
+        "message": "为 Tree Style Tab 侧栏提供一个书签子面板",
+        "hash": "db25d0f0b6a3cde4b0efad42b522694f"
+    },
+    "subpanelName": {
+        "message": "书签",
+        "hash": "b0385228a85ae24506b3d3c7a4d35f09"
+    },
+    "searchbox_placeholder": {
+        "message": "查找书签",
+        "hash": "6c617ee5ee7e25a18d39d5204adcaaeb"
+    },
+    "tabs_openWarningMultipleBrande": {
+        "message": "您即将打开 $NUMBER$ 个标签页。这些页面在加载时可能会降低 $BRAND$ 的运行速度。您确定要继续吗？",
+        "placeholders": {
+            "NUMBER": { "content": "$1", "example": "10" },
+            "BRAND": { "content": "$2", "example": "Firefox" }
+        },
+        "hash": "1b92536802a9332f8001c0796f79ac1e"
+    },
+    "tabs_openWarningPromptMeBranded": {
+        "message": "在打开多个标签页可能会降低 $BRAND$ 的运行速度时对我发出警告",
+        "placeholders": {
+            "BRAND": { "content": "$1", "example": "Firefox" }
+        },
+        "hash": "c1583c27ce8e84af5e071e957d4cdcba"
+    },
+    "tabs_openButtonMultiple": {
+        "message": "打开这些标签页",
+        "hash": "2451f52b5638d7e3d04c973999393e9b"
+    },
+    "tabs_openWarningMultiple_cancel": {
+        "message": "取消",
+        "hash": "17aa19f18a894459ab6ff21156e8a341"
+    },
+    "blankTitle": {
+        "message": "（无标题）",
+        "hash": "1775690b4eb2df80a3e150f3fd47c3a4"
+    },
+    "defaultBookmarkTitle": {
+        "message": "新建书签",
+        "hash": "df89d300154e52a843c438b131309379"
+    },
+    "defaultFolderTitle": {
+        "message": "新建文件夹",
+        "hash": "9568422727cee900eb4d208614c8f7f1"
+    },
+    "bookmarkDialog_title": {
+        "message": "名称：",
+        "hash": "bcc9f177b0a20c395aac47bd88204419"
+    },
+    "bookmarkDialog_url": {
+        "message": "位置：",
+        "hash": "d3304a6af52921ec7fbf6469ba358327"
+    },
+    "bookmarkDialog_save": {
+        "message": "保存",
+        "hash": "aa14043bd4e6f79db542868539be9220"
+    },
+    "bookmarkDialog_add": {
+        "message": "添加",
+        "hash": "c30738ff9271a856100751bbca5e5794"
+    },
+    "bookmarkDialog_cancel": {
+        "message": "取消",
+        "hash": "17aa19f18a894459ab6ff21156e8a341"
+    },
+    "menu_open_label": {
+        "message": "打开(&O)",
+        "hash": "b6df66effabb781b108ffb75aac958d3"
+    },
+    "menu_openTab_label": {
+        "message": "新建标签页打开(&N)",
+        "hash": "3d8a805253f2c385a0fe22031981e748"
+    },
+    "menu_openWindow_label": {
+        "message": "新建窗口打开(&N)",
+        "hash": "3e71e3d7e8eda3c6d246246ba6b0f35f"
+    },
+    "menu_openPrivateWindow_label": {
+        "message": "新建隐私窗口打开(&P)",
+        "hash": "1205010a582f3b13497be34cc4ec6d9c"
+    },
+    "menu_openAllInTabs_label": {
+        "message": "全部打开(&O)",
+        "hash": "79faeee2d39888d621c95add5ac28c32"
+    },
+    "menu_createBookmark_label": {
+        "message": "新建书签…(&B)",
+        "hash": "89fb56e15a8ee7f3bfdb0590dd0bfd17"
+    },
+    "menu_createFolder_label": {
+        "message": "新建文件夹…(&F)",
+        "hash": "413330cd6f1a38f633aaa569229079b0"
+    },
+    "menu_createSeparator_label": {
+        "message": "新建分割条(&S)",
+        "hash": "a635cb3b763dc8a8658abd9ffbfda5cd"
+    },
+    "menu_cut_label": {
+        "message": "剪切(&T)",
+        "hash": "9228a4648a46c3ad5dd518398a63b29b"
+    },
+    "menu_copy_label": {
+        "message": "复制(&C)",
+        "hash": "90f48b6d86a4d49247159e203f545f53"
+    },
+    "menu_paste_label": {
+        "message": "粘贴(&P)",
+        "hash": "e7633cb43e338e2e89b4aba02e2ea2dc"
+    },
+    "menu_delete_label": {
+        "message": "删除(&D)",
+        "hash": "9a00f5bd68696bf71d7870fe02c17ec3"
+    },
+    "menu_sortByName_label": {
+        "message": "按名称排序(&R)",
+        "hash": "e31a397394c5d39e7c43209007dc0713"
+    },
+    "menu_properties_label": {
+        "message": "属性(&I)",
+        "hash": "d93e84f03abd9a54e3eb5d994b853ff4"
+    },
+    "menu_openAllBookmarksWithStructure_label": {
+        "message": "将全部项打开为一个标签树(&A)",
+        "hash": "764953a77356c4ff886ad85096e3894c"
+    },
+    "config_openInTabAlways_label": {
+        "message": "总是在新建标签页中打开书签",
+        "hash": "c3d3a300de97c1a3d4957800add73215"
+    },
+    "config_openAsActiveTab_label": {
+        "message": "当您在新建标签页中打开链接时，直接切换过去",
+        "hash": "4182fb8631bb73fef718ab18e414c2b6"
+    },
+    "config_warnOnOpen_label": {
+        "message": "在打开多个标签页可能会降低浏览器的运行速度时对您发出警告",
+        "hash": "8cac92b68f514c9e6416fda306e68d07"
+    },
+    "config_maxOpenBeforeWarn_label_before": {
+        "message": "（当即将打开",
+        "hash": "a4087200e3b9550a45017f487eb1799d"
+    },
+    "config_maxOpenBeforeWarn_label_after": {
+        "message": "个或者更多的标签页时）",
+        "hash": "de69e91df31aaaefa2c4498bbd563c41"
+    },
+    "config_showScrollbarLeft_label": {
+        "message": "在左侧显示滚动条",
+        "hash": "0658da7cca77951a97949b3af40daeb3"
+    },
+
+    "__WET_LOCALE__": { "message": "zh-CN" }
+}

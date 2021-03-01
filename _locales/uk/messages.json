@@ -1,0 +1,55 @@
+{
+  "extensionName": { "message": "Підпанель закладок TST" },
+  "extensionDescription": { "message": "Створює підпанель закладок для бічній панелі Tree Style Tab." },
+
+  "subpanelName": { "message": "Закладки" },
+
+  "searchbox_placeholder": { "message": "Пошук в закладках" },
+
+  "tabs_openWarningMultipleBrande": { "message": "Ви збираєтеся відкрити $NUMBER$ вкладок. Це може сповільнити роботу $BRAND$ під час завантаження сторінок. Ви впевнені, що хочете продовжити?",
+    "placeholders": {
+      "NUMBER": { "content": "$1", "example": "10" },
+      "BRAND": { "content": "$2", "example": "Firefox" }
+    }},
+  "tabs_openWarningPromptMeBranded": { "message": "Попередити мене, якщо відкриття декількох вкладок може вповільнити $BRAND$",
+    "placeholders": {
+      "BRAND": { "content": "$1", "example": "Firefox" }
+    }},
+  "tabs_openButtonMultiple": { "message": "Відкрити вкладки" },
+  "tabs_openWarningMultiple_cancel": { "message": "Скасувати" },
+
+  "blankTitle": { "message": "(без заголовка)" },
+  "defaultBookmarkTitle": { "message": "Нова закладка" },
+  "defaultFolderTitle": { "message": "Створити теку" },
+
+  "bookmarkDialog_title":  { "message": "Назва:" },
+  "bookmarkDialog_url":    { "message": "Розташування:" },
+  "bookmarkDialog_save":   { "message": "Зберегти" },
+  "bookmarkDialog_add":    { "message": "Додати" },
+  "bookmarkDialog_cancel": { "message": "Скасувати" },
+
+  "menu_open_label": { "message": "&Відкрити" },
+  "menu_openTab_label": { "message": "Відкрити в новій вклад&ці" },
+  "menu_openWindow_label": { "message": "Відкрити в &новому вікні" },
+  "menu_openPrivateWindow_label": { "message": "Відкрити в новому &приватному вікні" },
+  "menu_openAllInTabs_label": { "message": "&Відкрити все у вкладках" },
+  "menu_createBookmark_label": { "message": "Нова &закладка…" },
+  "menu_createFolder_label": { "message": "С&творити теку…" },
+  "menu_createSeparator_label": { "message": "Створити роз&ділювач" },
+  "menu_cut_label": { "message": "В&ирізати" },
+  "menu_copy_label": { "message": "Ко&піювати" },
+  "menu_paste_label": { "message": "Вст&авити" },
+  "menu_delete_label": { "message": "&Стерти" },
+  "menu_sortByName_label": { "message": "&Впорядкувати за назвою" },
+  "menu_properties_label": { "message": "Властивост&і" },
+
+  "menu_openAllBookmarksWithStructure_label": { "message": "Відкрити &все як дерево" },
+
+  "config_openInTabAlways_label": { "message": "Завжди відкривати закладки у вкладках" },
+  "config_openAsActiveTab_label": { "message": "При відкритті посилання в новій вкладці, перемкнути на неї негайно" },
+  "config_warnOnOpen_label":               { "message": "Попередити, якщо відкриття декількох вкладок може вповільнити роботу браузера" },
+  "config_maxOpenBeforeWarn_label_before": { "message": "(коли " },
+  "config_maxOpenBeforeWarn_label_after":  { "message": " або відкрито більше вкладок)" },
+  "config_showScrollbarLeft_label": { "message": "Показати смугу прокрутки зліва" }
+
+}
