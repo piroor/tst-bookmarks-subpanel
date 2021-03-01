@@ -1,6 +1,12 @@
 # 更新履歴
 
  - master/HEAD
+ - 1.2.3 (2021.3.2)
+   * Darkモードでの検索ボックスの配色がDarkモードらしくなっていなかったのを修正
+   * `zh_CN`ロケールを追加（by [NightSharp](https://github.com/NightSharp). Thanks!）
+   * `uk`ロケールを追加（by [perdolka](https://github.com/perdolka). Thanks!）
+   * `ru`ロケールを追加（by [wvxwxvw](https://github.com/wvxwxvw). Thanks!）
+   * `de`ロケールを更新（by [scorpie67](https://github.com/scorpie67). Thanks!）
  - 1.2.2 (2020.12.25)
    * 「ブックマークを常にタブで開く」がOFFの場合も中クリックでブックマークをタブで開けるようにした
  - 1.2.1 (2020.7.29)

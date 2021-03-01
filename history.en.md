@@ -1,6 +1,12 @@
 # History
 
  - master/HEAD
+ - 1.2.3 (2021.3.2)
+   * Better appearance of the search box on the Dark color mode.
+   * Add `zh_CN` locale by [NightSharp](https://github.com/NightSharp). Thanks!
+   * Add `uk` locale by [perdolka](https://github.com/perdolka). Thanks!
+   * Add `ru` locale by [wvxwxvw](https://github.com/wvxwxvw). Thanks!
+   * Update `de` locale by [scorpie67](https://github.com/scorpie67). Thanks!
  - 1.2.2 (2020.12.25)
    * Allow to open bookmarks in tabs when "Open bookmarks in tabs always" is unchecked.
  - 1.2.1 (2020.7.29)
