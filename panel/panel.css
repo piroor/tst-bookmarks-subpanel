@@ -35,6 +35,8 @@ body {
   mask: url("/resources/Globe.svg") no-repeat center / 100%;
   max-height: var(--icon-size);
   max-width: var(--icon-size);
+  min-height: var(--icon-size);
+  min-width: var(--icon-size);
   width: var(--icon-size);
 }
 
@@ -49,6 +51,7 @@ body {
   height: 1.5em;
   left: 0.2em;
   margin: 0;
+  min-width: 0;
   padding: 0;
   position: fixed;
   right: 0.2em;
