@@ -29,7 +29,7 @@ const TYPE_BOOKMARK_ITEMS = 'application/x-tst-bookmarks-subpanel-bookmark-items
 const TYPE_X_MOZ_URL      = 'text/x-moz-url';
 const TYPE_URI_LIST       = 'text/uri-list';
 const TYPE_TEXT_PLAIN     = 'text/plain';
-const kTYPE_ADDON_DRAG_DATA = `application/x-moz-addon-drag-data;provider=${browser.runtime.id}&id=`;
+const kTYPE_ADDON_DRAG_DATA = `application/x-treestyletab-drag-data;provider=${browser.runtime.id}&id=`;
 
 function isRootItem(id) {
   return Constants.ROOT_ITEMS.includes(id);
@@ -165,7 +165,7 @@ function retrievePlacesFromDragEvent(event) {
       break;
   }
   for (const type of dt.types) {
-    if (!/^application\/x-moz-addon-drag-data;(.+)$/.test(type))
+    if (!/^application\/x-treestyletab-drag-data;(.+)$/.test(type))
       continue;
     const params     = RegExp.$1;
     const providerId = /provider=([^;&]+)/.test(params) && RegExp.$1;
