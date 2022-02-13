@@ -1,6 +1,8 @@
 # 更新履歴
 
  - master/HEAD
+ - 1.2.4 (2022.2.13)
+   * TST 3.8.20以降からドラッグされたタブを受け入れるように修正
  - 1.2.3 (2021.3.2)
    * Darkモードでの検索ボックスの配色がDarkモードらしくなっていなかったのを修正
    * `zh_CN`ロケールを追加（by [NightSharp](https://github.com/NightSharp). Thanks!）

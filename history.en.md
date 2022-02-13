@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.2.4 (2022.2.13)
+   * Accept dragged tabs from TST 3.8.20 and later.
  - 1.2.3 (2021.3.2)
    * Better appearance of the search box on the Dark color mode.
    * Add `zh_CN` locale by [NightSharp](https://github.com/NightSharp). Thanks!
