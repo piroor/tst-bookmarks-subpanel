@@ -2,6 +2,7 @@
 
  - master/HEAD
  - 1.2.4 (2022.2.13)
+   * Fix incompatibility around drag and drop operations on Firefox 97 and later.
    * Accept dragged tabs from TST 3.8.20 and later.
  - 1.2.3 (2021.3.2)
    * Better appearance of the search box on the Dark color mode.
