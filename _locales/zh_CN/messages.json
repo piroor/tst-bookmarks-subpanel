@@ -31,7 +31,7 @@
         "hash": "c1583c27ce8e84af5e071e957d4cdcba"
     },
     "tabs_openButtonMultiple": {
-        "message": "打开这些标签页",
+        "message": "打开标签页",
         "hash": "2451f52b5638d7e3d04c973999393e9b"
     },
     "tabs_openWarningMultiple_cancel": {
@@ -43,7 +43,7 @@
         "hash": "1775690b4eb2df80a3e150f3fd47c3a4"
     },
     "defaultBookmarkTitle": {
-        "message": "新建书签",
+        "message": "新建书签项",
         "hash": "df89d300154e52a843c438b131309379"
     },
     "defaultFolderTitle": {
@@ -54,9 +54,17 @@
         "message": "名称：",
         "hash": "bcc9f177b0a20c395aac47bd88204419"
     },
+    "bookmarkDialog_title_accessKey": {
+        "message": "n",
+        "hash": "b45c6754f808b40779ef29b3c6160e8b"
+    },
     "bookmarkDialog_url": {
         "message": "位置：",
         "hash": "d3304a6af52921ec7fbf6469ba358327"
+    },
+    "bookmarkDialog_url_accessKey": {
+        "message": "l",
+        "hash": "f539fdab7bdf9f622c08ef48c391feb9"
     },
     "bookmarkDialog_save": {
         "message": "保存",
@@ -91,11 +99,11 @@
         "hash": "79faeee2d39888d621c95add5ac28c32"
     },
     "menu_createBookmark_label": {
-        "message": "新建书签…(&B)",
+        "message": "新建书签(&B)…",
         "hash": "89fb56e15a8ee7f3bfdb0590dd0bfd17"
     },
     "menu_createFolder_label": {
-        "message": "新建文件夹…(&F)",
+        "message": "新建文件夹(&F)…",
         "hash": "413330cd6f1a38f633aaa569229079b0"
     },
     "menu_createSeparator_label": {
@@ -126,10 +134,6 @@
         "message": "属性(&I)",
         "hash": "d93e84f03abd9a54e3eb5d994b853ff4"
     },
-    "menu_openAllBookmarksWithStructure_label": {
-        "message": "将全部项打开为一个标签树(&A)",
-        "hash": "764953a77356c4ff886ad85096e3894c"
-    },
     "config_openInTabAlways_label": {
         "message": "总是在新建标签页中打开书签",
         "hash": "c3d3a300de97c1a3d4957800add73215"
@@ -155,5 +159,5 @@
         "hash": "0658da7cca77951a97949b3af40daeb3"
     },
 
-    "__WET_LOCALE__": { "message": "zh-CN" }
+    "__WET_LOCALE__": { "message": "zh_CN" }
 }
