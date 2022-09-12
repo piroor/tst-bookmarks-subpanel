@@ -1,6 +1,9 @@
 # History
 
  - master/HEAD
+ - 1.2.5 (2022.9.12)
+   * Fix incompatibility with Firefox 105 and newer versions.
+   * Update `zh_CN` locale by [NightSharp](https://github.com/NightSharp). Thanks!
  - 1.2.4 (2022.2.13)
    * Fix incompatibility around drag and drop operations on Firefox 97 and later.
    * Accept dragged tabs from TST 3.8.20 and later.

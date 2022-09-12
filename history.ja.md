@@ -1,6 +1,9 @@
 # 更新履歴
 
  - master/HEAD
+ - 1.2.5 (2022.9.12)
+   * Firefox 105以降のバージョンとの非互換を修正
+   * `zh_CN`ロケールを更新（by [NightSharp](https://github.com/NightSharp). Thanks!）
  - 1.2.4 (2022.2.13)
    * Firefox 97以降でドラッグ＆ドロップが期待通りに動作しなくなっていたのを修正
    * TST 3.8.20以降からドラッグされたタブを受け入れるように修正
