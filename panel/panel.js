@@ -110,7 +110,7 @@ mContent.addEventListener('mousedown', event => {
 
 // We need to handle mouseup instead of click to bypass the "auto scroll"
 // behavior of Firefox itself.
-mContent.addEventListener('mouseup', event => {
+mContent.addEventListener('mouseup', async event => {
   if (event.button == 2 ||
       (/^Mac/i.test(navigator.platform) &&
        event.button == 0 &&
@@ -132,6 +132,11 @@ mContent.addEventListener('mouseup', event => {
 
   if (item.classList.contains('folder')) {
     if (accel || event.shiftKey) {
+      if (!item.raw.children)
+        item.raw.children = await browser.runtime.sendMessage({
+          type: Constants.COMMAND_GET_CHILDREN,
+          id:   item.raw.id,
+        });
       const urls = item.raw.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       browser.runtime.sendMessage({
         type:  Constants.COMMAND_CONFIRM_TO_OPEN_TABS,
