@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 1.2.6 (2022.9.19)
+   * Open ctrl/shift/middle-clciked bookmark folder as tabs correctly even if the folder is not expanded yet.
  - 1.2.5 (2022.9.12)
    * Fix incompatibility with Firefox 105 and newer versions.
    * Update `zh_CN` locale by [NightSharp](https://github.com/NightSharp). Thanks!

@@ -1,6 +1,8 @@
 # 更新履歴
 
  - master/HEAD
+ - 1.2.6 (2022.9.19)
+   * まだ展開されていない状態のフォルダーをCtrl/Shift-クリックやミドルクリックした場合でも、フォルダーの内容をタブで開けるように修正
  - 1.2.5 (2022.9.12)
    * Firefox 105以降のバージョンとの非互換を修正
    * `zh_CN`ロケールを更新（by [NightSharp](https://github.com/NightSharp). Thanks!）
