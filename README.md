@@ -1,12 +1,12 @@
-# [TST Bookmarks Subpanel](https://addons.mozilla.org/firefox/addon/tst-bookmarks-subpanel/)
+# TST Bookmarks Subpanel
 
 ![Build Status](https://github.com/piroor/tst-bookmarks-subpanel/actions/workflows/main.yml/badge.svg?branch=trunk)
 
 A Firefox addon providing the "Bookmarks" subpanel for Tree Style Tab.
 This has started mainly for demonstration of [TST's SubPanel API](https://github.com/piroor/treestyletab/wiki/SubPanel-API).
 
-Development builds for each commit are available at "Artifacts" of the CI/CD action:
-https://github.com/piroor/tst-bookmarks-subpanel/actions?query=workflow%3ACI%2FCD
+* [Signed package on AMO](https://addons.mozilla.org/firefox/addon/tst-bookmarks-subpanel/)
+* [Development builds for each commit are available at "Artifacts" of the CI/CD action](https://github.com/piroor/tst-bookmarks-subpanel/actions?query=workflow%3ACI%2FCD)
 
 ## Known restrictions
 
