@@ -1,6 +1,7 @@
 # 更新履歴
 
  - master/HEAD
+   * メモリ消費を削減（[by @nirvdrum, thanks!](https://github.com/piroor/webextensions-lib-event-listener-manager/pull/1)）
  - 1.2.6 (2022.9.19)
    * まだ展開されていない状態のフォルダーをCtrl/Shift-クリックやミドルクリックした場合でも、フォルダーの内容をタブで開けるように修正
  - 1.2.5 (2022.9.12)
