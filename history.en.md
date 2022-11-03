@@ -1,7 +1,8 @@
 # History
 
  - master/HEAD
-   * Reduce memory allocation ([by @nirvdrum, thanks!](https://github.com/piroor/webextensions-lib-event-listener-manager/pull/1))
+ - 1.2.7 (2022.11.3)
+   * Reduce memory allocation ([by nirvdrum, thanks!](https://github.com/piroor/webextensions-lib-event-listener-manager/pull/1))
  - 1.2.6 (2022.9.19)
    * Open ctrl/shift/middle-clicked bookmark folder as tabs correctly even if the folder is not expanded yet.
  - 1.2.5 (2022.9.12)
