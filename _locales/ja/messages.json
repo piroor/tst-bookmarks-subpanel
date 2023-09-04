@@ -46,7 +46,7 @@
   "menu_properties_label": { "message": "プロパティ(&I)" },
 
   "config_openInTabAlways_label": { "message": "ブックマークを常にタブで開く" },
-  "config_openAsActiveTab_label": { "message": "ブックマークをタブを開いたとき、すぐにそのタブに切り替える" },
+  "config_openAsActiveTab_label": { "message": "ブックマークをタブで開いたとき、すぐにそのタブに切り替える" },
   "config_warnOnOpen_label":               { "message": "同時に複数のタブを開くときは確認する"},
   "config_maxOpenBeforeWarn_label_before": { "message": "（" },
   "config_maxOpenBeforeWarn_label_after":  { "message": "個以上のタブを開こうとした場合）" },
