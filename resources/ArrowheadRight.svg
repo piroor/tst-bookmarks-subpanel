@@ -6,14 +6,32 @@
     :root {
       color-scheme: light dark;
     }
-    path {
+    g.prefer-color-scheme.default:target {
+      fill: rgb(21, 20, 26); /* https://searchfox.org/mozilla-central/rev/d6576544301cacc0e393fbc919c53e4e6b0d46ec/toolkit/themes/shared/in-content/common-shared.css#16 */
+    }
+    g.prefer-color-scheme.toolbar:target {
       fill: rgb(91, 91, 102); /* https://searchfox.org/mozilla-central/rev/d6576544301cacc0e393fbc919c53e4e6b0d46ec/browser/themes/shared/browser-custom-colors.css#74 */
     }
     @media (prefers-color-scheme: dark) {
-      path {
+      g.prefer-color-scheme.default:target,
+      g.prefer-color-scheme.toolbar:target {
         fill: rgb(251, 251, 254); /* https://searchfox.org/mozilla-central/rev/d6576544301cacc0e393fbc919c53e4e6b0d46ec/browser/themes/shared/browser-custom-colors.css#74 */
       }
     }
   </style>
+<symbol id="icon">
   <path d="M6 14a1 1 0 0 1-.707-1.707L9.586 8 5.293 3.707a1 1 0 0 1 1.414-1.414l5 5a1 1 0 0 1 0 1.414l-5 5A1 1 0 0 1 6 14z"></path>
+</symbol>
+<g id="toolbar-theme" class="theme toolbar">
+	<use href="#icon"/>
+</g>
+<g id="default-theme" class="theme default">
+	<use href="#icon"/>
+</g>
+<g id="toolbar" class="prefer-color-scheme toolbar">
+	<use href="#icon"/>
+</g>
+<g id="default" class="prefer-color-scheme default">
+	<use href="#icon"/>
+</g>
 </svg>

@@ -13,10 +13,10 @@
     "page": "/background/background.html"
   },
   "icons": {
-    "16": "/resources/Bookmark.svg",
-    "20": "/resources/Bookmark.svg",
-    "24": "/resources/Bookmark.svg",
-    "32": "/resources/Bookmark.svg"
+    "16": "/resources/Bookmark.svg#default",
+    "20": "/resources/Bookmark.svg#default",
+    "24": "/resources/Bookmark.svg#default",
+    "32": "/resources/Bookmark.svg#default"
   },
   "options_ui": {
     "page": "/options/options.html"
