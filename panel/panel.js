@@ -18,9 +18,7 @@ import '/extlib/l10n.js';
 let mInitiaized = false;
 
 const configs = Connection.getConfigs([
-  'openedFolders',
   'openInTabAlways',
-  'scrollPosition',
   'openAsActiveTab',
   'showScrollbarLeft'
 ]);
@@ -38,8 +36,6 @@ async function init() {
       Bookmarks.init(),
       configs.$loaded
     ]);
-
-    mContent.scrollTop = configs.scrollPosition;
 
     configs.$addObserver(onConfigChange);
     onConfigChange('showScrollbarLeft');
@@ -179,15 +175,6 @@ mContent.addEventListener('mouseup', async event => {
       });
     return;
   }
-});
-
-mContent.addEventListener('scroll', () => {
-  Connection.sendMessage({
-    type:   Constants.COMMAND_SET_CONFIGS,
-    values: {
-      scrollPosition: mContent.scrollTop
-    }
-  });
 });
 
 window.addEventListener('focus', () => {

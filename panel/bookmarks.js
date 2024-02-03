@@ -35,6 +35,7 @@ const MODE_SEARCH   = 1;
 let mLastMode = MODE_LIST_ALL;
 
 async function listAll() {
+  let scrollPosition = 0;
   const [rawRoot] = await Promise.all([
     browser.runtime.sendMessage({
       type: Constants.COMMAND_GET_ROOT
@@ -43,10 +44,12 @@ async function listAll() {
       const configs = await browser.runtime.sendMessage({
         type: Constants.COMMAND_GET_CONFIGS,
         keys: [
-          'openedFolders'
+          'openedFolders',
+          'scrollPosition',
         ]
       });
       mOpenedFolderIds = new Set(configs.openedFolders);
+      scrollPosition = configs.scrollPosition;
     })(),
   ]);
 
@@ -61,7 +64,7 @@ async function listAll() {
   mRawItemsById.clear();
   mRawItems = [];
   await Promise.all(rawRoot.children.map(trackRawItem));
-  reserveToRenderRows();
+  reserveToRenderRows(scrollPosition);
 }
 
 async function trackRawItem(rawItem) {
@@ -317,9 +320,10 @@ export function clearDropPosition() {
 
 /* rendering */
 
-export function reserveToRenderRows() {
+export function reserveToRenderRows(scrollPosition) {
   const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
   renderRows.lastStartedAt = startAt;
+  renderRows.expectedScrollPosition = scrollPosition;
   window.requestAnimationFrame(() => {
     if (renderRows.lastStartedAt != startAt)
       return;
@@ -330,15 +334,38 @@ export function reserveToRenderRows() {
 const mVirtualScrollContainer = document.querySelector('.virtual-scroll-container');
 let mLastRenderedItemIds = [];
 
-mScrollBox.addEventListener('scroll', renderRows);
+mScrollBox.addEventListener('scroll', () => {
+  mOnRenderdCallbacks.add(() => {
+    Connection.sendMessage({
+      type:   Constants.COMMAND_SET_CONFIGS,
+      values: {
+        scrollPosition: mScrollBox.scrollTop,
+      }
+    });
+  });
+  renderRows();
+});
 
 async function renderRows(scrollPosition) {
   renderRows.lastStartedAt = null;
+  if (typeof scrollPosition != 'number' &&
+      typeof renderRows.expectedScrollPosition == 'number') {
+    scrollPosition = renderRows.expectedScrollPosition;
+    renderRows.expectedScrollPosition = null;
+  }
 
   const rowSize                = getRowHeight();
   const allRenderableItemsSize = rowSize * mRawItems.length;
   const viewPortSize           = mScrollBox.getBoundingClientRect().height;
   const renderablePaddingSize  = viewPortSize;
+
+  // We need to use min-height instead of height for a flexbox.
+  const minHeight                   = `${allRenderableItemsSize}px`;
+  const virtualScrollContainerStyle = mVirtualScrollContainer.style;
+  const resized = virtualScrollContainerStyle.minHeight != minHeight;
+  if (resized)
+    virtualScrollContainerStyle.minHeight = minHeight;
+
   scrollPosition = Math.max(
     0,
     Math.min(
@@ -348,13 +375,8 @@ async function renderRows(scrollPosition) {
         mScrollBox.scrollTop
     )
   );
-
-  // We need to use min-height instead of height for a flexbox.
-  const minHeight                   = `${allRenderableItemsSize}px`;
-  const virtualScrollContainerStyle = mVirtualScrollContainer.style;
-  const resized = virtualScrollContainerStyle.minHeight != minHeight;
-  if (resized)
-    virtualScrollContainerStyle.minHeight = minHeight;
+  if (scrollPosition != mScrollBox.scrollTop)
+    mScrollBox.scrollTop = scrollPosition;
 
   const firstRenderableIndex = Math.max(
     0,
