@@ -61,7 +61,7 @@ function onDragStart(event) {
 
   const rowElement = Bookmarks.getRow(rawItem);
   if (rowElement) {
-    const rowRect = rowElement.firstChild.getBoundingCLientRect();
+    const rowRect = rowElement.firstChild.getBoundingClientRect();
     dt.setDragImage(rowElement.firstChild, event.clientX - rowRect.left, event.clientY - rowRect.top);
   }
 }
