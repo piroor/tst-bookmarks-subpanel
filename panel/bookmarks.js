@@ -11,10 +11,11 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 
-const mRawItemsById = new Map();
+let mRawItemsById = new Map();
 let mOpenedFolderIds;
 
-const mRoot = document.getElementById('root');
+const mScrollBox = document.getElementById('content');
+const mRoot      = document.getElementById('root');
 let mRawItems = [];
 let mActiveRawItemId;
 const mHighlightedRawItemIds = new Set();
@@ -28,6 +29,10 @@ export async function init() {
 
 
 // Listing raw bookmark items
+
+const MODE_LIST_ALL = 0;
+const MODE_SEARCH   = 1;
+let mLastMode = MODE_LIST_ALL;
 
 async function listAll() {
   const [rawRoot] = await Promise.all([
@@ -45,6 +50,14 @@ async function listAll() {
     })(),
   ]);
 
+  if (mLastMode != MODE_LIST_ALL) {
+    mRawItems = [];
+    mScrollBox.scrollTop = 0;
+    renderRows();
+    mLastMode = MODE_LIST_ALL;
+  }
+  mHighlightedRawItemIds.clear();
+  mDirtyRawItemIds.clear();
   mRawItemsById.clear();
   mRawItems = [];
   await Promise.all(rawRoot.children.map(trackRawItem));
@@ -120,12 +133,25 @@ export async function search(query) {
   if (!query)
     return listAll();
 
+  if (mLastMode != MODE_SEARCH) {
+    mRawItems = [];
+    mScrollBox.scrollTop = 0;
+    renderRows();
+    mLastMode = MODE_SEARCH;
+  }
+
+  mHighlightedRawItemIds.clear();
+  mDirtyRawItemIds.clear();
   mRawItemsById.clear();
 
   mRawItems = (await browser.runtime.sendMessage({
     type: Constants.COMMAND_SEARCH_BOOKMARKS,
     query,
-  })).filter(rawItem => rawItem.type == 'bookmark');
+  })).filter(item => item.type == 'bookmark');
+  mRawItemsById = new Map(mRawItems.map(item => {
+    mDirtyRawItemIds.add(item.id);
+    return [item.id, item];
+  }));
   renderRows();
 }
 
@@ -304,7 +330,6 @@ export function reserveToRenderRows() {
   });
 }
 
-const mScrollBox              = document.querySelector('#content');
 const mVirtualScrollContainer = document.querySelector('.virtual-scroll-container');
 let mLastRenderedItemIds = [];
 
