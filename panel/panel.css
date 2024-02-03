@@ -276,6 +276,10 @@ ul#root li[data-drop-position="after"] > .row {
   box-shadow: none;
 }
 
+.label {
+  pointer-events: none;
+}
+
 .label::before {
   background-color: var(--in-content-deemphasized-text);
   mask-image: url("/resources/Globe.svg");
