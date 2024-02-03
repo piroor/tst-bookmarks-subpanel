@@ -480,11 +480,9 @@ function createRow(rawItem) {
   const itemElement = document.createElement('li');
   itemElement.id         = getRowId(rawItem);
   itemElement.raw        = rawItem;
-  itemElement.level      = rawItem.level || 0;
   itemElement.dataset.id = rawItem.id;
   const row = itemElement.appendChild(document.createElement('a'));
   row.classList.add('row');
-  row.style.paddingLeft = `calc((var(--indent-size) * ${rawItem.level + 1}) - var(--indent-offset-size))`;
   row.setAttribute('draggable', true);
   row.setAttribute('tabindex', -1);
   return itemElement;
@@ -498,6 +496,9 @@ function setRowStatus(rawItem, rowElement) {
     rowElement.dataset.dropPosition = mLastDropPosition;
   else
     delete rowElement.dataset.dropPosition;
+
+  rowElement.level = rawItem.level || 0;
+  rowElement.firstChild.style.paddingLeft = `calc((var(--indent-size) * ${rawItem.level + 1}) - var(--indent-offset-size))`;
 }
 
 function renderFolderRow(rawItem) {
@@ -639,6 +640,7 @@ Connection.onMessage.addListener(async message => {
           mDirtyRawItemIds.add(rawItem.id);
           offset++;
         }
+        rawItem.level = newParent.level + 1;
         mDirtyRawItemIds.add(newParent.id);
       }
       else {
