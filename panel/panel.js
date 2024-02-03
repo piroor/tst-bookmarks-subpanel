@@ -71,16 +71,16 @@ function onConfigChange(key) {
 let mLastMouseDownTarget = null;
 
 mContent.addEventListener('mousedown', event => {
-  const item = EventUtils.getItemFromEvent(event);
-  if (!item)
+  const rawItem = EventUtils.getItemFromEvent(event);
+  if (!rawItem)
     return;
 
-  mLastMouseDownTarget = item.raw.id;
+  mLastMouseDownTarget = rawItem.id;
 
   const target = EventUtils.getElementTarget(event);
   if (!target.classList.contains('twisty'))
-    Bookmarks.setActive(item.raw, {
-      multiselect: item.classList.contains('highlighted') && mRoot.querySelectorAll('li.highlighted').length > 1
+    Bookmarks.setActive(rawItem, {
+      multiselect: Bookmarks.isReallyMultiselected(rawItem),
     });
 
   if (event.button == 1) {
@@ -97,11 +97,11 @@ mContent.addEventListener('mousedown', event => {
     // context menu
     if (target.closest('input, textarea'))
       return;
-    if (item)
+    if (rawItem)
       browser.runtime.sendMessage(Constants.TST_ID, {
         type:       'override-context',
         context:    'bookmark',
-        bookmarkId: item.raw.id,
+        bookmarkId: rawItem.id,
         windowId:   mWindowId
       });
     return;
@@ -117,11 +117,11 @@ mContent.addEventListener('mouseup', async event => {
        event.ctrlKey))
     return;
 
-  const item = EventUtils.getItemFromEvent(event);
-  if (!item)
+  const rawItem = EventUtils.getItemFromEvent(event);
+  if (!rawItem)
     return;
 
-  if (mLastMouseDownTarget != item.raw.id) {
+  if (mLastMouseDownTarget != rawItem.id) {
     mLastMouseDownTarget = null;
     return;
   }
@@ -130,14 +130,13 @@ mContent.addEventListener('mouseup', async event => {
 
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
-  if (item.classList.contains('folder')) {
+  if (rawItem.type == 'folder') {
     if (accel || event.shiftKey) {
-      if (!item.raw.children)
-        item.raw.children = await browser.runtime.sendMessage({
-          type: Constants.COMMAND_GET_CHILDREN,
-          id:   item.raw.id,
-        });
-      const urls = item.raw.children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      const children = rawItem.children || await browser.runtime.sendMessage({
+        type: Constants.COMMAND_GET_CHILDREN,
+        id:   rawItem.id,
+      });
+      const urls = children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       browser.runtime.sendMessage({
         type:  Constants.COMMAND_CONFIRM_TO_OPEN_TABS,
         count: urls.length
@@ -152,31 +151,31 @@ mContent.addEventListener('mouseup', async event => {
       });
     }
     else {
-      Bookmarks.toggleOpenState(item.raw);
+      Bookmarks.toggleOpenState(rawItem);
       if (!EventUtils.getElementTarget(event).classList.contains('twisty'))
-        Bookmarks.setActive(item.raw);
+        Bookmarks.setActive(rawItem);
     }
     return;
   }
 
-  if (item.classList.contains('bookmark') &&
-      !item.classList.contains('unavailable')) {
+  if (rawItem.type == 'bookmark' &&
+      !Constants.LOADABLE_URL_MATCHER.test(rawItem.url)) {
     if (event.shiftKey)
       Connection.sendMessage({
         type:     Constants.COMMAND_OPEN_BOOKMARKS,
-        urls:     [item.raw.url],
+        urls:     [rawItem.url],
         inWindow: true
       });
     else if (configs.openInTabAlways || event.button == 1)
       Connection.sendMessage({
         type:       Constants.COMMAND_OPEN_BOOKMARKS,
-        urls:       [item.raw.url],
+        urls:       [rawItem.url],
         background: !configs.openAsActiveTab
       });
     else
       Connection.sendMessage({
         type: Constants.COMMAND_LOAD_BOOKMARK,
-        url:  item.raw.url
+        url:  rawItem.url
       });
     return;
   }

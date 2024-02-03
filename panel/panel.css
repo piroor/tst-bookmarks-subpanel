@@ -4,6 +4,15 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+#dummy-root {
+  position: fixed;
+}
+#dummy-root,
+#dummy-root * {
+  opacity: 0;
+  pointer-events: none;
+}
+
 :root {
   background: var(--in-content-box-background);
   color: var(--text-color);

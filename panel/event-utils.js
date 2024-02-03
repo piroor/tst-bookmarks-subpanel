@@ -8,7 +8,7 @@
 export function getItemFromEvent(event) {
   const target = getElementTarget(event);
   const row = target && target.closest('.row');
-  return row && row.parentNode;
+  return row && row.parentNode && row.parentNode.raw;
 }
 
 export function getElementTarget(event) {
@@ -25,5 +25,5 @@ export function getRelatedItemFromEvent(event) {
   if (!(target instanceof Element))
     target = target.parentNode;
   const row = target && target.closest('.row');
-  return row && row.parentNode;
+  return row && row.parentNode && row.parentNode.raw;
 }

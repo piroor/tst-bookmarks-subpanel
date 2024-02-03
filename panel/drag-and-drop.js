@@ -36,19 +36,20 @@ function isRootItem(id) {
 }
 
 function onDragStart(event) {
-  const item = EventUtils.getItemFromEvent(event);
-  if (!item)
+  const rawItem = EventUtils.getItemFromEvent(event);
+console.log('onDragStart ', rawItem);
+  if (!rawItem)
     return;
 
-  const items = Array.from(mRoot.querySelectorAll('li.highlighted, li.active'));
+  const rawItems = [...new Set([Bookmarks.getActive(), ...Bookmarks.getMultiselected()])].filter(item => !!item);
 
   const dragDataForExternals = {};
   const dt = event.dataTransfer;
-  dt.effectAllowed = items.some(item => isRootItem(item.raw.id)) ? 'copy' : 'copyMove';
-  dt.setData(TYPE_BOOKMARK_ITEMS, dragDataForExternals[TYPE_BOOKMARK_ITEMS] = items.map(item => item.raw.id).join(','));
-  dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = items.map(item => `${item.raw.url}\n${item.raw.title}`).join('\n'));
-  dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = items.map(item => `#${item.raw.title}\n${item.raw.url}`).join('\n'));
-  dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = items.map(item => item.raw.url).join('\n'));
+  dt.effectAllowed = rawItems.some(item => isRootItem(item.id)) ? 'copy' : 'copyMove';
+  dt.setData(TYPE_BOOKMARK_ITEMS, dragDataForExternals[TYPE_BOOKMARK_ITEMS] = rawItems.map(item => item.id).join(','));
+  dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = rawItems.map(item => `${item.url}\n${item.title}`).join('\n'));
+  dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = rawItems.map(item => `#${item.title}\n${item.url}`).join('\n'));
+  dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = rawItems.map(item => item.url).join('\n'));
 
   const dragDataForExternalsId = `${parseInt(Math.random() * 65000)}-${Date.now()}`;
   dt.setData(`${kTYPE_ADDON_DRAG_DATA}${dragDataForExternalsId}`, JSON.stringify(dragDataForExternals));
@@ -59,8 +60,11 @@ function onDragStart(event) {
     data: dragDataForExternals
   });
 
-  const itemRect = item.firstChild.getBoundingClientRect();
-  dt.setDragImage(item.firstChild, event.clientX - itemRect.left, event.clientY - itemRect.top);
+  const rowElement = Bookmarks.getRow(rawItem);
+  if (rowElement) {
+    const rowRect = rowElement.firstChild.getBoundingCLientRect();
+    dt.setDragImage(rowElement.firstChild, event.clientX - rowRect.left, event.clientY - rowRect.top);
+  }
 }
 
 const DROP_POSITION_NONE   = '';
@@ -69,11 +73,12 @@ const DROP_POSITION_BEFORE = 'before';
 const DROP_POSITION_AFTER  = 'after';
 
 function getDropPosition(event) {
-  const item = EventUtils.getItemFromEvent(event);
-  if (!item)
+  const rawItem = EventUtils.getItemFromEvent(event);
+  if (!rawItem)
     return DROP_POSITION_NONE;
-  const areaCount = item.raw.type == 'folder' ? 3 : 2;
-  const rect      = item.querySelector('.row').getBoundingClientRect();
+  const areaCount  = rawItem.type == 'folder' ? 3 : 2;
+  const rowElement = Bookmarks.getRow(rawItem);
+  const rect       = rowElement.firstChild.getBoundingClientRect();
   if (event.clientY <= (rect.y + (rect.height / areaCount)))
     return DROP_POSITION_BEFORE;
   if (event.clientY >= (rect.y + rect.height - (rect.height / areaCount)))
@@ -82,37 +87,37 @@ function getDropPosition(event) {
 }
 
 function getDropDestination(event) {
-  const item = EventUtils.getItemFromEvent(event);
-  if (!item)
+  const rawItem = EventUtils.getItemFromEvent(event);
+  if (!rawItem)
     return null;
 
   const position = getDropPosition(event);
   let parentId;
   let index;
-  if (item.raw.type != 'folder') {
-    parentId = item.raw.parentId;
-    index = position == DROP_POSITION_BEFORE ? item.raw.index : item.raw.index + 1;
+  if (rawItem.type != 'folder') {
+    parentId = rawItem.parentId;
+    index = position == DROP_POSITION_BEFORE ? rawItem.index : rawItem.index + 1;
   }
   else {
     switch (position) {
       default:
       case DROP_POSITION_SELF:
-        parentId = item.raw.id;
+        parentId = rawItem.id;
         index = null;
         break;
 
       case DROP_POSITION_BEFORE:
-        parentId = item.raw.parentId;
-        index = item.raw.index;
+        parentId = rawItem.parentId;
+        index = rawItem.index;
         break;
 
       case DROP_POSITION_AFTER:
-        if (item.classList.contains('collapsed')) {
-          parentId = item.raw.parentId;
-          index = item.raw.index + 1;
+        if (Bookmarks.isFolderCollapsed(rawItem)) {
+          parentId = rawItem.parentId;
+          index = rawItem.index + 1;
         }
         else {
-          parentId = item.raw.id;
+          parentId = rawItem.id;
           index = 0;
         }
         break;
@@ -121,7 +126,7 @@ function getDropDestination(event) {
 
   const draggedItems = getDraggedItems(event);
   if (draggedItems.length > 0) {
-    if (draggedItems.some(draggedItem => draggedItem.contains(item)))
+    if (draggedItems.some(draggedItem => findAncestorById(rawItem, draggedItem.id)))
       return null;
 
     for (const draggedItem of draggedItems) {
@@ -137,15 +142,18 @@ function getDropDestination(event) {
   return { parentId, index };
 }
 
-function creatDropPositionMarker() {
-  for (const node of document.querySelectorAll('[data-drop-position]')) {
-    delete node.dataset.dropPosition;
+function findAncestorById(rawItem, id) {
+  while (rawItem) {
+    if (rawItem.id == id)
+      return rawItem;
+    rawItem = Bookmarks.getParent(rawItem);
   }
+  return null;
 }
 
 function getDraggedItems(event) {
   const draggedIds = event.dataTransfer.getData(TYPE_BOOKMARK_ITEMS);
-  return draggedIds ? draggedIds.split(',').map(id => id && Bookmarks.getRowById(id)).filter(item => !!item) : [];
+  return draggedIds ? draggedIds.split(',').map(id => id && Bookmarks.getById(id)).filter(item => !!item) : [];
 }
 
 const ACCEPTABLE_DRAG_DATA_TYPES = [
@@ -263,7 +271,7 @@ function fixupURIFromText(maybeURI) {
 }
 
 function onDragOver(event) {
-  creatDropPositionMarker();
+  Bookmarks.clearDropPosition();
   const draggedItems = getDraggedItems(event);
   const places       = draggedItems.length > 0 ? [] : retrievePlacesFromDragEvent(event);
   if (draggedItems.length == 0 &&
@@ -278,50 +286,55 @@ function onDragOver(event) {
     return;
   }
 
-  const item = EventUtils.getItemFromEvent(event);
-  if (item) {
-    if (draggedItems.some(draggedItem => draggedItem.contains(item))) {
+  const rawItem = EventUtils.getItemFromEvent(event);
+  if (rawItem) {
+    if (draggedItems.some(draggedItem => findAncestorById(rawItem, draggedItem.id))) {
       event.dataTransfer.effectAllowed = 'none';
       return;
     }
-    item.dataset.dropPosition = getDropPosition(event);
-    event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(item.raw.id) ? 'copy' : 'move';
+    Bookmarks.setDropPosition(rawItem, getDropPosition(event))
+    event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(rawItem.id) ? 'copy' : 'move';
     event.preventDefault();
   }
 }
 
+const mDelayedExpandTimer = new Map();
+
 function onDragEnter(event) {
-  const item = EventUtils.getItemFromEvent(event);
-  if (!item ||
-      !item.classList.contains('folder') ||
-      !item.classList.contains('collapsed') ||
-      item == EventUtils.getRelatedItemFromEvent(event))
+  const rawItem = EventUtils.getItemFromEvent(event);
+  if (!rawItem ||
+      rawItem.type != 'folder' ||
+      !Bookmarks.isFolderCollapsed(rawItem) ||
+      rawItem == EventUtils.getRelatedItemFromEvent(event))
     return;
 
-  if (item.delayedExpandTimer)
-    clearTimeout(item.delayedExpandTimer);
-  item.delayedExpandTimer = setTimeout(() => {
-    item.delayedExpandTimer = null;
-    if (item.classList.contains('collapsed'))
-      Bookmarks.toggleOpenState(item);
-  }, configs.autoExpandDelay);
+  const timer = mDelayedExpandTimer.get(rawItem.id);
+  if (timer)
+    clearTimeout(timer);
+  mDelayedExpandTimer.set(rawItem.id, setTimeout(() => {
+    mDelayedExpandTimer.delete(rawItem.id);
+    if (Bookmarks.isFolderCollapsed(rawItem))
+      Bookmarks.toggleOpenState(rawItem);
+  }, configs.autoExpandDelay));
 }
 
 function onDragLeave(event) {
-  creatDropPositionMarker();
-  const item = EventUtils.getItemFromEvent(event);
-  const leftItem = EventUtils.getRelatedItemFromEvent(event);
-  if (!item ||
-      !leftItem ||
-      item == leftItem)
+  Bookmarks.clearDropPosition();
+  const rawItem = EventUtils.getItemFromEvent(event);
+  const leftRawItem = EventUtils.getRelatedItemFromEvent(event);
+  if (!rawItem ||
+      !leftRawItem ||
+      rawItem == leftRawItem)
     return;
 
-  clearTimeout(item.delayedExpandTimer);
-  item.delayedExpandTimer = null;
+  const timer = mDelayedExpandTimer.get(rawItem.id);
+  if (timer)
+    clearTimeout(timer);
+  mDelayedExpandTimer.delete(rawItem.id);
 }
 
 function onDragEnd(_event) {
-  creatDropPositionMarker();
+  Bookmarks.clearDropPosition();
   setTimeout(() => {
     Connection.sendMessage({
       type: Constants.COMMAND_UPDATE_DRAG_DATA,
@@ -331,15 +344,8 @@ function onDragEnd(_event) {
   }, 500);
 }
 
-function getLastVisibleItem(item) {
-  if (item.lastChild.localName != 'ul' ||
-      item.lastChild.classList.contains('collapsed'))
-    return item;
-  return getLastVisibleItem(item.lastChild.lastChild);
-}
-
 async function onDrop(event) {
-  creatDropPositionMarker();
+  Bookmarks.clearDropPosition();
 
   const destination = getDropDestination(event);
   if (!destination) {
@@ -350,9 +356,9 @@ async function onDrop(event) {
   const draggedItems = getDraggedItems(event);
   if (draggedItems.length > 0) {
     event.preventDefault();
-    const item = EventUtils.getItemFromEvent(event) || getLastVisibleItem(mRoot.lastChild);
-    const ids  = draggedItems.map(draggedItem => draggedItem.raw.id);
-    if (event.ctrlKey || isRootItem(item.raw.id)) {
+    const rawItem = EventUtils.getItemFromEvent(event) || Bookmarks.getLast();
+    const ids  = draggedItems.map(draggedItem => draggedItem.id);
+    if (event.ctrlKey || isRootItem(rawItem.id)) {
       Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
         ids,
