@@ -364,9 +364,11 @@ async function renderRows(scrollPosition) {
     switch (tag) {
       case 'equal':
         for (const id of toBeRenderedItemIds.slice(toStart, toEnd)) {
-          const rawItem = document.getElementById(id).raw;
-          if (mDirtyRawItemIds.has(rawItem.id))
-            renderRow(getById(id.replace(/^[^:]+:/, '')));
+          const rawId = id.replace(/^[^:]+:/, '');
+          const rowElement = document.getElementById(id);
+          if (rowElement &&
+              mDirtyRawItemIds.has(rawId))
+            renderRow(getById(rawId));
         }
         break;
 
@@ -432,7 +434,7 @@ export function getRowHeight() {
 }
 
 function renderRow(rawItem) {
-  switch (rawItem.type) {
+  switch (rawItem && rawItem.type) {
     case 'folder':
       return renderFolderRow(rawItem);
       break;
