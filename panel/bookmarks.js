@@ -61,7 +61,7 @@ async function listAll() {
   mRawItemsById.clear();
   mRawItems = [];
   await Promise.all(rawRoot.children.map(trackRawItem));
-  renderRows();
+  reserveToRenderRows();
 }
 
 async function trackRawItem(rawItem) {
@@ -85,8 +85,8 @@ async function trackRawItem(rawItem) {
 
 async function trackRawItemChildren(rawItem) {
   if (!isFolderOpen(rawItem)) {
-    const untrackedCount = untrackRawItemDescendants(rawItem);
-    mRawItems.splice(mRawItems.indexOf(rawItem) + 1, untrackedCount);
+    untrackRawItemDescendants(rawItem);
+    reserveToRenderRows();
     return;
   }
 
@@ -99,7 +99,7 @@ async function trackRawItemChildren(rawItem) {
   for (const child of rawItem.children) {
     trackRawItem(child);
   }
-  renderRows();
+  reserveToRenderRows();
 }
 
 function untrackRawItem(rawItem) {
@@ -117,15 +117,12 @@ function untrackRawItem(rawItem) {
 
 function untrackRawItemDescendants(rawItem) {
   if (!rawItem.children)
-    return 0;
+    return;
 
-  let untrackedCount = rawItem.children.length;
-  for (const child of rawItem.children) {
-    untrackedCount += untrackRawItemDescendants(child);
-    mRawItemsById.delete(child.id);
+  for (const child of rawItem.children.slice(0)) {
+    untrackRawItem(child);
   }
   rawItem.children = null;
-  return untrackedCount;
 }
 
 
