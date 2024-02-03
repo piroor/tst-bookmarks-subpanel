@@ -37,7 +37,6 @@ function isRootItem(id) {
 
 function onDragStart(event) {
   const rawItem = EventUtils.getItemFromEvent(event);
-console.log('onDragStart ', rawItem);
   if (!rawItem)
     return;
 
