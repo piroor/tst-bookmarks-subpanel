@@ -651,6 +651,11 @@ Connection.onMessage.addListener(async message => {
       rawItem.index    = message.moveInfo.index;
       mDirtyRawItemIds.add(message.id);
 
+      if (isFolderOpen(rawItem)) {
+        untrackRawItemDescendants(rawItem);
+        trackRawItemChildren(rawItem)
+      }
+
       if (wasActive)
         mOnRenderdCallbacks.add(() => {
           setActive(rawItem);
