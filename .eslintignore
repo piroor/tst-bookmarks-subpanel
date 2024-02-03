@@ -1,4 +1,5 @@
 # from external
+submodules/*
 extlib/*
 
 # include as a lint target.
