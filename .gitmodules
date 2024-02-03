@@ -13,3 +13,6 @@
 [submodule "submodules/webextensions-lib-rich-confirm"]
 	path = submodules/webextensions-lib-rich-confirm
 	url = https://github.com/piroor/webextensions-lib-rich-confirm.git
+[submodule "submodules/webextensions-lib-dom-updater"]
+	path = submodules/webextensions-lib-dom-updater
+	url = https://github.com/piroor/webextensions-lib-dom-updater.git

@@ -2,28 +2,33 @@
 <!-- This Source Code Form is subject to the terms of the Mozilla Public
    - License, v. 2.0. If a copy of the MPL was not distributed with this
    - file, You can obtain one at http://mozilla.org/MPL/2.0/. -->
-<html>
+<html class="flexible">
   <head>
     <meta charset="UTF-8">
     <script type="module" src="./panel.js"></script>
     <link rel="stylesheet" href="/resources/ui-color.css">
     <link rel="stylesheet" href="./panel.css">
   </head>
-  <body>
-    <div id="searchbar"
-         class="blank">
-      <input id="searchbox"
-             type="text"
-             placeholder="__MSG_searchbox_placeholder__"
-             tabindex="-1">
-      <button id="searchbox-clear"
-              tabindex="-1"></button>
+  <body class="vbox flexible">
+    <div class="vbox flexible">
+      <div id="searchbar"
+           class="blank">
+        <input id="searchbox"
+               type="text"
+               placeholder="__MSG_searchbox_placeholder__"
+               tabindex="-1">
+        <button id="searchbox-clear"
+                tabindex="-1"></button>
+      </div>
+      <div id="content"
+           class="vbox">
+        <div class="virtual-scroll-container vbox">
+          <ul id="root"></ul>
+        </div>
+        <ul id="dummy-root">
+          <li id="dummy-row" class="folder collapsed"><a class="row" tabindex="-1"><button class="twisty" tabindex="-1"></button><span class="label">dummy item to calculate size</span></a></li>
+        </ul>
+      </div>
     </div>
-    <div id="content">
-      <ul id="root"></ul>
-    </div>
-    <ul id="dummy-root">
-      <li id="dummy-row" class="folder collapsed"><a class="row" tabindex="-1"><button class="twisty" tabindex="-1"></button><span class="label">dummy item to calculate size</span></a></li>
-    </ul>
   </body>
 </html>

@@ -30,6 +30,18 @@ body {
   padding: 0;
 }
 
+.vbox {
+  align-items: stretch;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+
+.flexible {
+  height: 100%; /* to make #content flexible */
+}
+
 #searchbar::before,
 #searchbox-clear::before,
 .label::before,
@@ -57,14 +69,9 @@ body {
   color: var(--in-content-text-color);
   display: flex;
   flex-direction: row;
-  height: 1.5em;
-  left: 0.2em;
   margin: 0;
   min-width: 0;
-  padding: 0;
-  position: fixed;
-  right: 0.2em;
-  top: 0.2em;
+  padding: 0.2em;
   --icon-size: 1em;
 }
 
@@ -117,14 +124,10 @@ input:focus {
 
 
 #content {
-  bottom: 0;
-  left: 0;
   line-height: 1.6;
+  flex-grow: 1;
   overflow-y: auto;
-  position: fixed;
-  right: 0;
   scrollbar-width: thin;
-  top: 2em;
 }
 
 :root.left-scrollbar #content {
@@ -134,16 +137,23 @@ input:focus {
   direction: ltr;
 }
 
+.virtual-scroll-container {
+  min-height: 0px;
+  overflow: hidden;
+}
+
 #content,
 ul#root,
-ul#root ul {
+ul#root ul,
+ul#dummy-root {
   margin: 0;
   max-width: 100%;
   padding: 0;
   width: 100%;
 }
 
-ul#root li {
+ul#root li,
+ul#dummy-root li {
   list-style: none;
   margin: 0;
   padding: 0;

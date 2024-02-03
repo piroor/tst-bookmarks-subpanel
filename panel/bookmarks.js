@@ -5,6 +5,8 @@
 */
 'use strict';
 
+import { SequenceMatcher } from '/extlib/diff.js';
+
 import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
@@ -292,31 +294,112 @@ export function reserveToRenderRows() {
   });
 }
 
-async function renderRows() {
+const mScrollBox              = document.querySelector('#content');
+const mVirtualScrollContainer = document.querySelector('.virtual-scroll-container');
+let mLastRenderedItemIds = [];
+
+mScrollBox.addEventListener('scroll', renderRows);
+
+async function renderRows(scrollPosition) {
   renderRows.lastStartedAt = null;
 
-  const range = document.createRange();
-  range.selectNodeContents(mRoot);
-  range.deleteContents();
-  range.detach();
+  const rowSize                = getRowHeight();
+  const allRenderableItemsSize = rowSize * mRawItems.length;
+  const viewPortSize           = mScrollBox.getBoundingClientRect().height;
+  const renderablePaddingSize  = viewPortSize;
+  scrollPosition = Math.max(
+    0,
+    Math.min(
+      allRenderableItemsSize - rowSize,
+      typeof scrollPosition == 'number' ?
+        scrollPosition :
+        mScrollBox.scrollTop
+    )
+  );
 
-  for (const item of mRawItems) {
-    if (!item)
-      continue;
-    switch (item.type) {
-      case 'folder':
-        mRoot.appendChild(renderFolderRow(item));
+  // We need to use min-height instead of height for a flexbox.
+  const minHeight                   = `${allRenderableItemsSize}px`;
+  const virtualScrollContainerStyle = mVirtualScrollContainer.style;
+  const resized = virtualScrollContainerStyle.minHeight != minHeight;
+  if (resized)
+    virtualScrollContainerStyle.minHeight = minHeight;
+
+  const firstRenderableIndex = Math.max(
+    0,
+    Math.floor((scrollPosition - renderablePaddingSize) / rowSize)
+  );
+  const lastRenderableIndex = Math.max(
+    0,
+    Math.min(
+      mRawItems.length - 1,
+      Math.ceil((scrollPosition + viewPortSize + renderablePaddingSize) / rowSize)
+    )
+  );
+
+  const toBeRenderedItemIds = mRawItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => getRowId(item));
+  const renderOperations = (new SequenceMatcher(mLastRenderedItemIds, toBeRenderedItemIds)).operations();
+  /*
+  console.log('renderRows ', {
+    firstRenderableIndex,
+    lastRenderableIndex,
+    old: mLastRenderedItemIds,
+    new: toBeRenderedItemIds,
+    renderOperations,
+  });
+  */
+
+  const toBeRenderedItemIdSet = new Set(toBeRenderedItemIds);
+  for (const operation of renderOperations) {
+    const [tag, fromStart, fromEnd, toStart, toEnd] = operation;
+    switch (tag) {
+      case 'equal':
         break;
 
-      case 'bookmark':
-        mRoot.appendChild(renderBookmarkRow(item));
-        break;
+      case 'delete': {
+        const ids = mLastRenderedItemIds.slice(fromStart, fromEnd);
+        for (const id of ids) {
+          const rowElement = document.getElementById(id);
+          // We don't need to remove already rendered item,
+          // because it is automatically moved by insertBefore().
+          if (toBeRenderedItemIdSet.has(id) ||
+              !rowElement ||
+              !mScrollBox.contains(rowElement))
+            continue;
+          rowElement.parentNode.removeChild(rowElement);
+        }
+      }; break;
 
-      case 'separator':
-        mRoot.appendChild(renderSeparatorRow(item));
-        break;
+      case 'insert':
+      case 'replace': {
+        const deleteIds = mLastRenderedItemIds.slice(fromStart, fromEnd);
+        const insertIds = toBeRenderedItemIds.slice(toStart, toEnd);
+        for (const id of deleteIds) {
+          const rowElement = document.getElementById(id);
+          // We don't need to remove already rendered tab,
+          // because it is automatically moved by insertBefore().
+          if (toBeRenderedItemIdSet.has(id) ||
+              !rowElement ||
+              !mScrollBox.contains(rowElement))
+            continue;
+          rowElement.parentNode.removeChild(rowElement);
+        }
+        const referenceItem = fromStart < mLastRenderedItemIds.length ?
+          getById(mLastRenderedItemIds[fromStart].replace(/^[^:]+:/, '')) :
+          null;
+        for (const id of insertIds) {
+          renderRowBefore(getById(id.replace(/^[^:]+:/, '')), referenceItem);
+        }
+      }; break;
     }
   }
+
+  const renderedOffset = rowSize * firstRenderableIndex;
+  const transform      = `translateY(${renderedOffset}px)`;
+  const containerStyle = mRoot.style;
+  if (containerStyle.transform != transform)
+    containerStyle.transform = transform;
+
+  mLastRenderedItemIds = toBeRenderedItemIds;
 
   const callbacks = [...mOnRenderdCallbacks];
   mOnRenderdCallbacks.clear();
@@ -325,12 +408,33 @@ async function renderRows() {
   }
 }
 
-function getRowId(rawItem) {
-  return `${rawItem.type}:${rawItem.id}`;
+export function getRowHeight() {
+  return document.getElementById('dummy-row').getBoundingClientRect().height;
 }
 
-export function getRowHeight() {
-  return document.getELementById('dummy-row').getBoundingClientRect().height;
+function renderRowBefore(rawItem, referenceItem) {
+  let rowElement;
+  switch (rawItem.type) {
+    case 'folder':
+      rowElement = renderFolderRow(rawItem);
+      break;
+
+    case 'bookmark':
+      rowElement = renderBookmarkRow(rawItem);
+      break;
+
+    case 'separator':
+      rowElement = renderSeparatorRow(rawItem);
+      break;
+  }
+  if (!rowElement)
+    return;
+  const nextElement = getRow(referenceItem);
+  mRoot.insertBefore(rowElement, nextElement);
+}
+
+function getRowId(rawItem) {
+  return `${rawItem.type}:${rawItem.id}`;
 }
 
 function createRow(rawItem) {
