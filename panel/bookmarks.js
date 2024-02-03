@@ -43,7 +43,6 @@ async function listAll() {
 
   mRawItemsById.clear();
   mRawItems = [];
-  mRawItemsById.set(rawRoot.id, rawRoot);
   await Promise.all(rawRoot.children.map(trackRawItem));
   renderRows();
 }
@@ -112,14 +111,48 @@ function untrackRawItemDescendants(rawItem) {
   return untrackedCount;
 }
 
+export function getById(id) {
+  return mRawItemsById.get(id);
+}
+
+export function indexOf(rawItem) {
+  return mRawItems.indexOf(rawItem);
+}
 
 export function getRowById(id) {
-  const rawItem = mRawItemsById.get(id);
+  const rawItem = getById(id);
   return rawItem && document.getElementById(getRowId(rawItem)) || null;
 }
 
 export function getParent(rawItem) {
-  return rawItem && mRawItemsById.get(rawItem.parentId);
+  return rawItem && getById(rawItem.parentId);
+}
+
+export function getPrevious(rawItem) {
+  if (!rawItem)
+    return null;
+  const index = mRawItems.indexOf(rawItem);
+  if (index <= 0)
+    return null;
+  return mRawItems[index - 1];
+}
+
+export function getNext(rawItem) {
+  if (!rawItem)
+    return null;
+  const index = mRawItems.indexOf(rawItem);
+  if (index < 0 ||
+      index > mRawItems.length - 1)
+    return null;
+  return mRawItems[index + 1];
+}
+
+export function getFirst() {
+  return mRawItems.length == 0 ? null : mRawItems[0];
+}
+
+export function getLast() {
+  return mRawItems.length == 0 ? null : mRawItems[mRawItems.length - 1];
 }
 
 function clearActive() {
@@ -140,22 +173,43 @@ export function setActive(rawItem) {
   reserveToRenderRows();
 
   mOnRenderdCallbacks.add(() => {
-    getRowById(mActiveRawItemId).firstChild.focus();
+    const rowElement = getRowById(mActiveRawItemId);
+    if (rowElement)
+      rowElement.firstChild.focus();
   });
   mRoot.classList.add('active');
 }
 
 export function getActive() {
-  return mRawItemsById.get(mActiveRawItemId);
-}
-
-export function getHighlightedItems() {
-  return Array.from(mHighlightedRawItemIds, id => mRawItemsById.get(id));
+  return getById(mActiveRawItemId);
 }
 
 export function clearMultiselected() {
   mHighlightedRawItemIds.clear();
-  mHighlightedRawItemIds.add(mActiveRawItemId);
+  if (mActiveRawItemId)
+    mHighlightedRawItemIds.add(mActiveRawItemId);
+  reserveToRenderRows();
+}
+
+export function getMultiselected() {
+  return Array.from(mHighlightedRawItemIds, getById);
+}
+
+export function isMultiselected(rawItem) {
+  return rawItem && mHighlightedRawItemIds.has(rawItem.id);
+}
+
+export function addMultiselected(...rawItems) {
+  for (const rawItem of rawItems) {
+    mHighlightedRawItemIds.add(rawItem.id);
+  }
+  reserveToRenderRows();
+}
+
+export function removeMultiselected(...rawItems) {
+  for (const rawItem of rawItems) {
+    mHighlightedRawItemIds.delete(rawItem.id);
+  }
   reserveToRenderRows();
 }
 
@@ -269,7 +323,7 @@ function renderSeparatorRow(rawItem) {
   return rowElement;
 }
 
-function reserveToRenderRows() {
+export function reserveToRenderRows() {
   const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
   renderRows.lastStartedAt = startAt;
   window.requestAnimationFrame(() => {
@@ -332,7 +386,7 @@ Connection.onMessage.addListener(async message => {
   switch (message.type) {
     case Constants.NOTIFY_BOOKMARK_CREATED: {
       mRawItemsById.set(message.id, message.bookmark);
-      const parentRawItem = mRawItemsById.get(message.bookmark.parentId);
+      const parentRawItem = getById(message.bookmark.parentId);
       if (parentRawItem) {
         parentRawItem.children.splice(message.bookmark.index, 0, message.bookmark);
         let offset = 1;
@@ -347,7 +401,7 @@ Connection.onMessage.addListener(async message => {
     }; break
 
     case Constants.NOTIFY_BOOKMARK_REMOVED: {
-      const rawItem = mRawItemsById.get(message.id);
+      const rawItem = getById(message.id);
       if (!rawItem)
         return;
 
@@ -365,7 +419,7 @@ Connection.onMessage.addListener(async message => {
     }; break
 
     case Constants.NOTIFY_BOOKMARK_MOVED: {
-      const rawItem = mRawItemsById.get(message.id);
+      const rawItem = getById(message.id);
       if (!rawItem)
         return;
 
@@ -374,7 +428,7 @@ Connection.onMessage.addListener(async message => {
       const oldIndex = mRawItems.mRawItems.findIndex(item => item.id == message.id);
       mRawItems.splice(oldIndex, 1);
 
-      const oldParent = mRawItemsById.get(message.moveInfo.oldParentId);
+      const oldParent = getById(message.moveInfo.oldParentId);
       if (oldParent) {
         const oldIndex = oldParent.children.findIndex(item => item.id == message.id);
         oldParent.children.splice(oldIndex, 1);
@@ -387,7 +441,7 @@ Connection.onMessage.addListener(async message => {
         mDirtyRawItemIds.add(oldParent.id);
       }
 
-      const newParent = mRawItemsById.get(message.moveInfo.parentId);
+      const newParent = getById(message.moveInfo.parentId);
       if (newParent) {
         mRawItems.splice(
           newParent.children && newParent.children.length > 0 ?
@@ -422,7 +476,7 @@ Connection.onMessage.addListener(async message => {
     }; break
 
     case Constants.NOTIFY_BOOKMARK_CHANGED: {
-      const rawItem = mRawItemsById.get(message.id);
+      const rawItem = getById(message.id);
       if (!rawItem)
         return;
 

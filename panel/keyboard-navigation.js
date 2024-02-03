@@ -20,9 +20,6 @@ const configs = Connection.getConfigs([
 
 document.addEventListener('keydown', onKeyDown);
 
-let mFirstMultiselectId = null;
-let mLastMultiselectId = null;
-
 function onKeyDown(event) {
   if (event.isComposing)
     return;
@@ -32,25 +29,20 @@ function onKeyDown(event) {
   const onTree = !target.closest('#searchbar');
   const hasItem = mRoot.hasChildNodes();
   const activeItem = Bookmarks.getActive();
-  const activeItemRow = activeItem && Bookmarks.getRowById(activeItem.id);
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
-
-  const walker = createVisibleItemWalker();
-  if (activeItemRow)
-    walker.currentNode = activeItemRow;
 
   switch (event.key) {
     case 'ArrowUp':
       if (!onTree || !hasItem || accel)
         return;
-      setActive((walker.previousNode() || activeItem).raw, { multiselect: event.shiftKey });
+      setActive(Bookmarks.getPrevious(activeItem) || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
     case 'ArrowDown':
       if (!onTree || !hasItem || accel)
         return;
-      setActive((walker.nextNode() || activeItem).raw, { multiselect: event.shiftKey });
+      setActive(Bookmarks.getNext(activeItem) || activeItem, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
@@ -74,26 +66,34 @@ function onKeyDown(event) {
       event.preventDefault();
       return;
 
-    case 'PageUp':
+    case 'PageUp': {
       if (!onTree || !hasItem || accel)
         return;
+      let currentItem = activeItem;
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
-        walker.previousNode()
+        const previousItem = Bookmarks.getPrevious(currentItem);
+        if (!previousItem)
+          break;
+        currentItem = previousItem;
       }
-      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
+      setActive(currentItem || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
       event.preventDefault();
-      return;
+    } return;
 
     case 'PageDown':
       if (!onTree || !hasItem || accel)
         return;
+      let currentItem = activeItem;
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
-        walker.nextNode()
+        const nextItem = Bookmarks.getNext(currentItem);
+        if (!nextItem)
+          break;
+        currentItem = nextItem;
       }
-      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
+      setActive(currentItem || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -103,9 +103,7 @@ function onKeyDown(event) {
     case 'Home':
       if (!onTree || !hasItem || accel)
         return;
-      while (walker.previousNode()) {
-      }
-      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
+      setActive(Bookmarks.getFirst() || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -115,9 +113,7 @@ function onKeyDown(event) {
     case 'End':
       if (!onTree || !hasItem || accel)
         return;
-      while (walker.nextNode()) {
-      }
-      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
+      setActive(Bookmarks.getLast() || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -137,7 +133,7 @@ function onKeyDown(event) {
         }
       }
       if (onSearchBox) {
-        Bookmarks.setActive(activeItem || mRoot.firstChild.raw, { multiselect: true });
+        setActive(activeItem || Bookmarks.getFirst(), { multiselect: true });
         event.preventDefault();
       }
       return;
@@ -175,13 +171,14 @@ function onKeyDown(event) {
   }
 }
 
+let mFirstMultiselectId = null;
+
 function setActive(activeItem, options = {}) {
   if (!activeItem)
     return;
 
   const lastActiveItem = Bookmarks.getActive() || activeItem;
 
-  Bookmarks.clearMultiselected();
   Bookmarks.setActive(activeItem);
   /*
   activeItem.firstChild.scrollIntoView({
@@ -191,79 +188,63 @@ function setActive(activeItem, options = {}) {
   });
   */
 
-  if (!options.multiselect)
+  if (!options.multiselect) {
+    Bookmarks.clearMultiselected();
+    mFirstMultiselectId = null;
     return;
+  }
 
-  mLastMultiselectId = activeItem.id;
-  let firstItem = Bookmarks.getRowById(mFirstMultiselectId);
-  const lastItem = Bookmarks.getRowById(mLastMultiselectId);
+  let firstItem = Bookmarks.getById(mFirstMultiselectId);
+  const lastItem = activeItem;
 
-  const isBottomToTop = firstItem != lastItem && lastItem.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING;
+  const firstItemIndex = Bookmarks.indexOf(firstItem || lastActiveItem);
+  const lastItemIndex = Bookmarks.indexOf(lastItem);
+  const isBottomToTop = (firstItem != lastItem) && (lastItemIndex < firstItemIndex);
 
   if (firstItem != lastItem) {
     // When there is any unhighlighted item between highlighted items (they may
     // be produced with expansion of a highlighted folder), we should restart
     // multiselection from most nearest highlighted item.
-    let lastHighlighted = options.jumped ? lastActiveItem : lastItem;
-    const nearestHighlightedWalker = createVisibleItemWalker();
-    nearestHighlightedWalker.currentNode = lastHighlighted;
-    while (isBottomToTop ? nearestHighlightedWalker.nextNode() : nearestHighlightedWalker.previousNode()) {
-      const current = nearestHighlightedWalker.currentNode;
+    let current = options.jumped ? lastActiveItem : lastItem;
+    while (true) {
+      current = isBottomToTop ? Bookmarks.getNext(current) : Bookmarks.getPrevious(current);
       if (!current ||
           current == lastItem ||
-          !current.classList.contains('highlighted'))
+          !Bookmarks.isMultiselected(current))
         break;
-      lastHighlighted = current;
     }
-    if (lastHighlighted != firstItem &&
-        (isBottomToTop ?
-          (lastHighlighted.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING) :
-          (firstItem.compareDocumentPosition(lastHighlighted) & Node.DOCUMENT_POSITION_FOLLOWING))) {
-      firstItem = lastHighlighted;
-      mFirstMultiselectId = lastHighlighted.raw.id;
+    const currentIndex = Bookmarks.indexOf(current);
+    if (current != firstItem &&
+        (!firstItem ||
+         (isBottomToTop ?
+           currentIndex > firstItemIndex :
+           currentIndex < firstItemIndex))) {
+      firstItem = current;
+      mFirstMultiselectId = current.id;
     }
   }
 
-  const toBeUnhighlighted = new Set(mRoot.querySelectorAll('li.highlighted'));
-  toBeUnhighlighted.delete(firstItem);
-  firstItem.classList.add('highlighted');
+  const toBeUnselected = new Set(Bookmarks.getMultiselected());
+  toBeUnselected.delete(firstItem);
+  Bookmarks.addMultiselected(firstItem);
 
   if (firstItem != lastItem) {
-    toBeUnhighlighted.delete(lastItem);
-    lastItem.classList.add('highlighted');
-    const highlightableItemWalker = createVisibleItemWalker();
-    highlightableItemWalker.currentNode = firstItem;
-    while (isBottomToTop ? highlightableItemWalker.previousNode() : highlightableItemWalker.nextNode()) {
-      const current = highlightableItemWalker.currentNode;
+    toBeUnselected.delete(lastItem);
+    Bookmarks.addMultiselected(lastItem);
+    let current = firstItem;
+    while (true) {
+      current = isBottomToTop ? Bookmarks.getPrevious(current) : Bookmarks.getNext(current);
       if (!current ||
           current == lastItem)
         break;
-      current.classList.add('highlighted');
-      toBeUnhighlighted.delete(current);
+      Bookmarks.addMultiselected(current);
+      toBeUnselected.delete(current);
     }
   }
 
-  for (const item of toBeUnhighlighted) {
-    item.classList.remove('highlighted');
+  for (const item of toBeUnselected) {
+    Bookmarks.removeMultiselected(item);
   }
-}
-
-function createVisibleItemWalker() {
-  return document.createTreeWalker(
-    mRoot,
-    NodeFilter.SHOW_ELEMENT,
-    {
-      acceptNode(node) {
-        if (!node.matches('#root li'))
-          return NodeFilter.FILTER_SKIP;
-        const collapsed = node.parentNode.closest('li.collapsed');
-        if (collapsed)
-          return NodeFilter.FILTER_REJECT;
-        return NodeFilter.FILTER_ACCEPT;
-      }
-    },
-    false
-  );
 }
 
 function getRowsCount() {
