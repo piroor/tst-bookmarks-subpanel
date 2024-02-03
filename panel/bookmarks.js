@@ -180,6 +180,11 @@ export function getLast() {
 }
 
 function clearActive() {
+  if (mActiveRawItemId)
+    mDirtyRawItemIds.add(mActiveRawItemId);
+  for (const id of mHighlightedRawItemIds) {
+    mDirtyRawItemIds.add(id);
+  }
   mActiveRawItemId = null;
   mHighlightedRawItemIds.clear();
   reserveToRenderRows();
@@ -193,6 +198,7 @@ export function setActive(rawItem) {
 
   mActiveRawItemId = rawItem.id;
   mHighlightedRawItemIds.add(rawItem.id);
+  mDirtyRawItemIds.add(rawItem.id);
 
   reserveToRenderRows();
 
@@ -353,6 +359,11 @@ async function renderRows(scrollPosition) {
     const [tag, fromStart, fromEnd, toStart, toEnd] = operation;
     switch (tag) {
       case 'equal':
+        for (const id of toBeRenderedItemIds.slice(toStart, toEnd)) {
+          const rawItem = document.getElementById(id).raw;
+          if (mDirtyRawItemIds.has(rawItem.id))
+            renderRow(getById(id.replace(/^[^:]+:/, '')));
+        }
         break;
 
       case 'delete': {
@@ -387,7 +398,11 @@ async function renderRows(scrollPosition) {
           getById(mLastRenderedItemIds[fromStart].replace(/^[^:]+:/, '')) :
           null;
         for (const id of insertIds) {
-          renderRowBefore(getById(id.replace(/^[^:]+:/, '')), referenceItem);
+          const rowElement = renderRow(getById(id.replace(/^[^:]+:/, '')));
+          if (!rowElement)
+            continue;
+          const nextElement = getRow(referenceItem);
+          mRoot.insertBefore(rowElement, nextElement);
         }
       }; break;
     }
@@ -412,25 +427,21 @@ export function getRowHeight() {
   return document.getElementById('dummy-row').getBoundingClientRect().height;
 }
 
-function renderRowBefore(rawItem, referenceItem) {
-  let rowElement;
+function renderRow(rawItem) {
   switch (rawItem.type) {
     case 'folder':
-      rowElement = renderFolderRow(rawItem);
+      return renderFolderRow(rawItem);
       break;
 
     case 'bookmark':
-      rowElement = renderBookmarkRow(rawItem);
+      return renderBookmarkRow(rawItem);
       break;
 
     case 'separator':
-      rowElement = renderSeparatorRow(rawItem);
+      return renderSeparatorRow(rawItem);
       break;
   }
-  if (!rowElement)
-    return;
-  const nextElement = getRow(referenceItem);
-  mRoot.insertBefore(rowElement, nextElement);
+  return null;
 }
 
 function getRowId(rawItem) {
@@ -462,8 +473,7 @@ function setRowStatus(rawItem, rowElement) {
 }
 
 function renderFolderRow(rawItem) {
-  const id = getRowId(rawItem);
-  let rowElement = document.getElementById(id);
+  let rowElement = document.getElementById(getRowId(rawItem));
   if (!rowElement) {
     rowElement = createRow(rawItem);
     const row = rowElement.firstChild;
@@ -488,8 +498,7 @@ function renderFolderRow(rawItem) {
 }
 
 function renderBookmarkRow(rawItem) {
-  const id = getRowId(rawItem);
-  let rowElement = document.getElementById(id);
+  let rowElement = document.getElementById(getRowId(rawItem));
   if (!rowElement) {
     rowElement = createRow(rawItem);
     const row = rowElement.firstChild;
@@ -512,8 +521,7 @@ function renderBookmarkRow(rawItem) {
 }
 
 function renderSeparatorRow(rawItem) {
-  const id = getRowId(rawItem);
-  let rowElement = document.getElementById(id);
+  let rowElement = document.getElementById(getRowId(rawItem));
   if (!rowElement) {
     rowElement = createRow(rawItem);
     rowElement.classList.add('separator');
@@ -558,7 +566,7 @@ Connection.onMessage.addListener(async message => {
           (index > -1 && mRawItems[index - 1].parentId == rawItem.parentId) ?
             index - 1 : // previous sibling
             mRawItems.indexOf(getParent(rawItem)); // parent
-        setActive(nextIndex);
+        setActive(mRawItems[nextIndex]);
       }
       untrackRawItem(rawItem);
       reserveToRenderRows();
