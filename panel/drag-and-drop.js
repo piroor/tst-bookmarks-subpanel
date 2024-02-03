@@ -124,16 +124,9 @@ function getDropDestination(event) {
   }
 
   const draggedItems = getDraggedItems(event);
-  if (draggedItems.length > 0) {
-    if (draggedItems.some(draggedItem => findAncestorById(rawItem, draggedItem.id)))
-      return null;
-
-    for (const draggedItem of draggedItems) {
-      if (parentId == draggedItem.parentId &&
-          index > draggedItem.index)
-        index--;
-    }
-  }
+  if (draggedItems.length > 0 &&
+      draggedItems.some(draggedItem => findAncestorById(rawItem, draggedItem.id)))
+    return null;
 
   if (parentId == Constants.ROOT_ID)
     return null;
