@@ -607,7 +607,7 @@ Connection.onMessage.addListener(async message => {
         newParent.children.splice(message.moveInfo.index, 0, rawItem);
         let offset = 0;
         for (const rawItem of newParent.children.slice(message.moveInfo.index + 1)) {
-          rawItem.index = message.bookmark.index + offset;
+          rawItem.index = message.moveInfo.index + offset;
           mDirtyRawItemIds.add(rawItem.id);
           offset++;
         }
