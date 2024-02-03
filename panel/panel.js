@@ -159,7 +159,7 @@ mContent.addEventListener('mouseup', async event => {
   }
 
   if (rawItem.type == 'bookmark' &&
-      !Constants.LOADABLE_URL_MATCHER.test(rawItem.url)) {
+      Constants.LOADABLE_URL_MATCHER.test(rawItem.url)) {
     if (event.shiftKey)
       Connection.sendMessage({
         type:     Constants.COMMAND_OPEN_BOOKMARKS,
