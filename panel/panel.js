@@ -79,7 +79,7 @@ mContent.addEventListener('mousedown', event => {
 
   const target = EventUtils.getElementTarget(event);
   if (!target.classList.contains('twisty'))
-    Bookmarks.setActive(item, {
+    Bookmarks.setActive(item.raw, {
       multiselect: item.classList.contains('highlighted') && mRoot.querySelectorAll('li.highlighted').length > 1
     });
 
@@ -152,9 +152,9 @@ mContent.addEventListener('mouseup', async event => {
       });
     }
     else {
-      Bookmarks.toggleOpenState(item);
+      Bookmarks.toggleOpenState(item.raw);
       if (!EventUtils.getElementTarget(event).classList.contains('twisty'))
-        Bookmarks.setActive(item);
+        Bookmarks.setActive(item.raw);
     }
     return;
   }

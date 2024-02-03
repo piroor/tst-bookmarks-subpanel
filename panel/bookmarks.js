@@ -9,15 +9,24 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 
-const mItemsById = new Map();
 const mRawItemsById = new Map();
-let mOpenedFolders;
+let mOpenedFolderIds;
 
 const mRoot = document.getElementById('root');
+let mRawItems = [];
+let mActiveRawItemId;
+const mHighlightedRawItemIds = new Set();
+const mDirtyRawItemIds = new Set();
 
+const mOnRenderdCallbacks = new Set();
 
 export async function init() {
-  const [rootItem] = await Promise.all([
+  listAll();
+}
+
+
+async function listAll() {
+  const [rawRoot] = await Promise.all([
     browser.runtime.sendMessage({
       type: Constants.COMMAND_GET_ROOT
     }),
@@ -28,218 +37,293 @@ export async function init() {
           'openedFolders'
         ]
       });
-      mOpenedFolders = new Set(configs.openedFolders);
-    })()
+      mOpenedFolderIds = new Set(configs.openedFolders);
+    })(),
   ]);
 
-  storeRawItem(rootItem);
-
-  buildItems(Constants.ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
+  mRawItemsById.clear();
+  mRawItems = [];
+  mRawItemsById.set(rawRoot.id, rawRoot);
+  await Promise.all(rawRoot.children.map(trackRawItem));
+  renderRows();
 }
 
-function storeRawItem(rawItem) {
+async function trackRawItem(rawItem) {
+  const parentRawItem = getParent(rawItem);
+  rawItem.level = (parentRawItem && parentRawItem.level + 1) || 0;
   mRawItemsById.set(rawItem.id, rawItem);
-  if (rawItem.children)
-    for (const child of rawItem.children) {
-      storeRawItem(child);
-    }
-}
 
-export function get(id) {
-  return mItemsById.get(id);
-}
-
-function clearActive(options = {}) {
-  const selectors = ['li.active'];
-  if (!options.multiselect)
-    selectors.push('li.highlighted');
-  for (const node of mRoot.querySelectorAll(selectors.join(','))) {
-    node.classList.remove('active');
-    if (!options.multiselect)
-      node.classList.remove('highlighted');
+  if (rawItem.parentId == 'root________') {
+    mRawItems.push(rawItem);
   }
+  else {
+    const prevItemIndex = mRawItems.findLastIndex(item => item.id == rawItem.parentId || item.parentId == rawItem.parentId);
+    mRawItems.splice(prevItemIndex + 1, 0, rawItem);
+  }
+
+  if (!isFolderOpen(rawItem))
+    return;
+
+  return trackRawItemChildren(rawItem);
 }
 
-export function setActive(item, options = {}) {
-  clearActive(options);
-  if (!item)
+async function trackRawItemChildren(rawItem) {
+  if (!isFolderOpen(rawItem)) {
+    const untrackedCount = untrackRawItemDescendants(rawItem);
+    mRawItems.splice(mRawItems.indexOf(rawItem) + 1, untrackedCount);
     return;
-  item.classList.add('active');
-  item.classList.add('highlighted');
-  item.firstChild.focus();
+  }
+
+  rawItem.children = rawItem.children || await browser.runtime.sendMessage({
+    type: Constants.COMMAND_GET_CHILDREN,
+    id:   rawItem.id
+  }) || null;
+  if (!rawItem.children)
+    return;
+  for (const child of rawItem.children) {
+    trackRawItem(child);
+  }
+  renderRows();
+}
+
+function untrackRawItem(rawItem) {
+  untrackRawItemDescendants(rawItem);
+
+  const parentRawItem = getParent(rawItem);
+  if (parentRawItem) {
+    parentRawItem.children.splice(parentRawItem.children.findIndex(item => item.id == rawItem.id), 1);
+    mDirtyRawItemIds.add(parentRawItem.id);
+  }
+
+  mRawItems.splice(mRawItems.indexOf(rawItem), 1);
+  mRawItemsById.delete(rawItem.id);
+}
+
+function untrackRawItemDescendants(rawItem) {
+  if (!rawItem.children)
+    return 0;
+
+  let untrackedCount = rawItem.children.length;
+  for (const child of rawItem.children) {
+    untrackedCount += untrackRawItemDescendants(child);
+    mRawItemsById.delete(child.id);
+  }
+  rawItem.children = null;
+  return untrackedCount;
+}
+
+
+export function getRowById(id) {
+  const rawItem = mRawItemsById.get(id);
+  return rawItem && document.getElementById(getRowId(rawItem)) || null;
+}
+
+export function getParent(rawItem) {
+  return rawItem && mRawItemsById.get(rawItem.parentId);
+}
+
+function clearActive() {
+  mActiveRawItemId = null;
+  mHighlightedRawItemIds.clear();
+  reserveToRenderRows();
+}
+
+export function setActive(rawItem) {
+  if (!rawItem)
+    return;
+
+  clearActive();
+
+  mActiveRawItemId = rawItem.id;
+  mHighlightedRawItemIds.add(rawItem.id);
+
+  reserveToRenderRows();
+
+  mOnRenderdCallbacks.add(() => {
+    getRowById(mActiveRawItemId).firstChild.focus();
+  });
   mRoot.classList.add('active');
 }
 
 export function getActive() {
-  return mRoot.querySelector('li.active');
+  return mRawItemsById.get(mActiveRawItemId);
 }
 
-export function getHighlighted() {
-  return Array.from(mRoot.querySelectorAll('li.highlighted'));
+export function getHighlightedItems() {
+  return Array.from(mHighlightedRawItemIds, id => mRawItemsById.get(id));
 }
 
-export function toggleOpenState(item) {
-  item.classList.toggle('collapsed');
-  if (item.classList.contains('collapsed'))
-    mOpenedFolders.delete(item.raw.id);
+export function clearMultiselected() {
+  mHighlightedRawItemIds.clear();
+  mHighlightedRawItemIds.add(mActiveRawItemId);
+  reserveToRenderRows();
+}
+
+export function isFolderOpen(rawItem) {
+  return rawItem.type == 'folder' && mOpenedFolderIds.has(rawItem.id);
+}
+
+export function isFolderCollapsed(rawItem) {
+  return rawItem.type == 'folder' && !mOpenedFolderIds.has(rawItem.id);
+}
+
+export async function toggleOpenState(rawItem) {
+  if (isFolderOpen(rawItem))
+    mOpenedFolderIds.delete(rawItem.id);
   else
-    mOpenedFolders.add(item.raw.id);
+    mOpenedFolderIds.add(rawItem.id);
   Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
-      openedFolders: Array.from(mOpenedFolders)
+      openedFolders: Array.from(mOpenedFolderIds)
     }
   });
-  if (item.classList.contains('collapsed')) {
-    if (item.lastChild.localName == 'ul') {
-      for (const descendant of item.lastChild.querySelectorAll('li')) {
-        mItemsById.delete(descendant.raw.id);
-      }
-      item.removeChild(item.lastChild);
-    }
-  }
-  else {
-    buildChildren(item);
-  }
+  await trackRawItemChildren(rawItem);
+  renderRows();
 }
 
 
-async function buildFolder(folder, options = {}) {
-  const item = document.createElement('li');
-  item.raw = folder;
-  item.level = options.level || 0;
-  item.dataset.id = folder.id;
-  const row = buildRow(item);
-  row.setAttribute('title', folder.title);
-  const twisty = row.appendChild(document.createElement('button'));
-  twisty.classList.add('twisty');
-  twisty.setAttribute('tabindex', -1);
-  const label = row.appendChild(document.createElement('span'));
-  label.classList.add('label');
-  label.appendChild(document.createTextNode(folder.title || browser.i18n.getMessage('blankTitle')));
-  item.classList.add('folder');
-
-  if (folder.children && folder.children.length == 0)
-    item.classList.add('blank');
-
-  if (mOpenedFolders.has(folder.id)) {
-    await buildChildren(item);
-  }
-  else {
-    item.classList.add('collapsed');
-    item.dirty = true;
-  }
-
-  mItemsById.set(folder.id, item);
-  return item;
+function getRowId(rawItem) {
+  return `${rawItem.type}:${rawItem.id}`;
 }
 
-function buildRow(item) {
-  const row = item.appendChild(document.createElement('a'));
+function createRow(rawItem) {
+  const itemElement = document.createElement('li');
+  itemElement.id         = getRowId(rawItem);
+  itemElement.raw        = rawItem;
+  itemElement.level      = rawItem.level || 0;
+  itemElement.dataset.id = rawItem.id;
+  const row = itemElement.appendChild(document.createElement('a'));
   row.classList.add('row');
-  row.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
+  row.style.paddingLeft = `calc((var(--indent-size) * ${rawItem.level + 1}) - var(--indent-offset-size))`;
   row.setAttribute('draggable', true);
   row.setAttribute('tabindex', -1);
-  return row;
+  return itemElement;
 }
 
-async function buildChildren(folderItem, options = {}) {
-  if (folderItem.classList.contains('collapsed'))
-    return;
-  if (folderItem.lastChild.localName == 'ul') {
-    if (!folderItem.dirty && !options.force)
+function renderFolderRow(rawItem) {
+  const id = getRowId(rawItem);
+  let rowElement = document.getElementById(id);
+  if (!rowElement) {
+    rowElement = createRow(rawItem);
+    const row = rowElement.firstChild;
+    row.setAttribute('title', rawItem.title);
+    const twisty = row.appendChild(document.createElement('button'));
+    twisty.classList.add('twisty');
+    twisty.setAttribute('tabindex', -1);
+    const label = row.appendChild(document.createElement('span'));
+    label.classList.add('label');
+    rowElement.labelElement = label;
+    rowElement.classList.add('folder');
+  }
+
+  rowElement.classList.toggle('active', mActiveRawItemId == rawItem.id);
+  rowElement.classList.toggle('highlighted', mHighlightedRawItemIds.has(rawItem.id) || (mActiveRawItemId == rawItem.id));
+  rowElement.classList.toggle('blank', !!(rawItem.children && rawItem.children.length == 0));
+  rowElement.classList.toggle('collapsed', !isFolderOpen(rawItem));
+  rowElement.labelElement.textContent = rawItem.title || browser.i18n.getMessage('blankTitle');
+
+  mDirtyRawItemIds.delete(rawItem.id);
+
+  return rowElement;
+}
+
+function renderBookmarkRow(rawItem) {
+  const id = getRowId(rawItem);
+  let rowElement = document.getElementById(id);
+  if (!rowElement) {
+    rowElement = createRow(rawItem);
+    const row = rowElement.firstChild;
+    const label = row.appendChild(document.createElement('span'));
+    label.classList.add('label');
+    rowElement.labelElement = label;
+    //const icon = label.appendChild(document.createElement('img'));
+    //icon.src = bookmark.favIconUrl;
+    rowElement.classList.add('bookmark');
+  }
+
+  rowElement.classList.toggle('active', mActiveRawItemId == rawItem.id);
+  rowElement.classList.toggle('highlighted', mHighlightedRawItemIds.has(rawItem.id) || (mActiveRawItemId == rawItem.id));
+  rowElement.classList.toggle('unavailable', !Constants.LOADABLE_URL_MATCHER.test(rawItem.url));
+  rowElement.labelElement.textContent = rawItem.title || browser.i18n.getMessage('blankTitle');
+  rowElement.labelElement.setAttribute('title', `${rawItem.title}\n${rawItem.url}`);
+
+  mDirtyRawItemIds.delete(rawItem.id);
+
+  return rowElement;
+}
+
+function renderSeparatorRow(rawItem) {
+  const id = getRowId(rawItem);
+  let rowElement = document.getElementById(id);
+  if (!rowElement) {
+    rowElement = createRow(rawItem);
+    rowElement.classList.add('separator');
+  }
+
+  rowElement.classList.toggle('active', mActiveRawItemId == rawItem.id);
+  rowElement.classList.toggle('highlighted', mHighlightedRawItemIds.has(rawItem.id) || (mActiveRawItemId == rawItem.id));
+
+  mDirtyRawItemIds.delete(rawItem.id);
+
+  return rowElement;
+}
+
+function reserveToRenderRows() {
+  const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
+  renderRows.lastStartedAt = startAt;
+  window.requestAnimationFrame(() => {
+    if (renderRows.lastStartedAt != startAt)
       return;
-    folderItem.removeChild(folderItem.lastChild);
-  }
-  folderItem.appendChild(document.createElement('ul'));
-  if (!folderItem.raw.children) {
-    folderItem.raw.children = await browser.runtime.sendMessage({
-      type: Constants.COMMAND_GET_CHILDREN,
-      id:   folderItem.raw.id
-    });
-    storeRawItem(folderItem.raw);
-  }
-  await buildItems(folderItem.raw.children, folderItem.lastChild, { level: folderItem.level + 1 });
-  folderItem.dirty = false;
+    renderRows();
+  });
 }
 
-function buildBookmark(bookmark, options = {}) {
-  const item = document.createElement('li');
-  item.raw = bookmark;
-  item.level = options.level || 0;
-  item.dataset.id = bookmark.id;
-  const row = buildRow(item);
-  const label = row.appendChild(document.createElement('span'));
-  label.classList.add('label');
-  //const icon = label.appendChild(document.createElement('img'));
-  //icon.src = bookmark.favIconUrl;
-  label.appendChild(document.createTextNode(bookmark.title || browser.i18n.getMessage('blankTitle')));
-  label.setAttribute('title', `${bookmark.title}\n${bookmark.url}`);
-  item.classList.add('bookmark');
+async function renderRows() {
+  renderRows.lastStartedAt = null;
 
-  if (!Constants.LOADABLE_URL_MATCHER.test(bookmark.url))
-    item.classList.add('unavailable');
+  const range = document.createRange();
+  range.selectNodeContents(mRoot);
+  range.deleteContents();
+  range.detach();
 
-  mItemsById.set(bookmark.id, item);
-  return item;
-}
-
-function buildSeparator(separator, options = {}) {
-  const item = document.createElement('li');
-  item.raw = separator;
-  item.level = options.level || 0;
-  item.dataset.id = separator.id;
-  buildRow(item);
-  item.classList.add('separator');
-  mItemsById.set(separator.id, item);
-  return item;
-}
-
-async function buildItems(items, container, options = {}) {
-  const level = options.level || 0;
-  for (const item of items) {
+  for (const item of mRawItems) {
     if (!item)
       continue;
     switch (item.type) {
       case 'folder':
-        container.appendChild(await buildFolder(item, { level }));
+        mRoot.appendChild(renderFolderRow(item));
         break;
 
       case 'bookmark':
-        container.appendChild(buildBookmark(item, { level }));
+        mRoot.appendChild(renderBookmarkRow(item));
         break;
 
       case 'separator':
-        container.appendChild(buildSeparator(item, { level }));
+        mRoot.appendChild(renderSeparatorRow(item));
         break;
     }
+  }
+
+  const callbacks = [...mOnRenderdCallbacks];
+  mOnRenderdCallbacks.clear();
+  for (const callback of callbacks) {
+    await callback();
   }
 }
 
 
 export async function search(query) {
-  const range = document.createRange();
-  range.selectNodeContents(mRoot);
-  range.deleteContents();
-  range.detach();
-  mItemsById.clear();
+  if (!query)
+    return listAll();
+
   mRawItemsById.clear();
 
-  if (!query) {
-    const rootItem = await browser.runtime.sendMessage({
-      type: Constants.COMMAND_GET_ROOT
-    });
-    storeRawItem(rootItem);
-    buildItems(Constants.ROOT_ITEMS.map(id => mRawItemsById.get(id)), mRoot);
-    return;
-  }
-
-  const foundItems = await browser.runtime.sendMessage({
+  mRawItems = (await browser.runtime.sendMessage({
     type: Constants.COMMAND_SEARCH_BOOKMARKS,
-    query
-  });
-  foundItems.forEach(storeRawItem);
-  buildItems(foundItems, mRoot);
+    query,
+  })).filter(rawItem => rawItem.type == 'bookmark');
+  renderRows();
 }
 
 
@@ -249,13 +333,16 @@ Connection.onMessage.addListener(async message => {
     case Constants.NOTIFY_BOOKMARK_CREATED: {
       mRawItemsById.set(message.id, message.bookmark);
       const parentRawItem = mRawItemsById.get(message.bookmark.parentId);
-      if (parentRawItem)
+      if (parentRawItem) {
         parentRawItem.children.splice(message.bookmark.index, 0, message.bookmark);
-      const parentItem = mItemsById.get(message.bookmark.parentId);
-      if (parentItem) {
-        parentItem.dirty = true;
-        parentItem.classList.remove('blank');
-        buildChildren(parentItem);
+        let offset = 1;
+        for (const rawItem of parentRawItem.children.slice(message.bookmark.index + 1)) {
+          rawItem.index = message.bookmark.index + offset;
+          mDirtyRawItemIds.add(rawItem.id);
+          offset++;
+        }
+        mDirtyRawItemIds.add(message.id);
+        reserveToRenderRows();
       }
     }; break
 
@@ -264,15 +351,17 @@ Connection.onMessage.addListener(async message => {
       if (!rawItem)
         return;
 
-      const item = mItemsById.get(message.id);
-      if (item && item.classList.contains('active'))
-        setActive(item.nextSibling || item.previousSibling || item.parentNode.closest('li'));
-
-      const parentRawItem = mRawItemsById.get(message.removeInfo.parentId);
-      if (parentRawItem)
-        parentRawItem.children.splice(parentRawItem.children.findIndex(item => item.id == message.id), 1);
-
-      deleteRawItem(rawItem);
+      if (rawItem.active) {
+        const index = mRawItems.indexOf(rawItem);
+        const nextIndex = (index < mRawItems.length && mRawItems[index + 1].parentId == rawItem.parentId) ?
+          index + 1 : // next sibling
+          (index > -1 && mRawItems[index - 1].parentId == rawItem.parentId) ?
+            index - 1 : // previous sibling
+            mRawItems.indexOf(getParent(rawItem)); // parent
+        setActive(nextIndex);
+      }
+      untrackRawItem(rawItem);
+      reserveToRenderRows();
     }; break
 
     case Constants.NOTIFY_BOOKMARK_MOVED: {
@@ -280,33 +369,56 @@ Connection.onMessage.addListener(async message => {
       if (!rawItem)
         return;
 
-      const oldParentRawItem = mRawItemsById.get(message.moveInfo.oldParentId);
-      if (oldParentRawItem)
-        oldParentRawItem.children.splice(oldParentRawItem.children.findIndex(item => item.id == message.id), 1);
-      const newParentRawItem = mRawItemsById.get(message.moveInfo.parentId);
-      if (newParentRawItem)
-        newParentRawItem.children.splice(message.moveInfo.index, 0, rawItem);
+      const wasActive = mActiveRawItemId == message.id;;
+
+      const oldIndex = mRawItems.mRawItems.findIndex(item => item.id == message.id);
+      mRawItems.splice(oldIndex, 1);
+
+      const oldParent = mRawItemsById.get(message.moveInfo.oldParentId);
+      if (oldParent) {
+        const oldIndex = oldParent.children.findIndex(item => item.id == message.id);
+        oldParent.children.splice(oldIndex, 1);
+        let offset = 0;
+        for (const rawItem of oldParent.children.slice(oldIndex)) {
+          rawItem.index = oldIndex + offset;
+          mDirtyRawItemIds.add(rawItem.id);
+          offset++;
+        }
+        mDirtyRawItemIds.add(oldParent.id);
+      }
+
+      const newParent = mRawItemsById.get(message.moveInfo.parentId);
+      if (newParent) {
+        mRawItems.splice(
+          newParent.children && newParent.children.length > 0 ?
+            mRawItems.indexOf(newParent.children[message.moveInfo.index]) :
+            mRawItems.indexOf(newParent + 1),
+          0,
+          rawItem
+        );
+        newParent.children.splice(message.moveInfo.index, 0, rawItem);
+        let offset = 0;
+        for (const rawItem of newParent.children.slice(message.moveInfo.index + 1)) {
+          rawItem.index = message.bookmark.index + offset;
+          mDirtyRawItemIds.add(rawItem.id);
+          offset++;
+        }
+        mDirtyRawItemIds.add(newParent.id);
+      }
+      else {
+        mRawItems.push(rawItem);
+      }
 
       rawItem.parentId = message.moveInfo.parentId;
       rawItem.index    = message.moveInfo.index;
-
-      const item = mItemsById.get(message.id);
-      if (!item)
-        return;
-
-      const wasActive = item.classList.contains('active');
-
-      if (item.parentNode.childNodes.length == 1)
-        mItemsById.get(message.removeInfo.oldParentId).classList.add('blank');
-      item.parentNode.removeChild(item);
-      const newParentItem = mItemsById.get(message.moveInfo.parentId);
-      if (newParentItem) {
-        newParentItem.dirty = true;
-        buildChildren(newParentItem);
-      }
+      mDirtyRawItemIds.add(message.id);
 
       if (wasActive)
-        setActive(mItemsById.get(message.id));
+        mOnRenderdCallbacks.add(() => {
+          setActive(rawItem);
+        });
+
+      reserveToRenderRows();
     }; break
 
     case Constants.NOTIFY_BOOKMARK_CHANGED: {
@@ -317,34 +429,8 @@ Connection.onMessage.addListener(async message => {
       for (const property of Object.keys(message.changeInfo)) {
         rawItem[property] = message.changeInfo[property];
       }
-
-      const item = mItemsById.get(message.id);
-      if (!item)
-        return;
-      const label = item.querySelector('.label');
-      if (message.changeInfo.title)
-        label.textContent = message.changeInfo.title;
+      mDirtyRawItemIds.add(message.id);
+      reserveToRenderRows();
     }; break
   }
 });
-
-function deleteRawItem(rawItem) {
-  mRawItemsById.delete(rawItem.id);
-  if (rawItem.children)
-    for (const child of rawItem.children) {
-      deleteRawItem(child);
-    }
-
-  const item = mItemsById.get(rawItem.id);
-  if (!item)
-    return;
-  if (item.parentNode &&
-      item.parentNode.childNodes.length == 1) {
-    const parentItem = mItemsById.get(rawItem.parentId);
-    if (parentItem)
-      parentItem.classList.add('blank');
-  }
-  if (item.parentNode)
-    item.parentNode.removeChild(item);
-  mItemsById.delete(rawItem.id);
-}

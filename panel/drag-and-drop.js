@@ -145,7 +145,7 @@ function creatDropPositionMarker() {
 
 function getDraggedItems(event) {
   const draggedIds = event.dataTransfer.getData(TYPE_BOOKMARK_ITEMS);
-  return draggedIds ? draggedIds.split(',').map(id => id && Bookmarks.get(id)).filter(item => !!item) : [];
+  return draggedIds ? draggedIds.split(',').map(id => id && Bookmarks.getRowById(id)).filter(item => !!item) : [];
 }
 
 const ACCEPTABLE_DRAG_DATA_TYPES = [

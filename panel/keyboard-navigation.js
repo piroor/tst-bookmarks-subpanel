@@ -32,46 +32,45 @@ function onKeyDown(event) {
   const onTree = !target.closest('#searchbar');
   const hasItem = mRoot.hasChildNodes();
   const activeItem = Bookmarks.getActive();
+  const activeItemRow = activeItem && Bookmarks.getRowById(activeItem.id);
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
   const walker = createVisibleItemWalker();
-  if (activeItem)
-    walker.currentNode = activeItem;
+  if (activeItemRow)
+    walker.currentNode = activeItemRow;
 
   switch (event.key) {
     case 'ArrowUp':
       if (!onTree || !hasItem || accel)
         return;
-      setActive(walker.previousNode() || activeItem, { multiselect: event.shiftKey });
+      setActive((walker.previousNode() || activeItem).raw, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
     case 'ArrowDown':
       if (!onTree || !hasItem || accel)
         return;
-      setActive(walker.nextNode() || activeItem, { multiselect: event.shiftKey });
+      setActive((walker.nextNode() || activeItem).raw, { multiselect: event.shiftKey });
       event.preventDefault();
       return;
 
     case 'ArrowRight':
       if (!onTree || !hasItem || !activeItem)
         return;
-      if (activeItem.classList.contains('folder') &&
-          activeItem.classList.contains('collapsed'))
+      if (Bookmarks.isFolderCollapsed(activeItem))
         Bookmarks.toggleOpenState(activeItem);
       else
-        setActive(activeItem.querySelector('li') || activeItem);
+        setActive(activeItem.children && activeItem.children[0] || activeItem);
       event.preventDefault();
       return;
 
     case 'ArrowLeft':
       if (!onTree || !hasItem || !activeItem)
         return;
-      if (activeItem.classList.contains('folder') &&
-          !activeItem.classList.contains('collapsed'))
+      if (Bookmarks.isFolderOpen(activeItem))
         Bookmarks.toggleOpenState(activeItem);
       else
-        setActive(activeItem.parentNode.closest('li') || activeItem);
+        setActive(Bookmarks.getParent(activeItem) || activeItem);
       event.preventDefault();
       return;
 
@@ -81,7 +80,7 @@ function onKeyDown(event) {
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.previousNode()
       }
-      setActive(walker.currentNode || activeItem, {
+      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -94,7 +93,7 @@ function onKeyDown(event) {
       for (let i = 0, maxi = getRowsCount(); i < maxi; i++) {
         walker.nextNode()
       }
-      setActive(walker.currentNode || activeItem, {
+      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -106,7 +105,7 @@ function onKeyDown(event) {
         return;
       while (walker.previousNode()) {
       }
-      setActive(walker.currentNode || activeItem, {
+      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -118,7 +117,7 @@ function onKeyDown(event) {
         return;
       while (walker.nextNode()) {
       }
-      setActive(walker.currentNode || activeItem, {
+      setActive(walker.currentNode && walker.currentNode.raw || activeItem, {
         multiselect: event.shiftKey,
         jumped:      true
       });
@@ -138,7 +137,7 @@ function onKeyDown(event) {
         }
       }
       if (onSearchBox) {
-        Bookmarks.setActive(activeItem || mRoot.firstChild, { multiselect: true });
+        Bookmarks.setActive(activeItem || mRoot.firstChild.raw, { multiselect: true });
         event.preventDefault();
       }
       return;
@@ -147,9 +146,9 @@ function onKeyDown(event) {
       if (!onTree ||
           onSearchBox ||
           !activeItem ||
-          activeItem.raw.type == 'separator')
+          activeItem.type == 'separator')
         return;
-      if (activeItem.raw.type == 'folder') {
+      if (activeItem.type == 'folder') {
         Bookmarks.toggleOpenState(activeItem);
         event.preventDefault();
         return;
@@ -157,18 +156,18 @@ function onKeyDown(event) {
       if (event.shiftKey)
         Connection.sendMessage({
           type:     Constants.COMMAND_OPEN_BOOKMARKS,
-          urls:     [activeItem.raw.url],
+          urls:     [activeItem.url],
           inWindow: true
         });
       else if (!configs.openInTabAlways)
         Connection.sendMessage({
           type: Constants.COMMAND_LOAD_BOOKMARK,
-          url:  activeItem.raw.url
+          url:  activeItem.url
         });
       else
         Connection.sendMessage({
           type:       Constants.COMMAND_OPEN_BOOKMARKS,
-          urls:       [activeItem.raw.url],
+          urls:       [activeItem.url],
           background: !configs.openAsActiveTab
         });
       event.preventDefault();
@@ -182,24 +181,22 @@ function setActive(activeItem, options = {}) {
 
   const lastActiveItem = Bookmarks.getActive() || activeItem;
 
-  if (!options.multiselect)
-    mFirstMultiselectId = mLastMultiselectId = null;
-  else if (!mFirstMultiselectId && lastActiveItem)
-    mFirstMultiselectId = lastActiveItem.raw.id;
-
-  Bookmarks.setActive(activeItem, options);
+  Bookmarks.clearMultiselected();
+  Bookmarks.setActive(activeItem);
+  /*
   activeItem.firstChild.scrollIntoView({
     behavior: 'smooth',
     block:    'nearest',
     inline:   'nearest'
   });
+  */
 
   if (!options.multiselect)
     return;
 
-  mLastMultiselectId = activeItem.raw.id;
-  let firstItem = Bookmarks.get(mFirstMultiselectId);
-  const lastItem = Bookmarks.get(mLastMultiselectId);
+  mLastMultiselectId = activeItem.id;
+  let firstItem = Bookmarks.getRowById(mFirstMultiselectId);
+  const lastItem = Bookmarks.getRowById(mLastMultiselectId);
 
   const isBottomToTop = firstItem != lastItem && lastItem.compareDocumentPosition(firstItem) & Node.DOCUMENT_POSITION_FOLLOWING;
 
