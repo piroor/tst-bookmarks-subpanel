@@ -579,7 +579,7 @@ Connection.onMessage.addListener(async message => {
 
       const wasActive = mActiveRawItemId == message.id;;
 
-      const oldIndex = mRawItems.mRawItems.findIndex(item => item.id == message.id);
+      const oldIndex = mRawItems.findIndex(item => item.id == message.id);
       mRawItems.splice(oldIndex, 1);
 
       const oldParent = getById(message.moveInfo.oldParentId);
