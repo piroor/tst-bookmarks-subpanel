@@ -25,6 +25,8 @@ export async function init() {
 }
 
 
+// Listing raw bookmark items
+
 async function listAll() {
   const [rawRoot] = await Promise.all([
     browser.runtime.sendMessage({
@@ -110,6 +112,23 @@ function untrackRawItemDescendants(rawItem) {
   rawItem.children = null;
   return untrackedCount;
 }
+
+
+export async function search(query) {
+  if (!query)
+    return listAll();
+
+  mRawItemsById.clear();
+
+  mRawItems = (await browser.runtime.sendMessage({
+    type: Constants.COMMAND_SEARCH_BOOKMARKS,
+    query,
+  })).filter(rawItem => rawItem.type == 'bookmark');
+  renderRows();
+}
+
+
+// Utilities to operate bookmark items
 
 export function getById(id) {
   return mRawItemsById.get(id);
@@ -237,6 +256,52 @@ export async function toggleOpenState(rawItem) {
 }
 
 
+/* rendering */
+
+export function reserveToRenderRows() {
+  const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
+  renderRows.lastStartedAt = startAt;
+  window.requestAnimationFrame(() => {
+    if (renderRows.lastStartedAt != startAt)
+      return;
+    renderRows();
+  });
+}
+
+async function renderRows() {
+  renderRows.lastStartedAt = null;
+
+  const range = document.createRange();
+  range.selectNodeContents(mRoot);
+  range.deleteContents();
+  range.detach();
+
+  for (const item of mRawItems) {
+    if (!item)
+      continue;
+    switch (item.type) {
+      case 'folder':
+        mRoot.appendChild(renderFolderRow(item));
+        break;
+
+      case 'bookmark':
+        mRoot.appendChild(renderBookmarkRow(item));
+        break;
+
+      case 'separator':
+        mRoot.appendChild(renderSeparatorRow(item));
+        break;
+    }
+  }
+
+  const callbacks = [...mOnRenderdCallbacks];
+  mOnRenderdCallbacks.clear();
+  for (const callback of callbacks) {
+    await callback();
+  }
+}
+
+
 function getRowId(rawItem) {
   return `${rawItem.type}:${rawItem.id}`;
 }
@@ -321,63 +386,6 @@ function renderSeparatorRow(rawItem) {
   mDirtyRawItemIds.delete(rawItem.id);
 
   return rowElement;
-}
-
-export function reserveToRenderRows() {
-  const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
-  renderRows.lastStartedAt = startAt;
-  window.requestAnimationFrame(() => {
-    if (renderRows.lastStartedAt != startAt)
-      return;
-    renderRows();
-  });
-}
-
-async function renderRows() {
-  renderRows.lastStartedAt = null;
-
-  const range = document.createRange();
-  range.selectNodeContents(mRoot);
-  range.deleteContents();
-  range.detach();
-
-  for (const item of mRawItems) {
-    if (!item)
-      continue;
-    switch (item.type) {
-      case 'folder':
-        mRoot.appendChild(renderFolderRow(item));
-        break;
-
-      case 'bookmark':
-        mRoot.appendChild(renderBookmarkRow(item));
-        break;
-
-      case 'separator':
-        mRoot.appendChild(renderSeparatorRow(item));
-        break;
-    }
-  }
-
-  const callbacks = [...mOnRenderdCallbacks];
-  mOnRenderdCallbacks.clear();
-  for (const callback of callbacks) {
-    await callback();
-  }
-}
-
-
-export async function search(query) {
-  if (!query)
-    return listAll();
-
-  mRawItemsById.clear();
-
-  mRawItems = (await browser.runtime.sendMessage({
-    type: Constants.COMMAND_SEARCH_BOOKMARKS,
-    query,
-  })).filter(rawItem => rawItem.type == 'bookmark');
-  renderRows();
 }
 
 
