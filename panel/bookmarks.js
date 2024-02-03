@@ -280,9 +280,13 @@ export function setDropPosition(rawItem, position) {
 
   mLastDropPositionHolderId = rawItem.id;
   mLastDropPosition = position;
+  mDirtyRawItemIds.add(mLastDropPositionHolderId);
+  reserveToRenderRows();
 }
 
 export function clearDropPosition() {
+  if (mLastDropPositionHolderId)
+    mDirtyRawItemIds.add(mLastDropPositionHolderId);
   mLastDropPositionHolderId = mLastDropPosition = null;
   reserveToRenderRows();
 }
