@@ -1,6 +1,8 @@
 # History
 
  - master/HEAD
+ - 2.0 (2024.2.4)
+   * Improved performance on cases with large number of visible bookmarks. Now rows only in the viewport are rendered.
  - 1.2.7 (2022.11.3)
    * Reduce memory allocation ([by nirvdrum, thanks!](https://github.com/piroor/webextensions-lib-event-listener-manager/pull/1))
  - 1.2.6 (2022.9.19)
