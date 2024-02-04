@@ -16,6 +16,7 @@ let mOpenedFolderIds;
 
 const mScrollBox = document.getElementById('content');
 const mRowsContainer      = document.getElementById('rows');
+let mInProgressTrackingCount = 0;
 let mItems = [];
 let mActiveItemId;
 const mHighlightedItemIds = new Set();
@@ -64,7 +65,7 @@ async function listAll() {
   mItemsById.clear();
   mItems = [];
   await Promise.all(rawRoot.children.map(trackItem));
-  reserveToRenderRows(scrollPosition);
+  reserveToRenderRows(mLastMode == MODE_LIST_ALL && scrollPosition);
 }
 
 async function trackItem(item) {
@@ -94,10 +95,12 @@ async function trackItemChildren(item) {
   }
 
   if (!item.children) {
+    mInProgressTrackingCount++;
     item.children = await browser.runtime.sendMessage({
       type: Constants.COMMAND_GET_CHILDREN,
       id:   item.id
     }) || null;
+    mInProgressTrackingCount--;
     mDirtyItemIds.add(item.id);
     reserveToRenderRows();
   }
@@ -336,7 +339,8 @@ export function clearDropPosition() {
 export function reserveToRenderRows(scrollPosition) {
   const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
   renderRows.lastStartedAt = startAt;
-  renderRows.expectedScrollPosition = scrollPosition;
+  if (typeof scrollPosition == 'number')
+    renderRows.expectedScrollPosition = scrollPosition;
   window.requestAnimationFrame(() => {
     if (renderRows.lastStartedAt != startAt)
       return;
@@ -364,7 +368,6 @@ async function renderRows(scrollPosition) {
   if (typeof scrollPosition != 'number' &&
       typeof renderRows.expectedScrollPosition == 'number') {
     scrollPosition = renderRows.expectedScrollPosition;
-    renderRows.expectedScrollPosition = null;
   }
 
   const rowSize                = getRowHeight();
@@ -479,11 +482,23 @@ async function renderRows(scrollPosition) {
 
   mLastRenderedItemIds = toBeRenderedItemIds;
 
-  const callbacks = [...mOnRenderdCallbacks];
-  mOnRenderdCallbacks.clear();
-  for (const callback of callbacks) {
-    await callback();
-  }
+  window.requestAnimationFrame(async () => {
+    if (renderRows.lastStartedAt) // someone requested while rendering!
+      return;
+
+    if (mInProgressTrackingCount == 0 &&
+        typeof renderRows.expectedScrollPosition == 'number') {
+      const scrollPosition = renderRows.expectedScrollPosition;
+      renderRows.expectedScrollPosition = null;
+      mScrollBox.scrollTop = scrollPosition;
+    }
+
+    const callbacks = [...mOnRenderdCallbacks];
+    mOnRenderdCallbacks.clear();
+    for (const callback of callbacks) {
+      await callback();
+    }
+  });
 }
 
 export function getRowHeight() {
