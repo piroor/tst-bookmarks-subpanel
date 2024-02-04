@@ -259,6 +259,7 @@ export function clearMultiselected() {
   mHighlightedItemIds.clear();
   if (mActiveItemId)
     mHighlightedItemIds.add(mActiveItemId);
+  pushMultiselectedItems();
   reserveToRenderRows();
 }
 
@@ -278,7 +279,21 @@ export function addMultiselected(...items) {
   for (const item of items) {
     mHighlightedItemIds.add(item.id);
   }
+  pushMultiselectedItems();
   reserveToRenderRows();
+}
+
+function pushMultiselectedItems() {
+  const startAt = `${Date.now()}-${parseInt(Math.random() * 65000)}`;
+  pushMultiselectedItems.lastStartedAt = startAt;
+  window.requestAnimationFrame(() => {
+    if (pushMultiselectedItems.lastStartedAt != startAt)
+      return;
+    browser.runtime.sendMessage({
+      type:     Constants.COMMAND_PUSH_MULTISELECTED_ITEMS,
+      items:    mItems.filter(item => mHighlightedItemIds.has(item.id)),
+    });
+  });
 }
 
 export function removeMultiselected(...items) {

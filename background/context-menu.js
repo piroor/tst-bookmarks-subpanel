@@ -8,9 +8,15 @@
 import * as Constants from '/common/constants.js';
 
 import * as Commands from './commands.js';
+import * as Connection from './connection.js';
 import * as Dialogs from './dialogs.js';
 
+const mMultiselectedItemsInWindow = new Map();
 let mCopiedItems = [];
+
+Connection.onDisconnected.addListener(windowId => {
+  mMultiselectedItemsInWindow.delete(windowId);
+});
 
 const mItemsById = {
   'open': {
@@ -194,8 +200,12 @@ function hasVisiblePrecedingItem(separator) {
   );
 }
 
-async function onShown(info) {
-  const contextItems = await browser.bookmarks.get(info.bookmarkId);
+async function getContextItems(info) {
+  const [contextItemsFromInfo, win] = await Promise.all([
+    browser.bookmarks.get(info.bookmarkId),
+    browser.windows.getCurrent({}),
+  ]);
+  const contextItems = mMultiselectedItemsInWindow.get(win.id) || contextItemsFromInfo;
   for (const item of contextItems) {
     if (item.type == 'bookmark' &&
         /^place:parent=([^&]+)$/.test(item.url)) { // alias for special folders
@@ -205,7 +215,11 @@ async function onShown(info) {
       item.title = realItem.title;
     }
   }
+  return contextItems;
+}
 
+async function onShown(info) {
+  const contextItems = await getContextItems(info);
   const contextItem  = contextItems[0];
   const hasFolder    = contextItems.some(item => item.type == 'folder');
   const hasBookmark  = contextItems.some(item => item.type == 'bookmark');
@@ -243,54 +257,36 @@ async function onShown(info) {
 }
 
 async function onClicked(info) {
-  let [bookmark,] = info.bookmarkId && await browser.bookmarks.get(info.bookmarkId);
-  if (bookmark.type == 'bookmark' &&
-      /^place:parent=([^&]+)$/.test(bookmark.url)) { // alias for special folders
-    const [realItem,] = await browser.bookmarks.get(RegExp.$1);
-    bookmark.id    = realItem.id;
-    bookmark.type  = realItem.type;
-    bookmark.title = realItem.title;
-  }
-  if (bookmark && bookmark.type == 'folder') {
-    bookmark = await browser.bookmarks.getSubTree(bookmark.id);
-    if (Array.isArray(bookmark))
-      bookmark = bookmark[0];
-  }
-
-  if (!bookmark)
+  const contextItems = await getContextItems(info);
+  if (!contextItems || contextItems.length == 0)
     return;
 
-  const bookmarks = [bookmark];
-
+  const contextItem = contextItems[0];
   const destination = {
-    parentId: bookmark.type == 'folder' ? bookmark.id : bookmark.parentId
+    parentId: contextItem.type == 'folder' ? contextItem.id : contextItem.parentId
   };
-  if (bookmark.type != 'folder')
-    destination.index = bookmark.index;
+  if (contextItem.type != 'folder')
+    destination.index = contextItem.index;
 
   switch (info.menuItemId) {
     case 'open':
-      Commands.load(bookmark.url);
+      Commands.load(contextItem.url);
       break;
 
     case 'openTab':
-      Commands.openInTabs([bookmark.url]);
+      Commands.openInTabs(contextItems.map(item => item.url));
       break;
 
     case 'openWindow':
-      Commands.openInWindow(bookmark.url);
+      Commands.openInWindow(contextItem.url);
       break;
 
     case 'openPrivateWindow':
-      Commands.openInWindow(bookmark.url, { incognito: true });
+      Commands.openInWindow(contextItem.url, { incognito: true });
       break;
 
     case 'openAllInTabs': {
-      const urls = (
-        bookmark.type == 'folder' ?
-          bookmark.children.map(item => item.url) :
-          bookmarks.map(item => item.url)
-      ).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      const urls = contextItems.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       Dialogs.warnOnOpenTabs(urls.length).then(granted => {
         if (!granted)
           return;
@@ -341,17 +337,17 @@ async function onClicked(info) {
 
 
     case 'copy':
-      mCopiedItems = bookmarks;
+      mCopiedItems = contextItems.slice(0);
       break;
 
     case 'cut':
-      mCopiedItems = bookmarks;
+      mCopiedItems = contextItems.slice(0);
     case 'delete':
-      for (const bookmark of bookmarks) {
-        if (bookmark.type == 'folder')
-          browser.bookmarks.removeTree(bookmark.id);
+      for (const item of contextItems) {
+        if (item.type == 'folder')
+          browser.bookmarks.removeTree(item.id);
         else
-          browser.bookmarks.remove(bookmark.id);
+          browser.bookmarks.remove(item.id);
       }
       break;
 
@@ -361,9 +357,9 @@ async function onClicked(info) {
 
 
     case 'sortByName':
-      bookmark.children.sort((a, b) => a.title > b.title);
-      for (let i = 0, maxi = bookmark.children.length; i < maxi; i++) {
-        const child = bookmark.children[i];
+      contextItem.children.sort((a, b) => a.title > b.title);
+      for (let i = 0, maxi = contextItem.children.length; i < maxi; i++) {
+        const child = contextItem.children[i];
         await browser.bookmarks.move(child.id, { index: i });
       }
       break;
@@ -371,18 +367,29 @@ async function onClicked(info) {
     case 'properties':
       Dialogs.showBookmarkDialog({
         mode:  'save',
-        type:  bookmark.type,
-        title: bookmark.title,
-        url:   bookmark.url
+        type:  contextItem.type,
+        title: contextItem.title,
+        url:   contextItem.url
       }).then(details => {
         if (!details)
           return;
-        Commands.update(bookmark.id, details);
+        Commands.update(contextItem.id, details);
       });
       break;
   }
 }
 
+browser.runtime.onMessage.addListener((message, sender) => {
+  switch (message.type) {
+    case Constants.COMMAND_PUSH_MULTISELECTED_ITEMS: {
+      const windowId = parseInt((new URL(sender.url)).searchParams.get('windowId'));
+      if (message.items.length > 0)
+        mMultiselectedItemsInWindow.set(windowId, message.items);
+      else
+        mMultiselectedItemsInWindow.delete(windowId);
+    }; break;
+  }
+});
 
 browser.runtime.onMessageExternal.addListener((message, sender) => {
   switch (sender.id) {

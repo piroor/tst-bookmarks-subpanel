@@ -14,13 +14,16 @@ import EventListenerManager from '/extlib/EventListenerManager.js';
 const mConnections = new Set();
 
 export const onMessage = new EventListenerManager();
+export const onDisconnected = new EventListenerManager();
 
 browser.runtime.onConnect.addListener(port => {
   mConnections.add(port);
+  const windowId = parseInt((new URL(port.sender.url)).searchParams.get('windowId'));
   port.onMessage.addListener(onOneWayMessage);
   port.onDisconnect.addListener(_message => {
     mConnections.delete(port);
     port.onMessage.removeListener(onOneWayMessage);
+    onDisconnected.dispatch(windowId);
   });
 });
 

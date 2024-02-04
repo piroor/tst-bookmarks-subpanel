@@ -26,6 +26,8 @@ export const COMMAND_COPY_BOOKMARK     = 'copy-bookmark';
 
 export const COMMAND_CONFIRM_TO_OPEN_TABS = 'confirm-to-open-tabs';
 
+export const COMMAND_PUSH_MULTISELECTED_ITEMS = 'push-multiselected-items';
+
 export const NOTIFY_BOOKMARK_CREATED = 'bookmark-created';
 export const NOTIFY_BOOKMARK_REMOVED = 'bookmark-removed';
 export const NOTIFY_BOOKMARK_MOVED   = 'bookmark-moved';
