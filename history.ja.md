@@ -3,6 +3,7 @@
  - master/HEAD
  - 2.0 (2024.2.4)
    * 多数のブックマーク項目がある場合のパフォーマンスを向上（画面に見えている範囲内の項目のみレンダリングするようになりました）
+   * ブックマーク項目のプロパティを編集できなかったのを修正
  - 1.2.7 (2022.11.3)
    * メモリ消費を削減（[by nirvdrum, thanks!](https://github.com/piroor/webextensions-lib-event-listener-manager/pull/1)）
  - 1.2.6 (2022.9.19)
