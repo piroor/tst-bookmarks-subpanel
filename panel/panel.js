@@ -74,7 +74,8 @@ mContent.addEventListener('mousedown', event => {
   mLastMouseDownTarget = item.id;
 
   const target = EventUtils.getElementTarget(event);
-  if (!target.classList.contains('twisty'))
+  if (event.button != 2 &&
+      !target.classList.contains('twisty'))
     Bookmarks.setActive(item, {
       multiselect: Bookmarks.isReallyMultiselected(item),
     });
