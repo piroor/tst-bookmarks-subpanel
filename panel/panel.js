@@ -83,7 +83,8 @@ mContent.addEventListener('mousedown', event => {
   mLastMouseDownTarget = item.fullId;
 
   const target = EventUtils.getElementTarget(event);
-  if (!isContextMenuTriggerEvent(event) &&
+  if ((!Bookmarks.isReallyMultiselected(item) ||
+       !isContextMenuTriggerEvent(event)) &&
       !target.classList.contains('twisty'))
     Bookmarks.setActive(item, {
       multiselect: Bookmarks.isReallyMultiselected(item),
