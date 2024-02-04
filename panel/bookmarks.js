@@ -220,22 +220,24 @@ export function getLast() {
   return mItems.length == 0 ? null : mItems[mItems.length - 1];
 }
 
-function clearActive() {
+function clearActive({ keepMultiselected } = {}) {
   if (mActiveItemId)
     mDirtyItemIds.add(mActiveItemId);
-  for (const id of mHighlightedItemIds) {
-    mDirtyItemIds.add(id);
-  }
   mActiveItemId = null;
-  mHighlightedItemIds.clear();
+  if (!keepMultiselected) {
+    mHighlightedItemIds.clear();
+    for (const id of mHighlightedItemIds) {
+      mDirtyItemIds.add(id);
+    }
+  }
   reserveToRenderRows();
 }
 
-export function setActive(item) {
+export function setActive(item, { multiselect } = {}) {
   if (!item)
     return;
 
-  clearActive();
+  clearActive({ keepMultiselected: !!multiselect });
 
   mActiveItemId = item.id;
   mHighlightedItemIds.add(item.id);
