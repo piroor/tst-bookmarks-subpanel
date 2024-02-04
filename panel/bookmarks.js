@@ -420,22 +420,23 @@ async function renderRows(scrollPosition) {
     const [tag, fromStart, fromEnd, toStart, toEnd] = operation;
     switch (tag) {
       case 'equal':
-        for (const id of toBeRenderedItemIds.slice(toStart, toEnd)) {
-          const rawId = id.replace(/^[^_]+_/, '');
-          const row = document.getElementById(id);
+        for (const rowId of toBeRenderedItemIds.slice(toStart, toEnd)) {
+          const row = document.getElementById(rowId);
+          const id = rowId.replace(/^[^_]+_/, '');
           if (row &&
-              mDirtyItemIds.has(rawId))
-            renderRow(getById(rawId));
+              mDirtyItemIds.has(id))
+            renderRow(getById(id));
         }
         break;
 
       case 'delete': {
         const ids = mLastRenderedItemIds.slice(fromStart, fromEnd);
-        for (const id of ids) {
-          const row = document.getElementById(id);
+        for (const rowId of ids) {
+          const row = document.getElementById(rowId);
+          console.log('DELETE ', rowId, row);
           // We don't need to remove already rendered item,
           // because it is automatically moved by insertBefore().
-          if (toBeRenderedItemIdSet.has(id) ||
+          if (toBeRenderedItemIdSet.has(rowId) ||
               !row ||
               !mScrollBox.contains(row))
             continue;
@@ -447,11 +448,11 @@ async function renderRows(scrollPosition) {
       case 'replace': {
         const deleteIds = mLastRenderedItemIds.slice(fromStart, fromEnd);
         const insertIds = toBeRenderedItemIds.slice(toStart, toEnd);
-        for (const id of deleteIds) {
-          const row = document.getElementById(id);
+        for (const rowId of deleteIds) {
+          const row = document.getElementById(rowId);
           // We don't need to remove already rendered tab,
           // because it is automatically moved by insertBefore().
-          if (toBeRenderedItemIdSet.has(id) ||
+          if (toBeRenderedItemIdSet.has(rowId) ||
               !row ||
               !mScrollBox.contains(row))
             continue;
@@ -460,8 +461,9 @@ async function renderRows(scrollPosition) {
         const referenceItem = fromStart < mLastRenderedItemIds.length ?
           getById(mLastRenderedItemIds[fromStart].replace(/^[^_]+_/, '')) :
           null;
-        for (const id of insertIds) {
-          const row = renderRow(getById(id.replace(/^[^_]+_/, '')));
+        for (const rowId of insertIds) {
+          const row = renderRow(getById(rowId.replace(/^[^_]+_/, '')));
+          console.log('INSERT ', rowId, row);
           if (!row)
             continue;
           const nextRow = getRow(referenceItem);
@@ -604,7 +606,10 @@ Connection.onMessage.addListener(async message => {
   switch (message.type) {
     case Constants.NOTIFY_BOOKMARK_CREATED: {
       const parentItem = getById(message.bookmark.parentId);
-      if (parentItem) {
+      if (!parentItem)
+        break;
+
+      if (isFolderOpen(parentItem)) {
         const item = {
           ...message.bookmark,
           level: parentItem.level + 1,
@@ -622,7 +627,11 @@ Connection.onMessage.addListener(async message => {
         mDirtyItemIds.add(item.id);
         reserveToRenderRows();
       }
-      // TODO: WE NEED TO DO MORE THINGS FOR ADDED FOLDERS!!!
+      else {
+        parentItem.children = null;
+        mDirtyItemIds.add(parentItem.id);
+        reserveToRenderRows();
+      }
     }; break
 
     case Constants.NOTIFY_BOOKMARK_REMOVED: {
