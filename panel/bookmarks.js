@@ -11,7 +11,7 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 
-let mItemsById = new Map();
+const mItemsById = new Map();
 let mItemsByFullId = new Map();
 let mOpenedFolderIds;
 
