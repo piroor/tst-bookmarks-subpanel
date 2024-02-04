@@ -66,6 +66,7 @@ export async function showBookmarkDialog(params) {
   try {
     const result = await RichConfirm.showInPopup({
       type: 'dialog',
+      url:  '/resources/blank.html',
       content: `
         <div style="display: flex;
                     flex-direction: column;"
