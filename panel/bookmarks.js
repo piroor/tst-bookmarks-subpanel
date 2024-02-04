@@ -433,7 +433,6 @@ async function renderRows(scrollPosition) {
         const ids = mLastRenderedItemIds.slice(fromStart, fromEnd);
         for (const rowId of ids) {
           const row = document.getElementById(rowId);
-          console.log('DELETE ', rowId, row);
           // We don't need to remove already rendered item,
           // because it is automatically moved by insertBefore().
           if (toBeRenderedItemIdSet.has(rowId) ||
@@ -463,7 +462,6 @@ async function renderRows(scrollPosition) {
           null;
         for (const rowId of insertIds) {
           const row = renderRow(getById(rowId.replace(/^[^_]+_/, '')));
-          console.log('INSERT ', rowId, row);
           if (!row)
             continue;
           const nextRow = getRow(referenceItem);
