@@ -115,6 +115,7 @@ async function trackItemChildren(item) {
   if (!item.children)
     return;
   for (const child of item.children) {
+    child.fullParentId = item.fullId;
     trackItem(child);
   }
   reserveToRenderRows();
@@ -226,7 +227,7 @@ export function getFocusable(item) {
 }
 
 export function getParent(item) {
-  return item && getById(item.parentId);
+  return item && getById(item.fullParentId) || getById(item.parentId);
 }
 
 export function getPrevious(item) {
@@ -342,26 +343,30 @@ export function removeMultiselected(...items) {
 }
 
 export function isFolderOpen(item) {
-  return item.type == 'folder' && mOpenedFolderIds.has(item.fullId);
+  return item.type == 'folder' && mOpenedFolderIds.has(item.id);
 }
 
 export function isFolderCollapsed(item) {
-  return item.type == 'folder' && !mOpenedFolderIds.has(item.fullId);
+  return item.type == 'folder' && !mOpenedFolderIds.has(item.id);
 }
 
 export async function toggleOpenState(item) {
   if (isFolderOpen(item))
-    mOpenedFolderIds.delete(item.fullId);
+    mOpenedFolderIds.delete(item.id);
   else
-    mOpenedFolderIds.add(item.fullId);
+    mOpenedFolderIds.add(item.id);
+
+  const items = mItemsById.get(item.id);
+  await Promise.all(Array.from(items, async item => {
+    await trackItemChildren(item);
+    mDirtyItemIds.add(item.fullId);
+  }));
   Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
       openedFolders: Array.from(mOpenedFolderIds)
     }
   });
-  await trackItemChildren(item);
-  mDirtyItemIds.add(item.fullId);
   renderRows();
 }
 

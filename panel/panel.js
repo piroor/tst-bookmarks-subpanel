@@ -80,7 +80,7 @@ mContent.addEventListener('mousedown', event => {
   if (!item)
     return;
 
-  mLastMouseDownTarget = item.id;
+  mLastMouseDownTarget = item.fullId;
 
   const target = EventUtils.getElementTarget(event);
   if (!isContextMenuTriggerEvent(event) &&
