@@ -11,15 +11,15 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 
-let mRawItemsById = new Map();
+let mItemsById = new Map();
 let mOpenedFolderIds;
 
 const mScrollBox = document.getElementById('content');
 const mRoot      = document.getElementById('root');
-let mRawItems = [];
-let mActiveRawItemId;
-const mHighlightedRawItemIds = new Set();
-const mDirtyRawItemIds = new Set();
+let mItems = [];
+let mActiveItemId;
+const mHighlightedItemIds = new Set();
+const mDirtyItemIds = new Set();
 
 const mOnRenderdCallbacks = new Set();
 
@@ -54,82 +54,82 @@ async function listAll() {
   ]);
 
   if (mLastMode != MODE_LIST_ALL) {
-    mRawItems = [];
+    mItems = [];
     mScrollBox.scrollTop = 0;
     renderRows();
     mLastMode = MODE_LIST_ALL;
   }
-  mHighlightedRawItemIds.clear();
-  mDirtyRawItemIds.clear();
-  mRawItemsById.clear();
-  mRawItems = [];
-  await Promise.all(rawRoot.children.map(trackRawItem));
+  mHighlightedItemIds.clear();
+  mDirtyItemIds.clear();
+  mItemsById.clear();
+  mItems = [];
+  await Promise.all(rawRoot.children.map(trackItem));
   reserveToRenderRows(scrollPosition);
 }
 
-async function trackRawItem(rawItem) {
-  const parentRawItem = getParent(rawItem);
-  rawItem.level = (parentRawItem && parentRawItem.level + 1) || 0;
-  mRawItemsById.set(rawItem.id, rawItem);
+async function trackItem(item) {
+  const parentItem = getParent(item);
+  item.level = (parentItem && parentItem.level + 1) || 0;
+  mItemsById.set(item.id, item);
 
-  if (rawItem.parentId == 'root________') {
-    mRawItems.push(rawItem);
+  if (item.parentId == 'root________') {
+    mItems.push(item);
   }
   else {
-    const prevItemIndex = mRawItems.findLastIndex(item => item.id == rawItem.parentId || item.parentId == rawItem.parentId);
-    mRawItems.splice(prevItemIndex + 1, 0, rawItem);
+    const prevItemIndex = mItems.findLastIndex(another => another.id == item.parentId || another.parentId == item.parentId);
+    mItems.splice(prevItemIndex + 1, 0, item);
   }
 
-  if (!isFolderOpen(rawItem))
+  if (!isFolderOpen(item))
     return;
 
-  return trackRawItemChildren(rawItem);
+  return trackItemChildren(item);
 }
 
-async function trackRawItemChildren(rawItem) {
-  if (!isFolderOpen(rawItem)) {
-    untrackRawItemDescendants(rawItem);
+async function trackItemChildren(item) {
+  if (!isFolderOpen(item)) {
+    untrackItemDescendants(item);
     reserveToRenderRows();
     return;
   }
 
-  if (!rawItem.children) {
-    rawItem.children = await browser.runtime.sendMessage({
+  if (!item.children) {
+    item.children = await browser.runtime.sendMessage({
       type: Constants.COMMAND_GET_CHILDREN,
-      id:   rawItem.id
+      id:   item.id
     }) || null;
-    mDirtyRawItemIds.add(rawItem.id);
+    mDirtyItemIds.add(item.id);
     reserveToRenderRows();
   }
-  if (!rawItem.children)
+  if (!item.children)
     return;
-  for (const child of rawItem.children) {
-    trackRawItem(child);
+  for (const child of item.children) {
+    trackItem(child);
   }
   reserveToRenderRows();
 }
 
-function untrackRawItem(rawItem) {
-  untrackRawItemDescendants(rawItem);
+function untrackItem(item) {
+  untrackItemDescendants(item);
 
-  const parentRawItem = getParent(rawItem);
-  if (parentRawItem) {
-    parentRawItem.children.splice(parentRawItem.children.findIndex(item => item.id == rawItem.id), 1);
-    mDirtyRawItemIds.add(parentRawItem.id);
+  const parentItem = getParent(item);
+  if (parentItem) {
+    parentItem.children.splice(parentItem.children.findIndex(another => another.id == item.id), 1);
+    mDirtyItemIds.add(parentItem.id);
   }
 
-  mRawItems.splice(mRawItems.indexOf(rawItem), 1);
-  mRawItemsById.delete(rawItem.id);
+  mItems.splice(mItems.indexOf(item), 1);
+  mItemsById.delete(item.id);
 }
 
-function untrackRawItemDescendants(rawItem) {
-  if (!rawItem.children)
+function untrackItemDescendants(item) {
+  if (!item.children)
     return;
 
-  for (const child of rawItem.children.slice(0)) {
-    untrackRawItem(child);
+  for (const child of item.children.slice(0)) {
+    untrackItem(child);
   }
-  rawItem.children = null;
+  item.children = null;
 }
 
 
@@ -138,22 +138,22 @@ export async function search(query) {
     return listAll();
 
   if (mLastMode != MODE_SEARCH) {
-    mRawItems = [];
+    mItems = [];
     mScrollBox.scrollTop = 0;
     renderRows();
     mLastMode = MODE_SEARCH;
   }
 
-  mHighlightedRawItemIds.clear();
-  mDirtyRawItemIds.clear();
-  mRawItemsById.clear();
+  mHighlightedItemIds.clear();
+  mDirtyItemIds.clear();
+  mItemsById.clear();
 
-  mRawItems = (await browser.runtime.sendMessage({
+  mItems = (await browser.runtime.sendMessage({
     type: Constants.COMMAND_SEARCH_BOOKMARKS,
     query,
   })).filter(item => item.type == 'bookmark');
-  mRawItemsById = new Map(mRawItems.map(item => {
-    mDirtyRawItemIds.add(item.id);
+  mItemsById = new Map(mItems.map(item => {
+    mDirtyItemIds.add(item.id);
     return [item.id, item];
   }));
   renderRows();
@@ -163,77 +163,77 @@ export async function search(query) {
 // Utilities to operate bookmark items
 
 export function getById(id) {
-  return mRawItemsById.get(id);
+  return mItemsById.get(id);
 }
 
-export function indexOf(rawItem) {
-  return mRawItems.indexOf(rawItem);
+export function indexOf(item) {
+  return mItems.indexOf(item);
 }
 
 export function getRowById(id) {
   return getRow(getById(id));
 }
 
-export function getRow(rawItem) {
-  return rawItem && document.getElementById(getRowId(rawItem)) || null;
+export function getRow(item) {
+  return item && document.getElementById(getRowId(item)) || null;
 }
 
-export function getParent(rawItem) {
-  return rawItem && getById(rawItem.parentId);
+export function getParent(item) {
+  return item && getById(item.parentId);
 }
 
-export function getPrevious(rawItem) {
-  if (!rawItem)
+export function getPrevious(item) {
+  if (!item)
     return null;
-  const index = mRawItems.indexOf(rawItem);
+  const index = mItems.indexOf(item);
   if (index <= 0)
     return null;
-  return mRawItems[index - 1];
+  return mItems[index - 1];
 }
 
-export function getNext(rawItem) {
-  if (!rawItem)
+export function getNext(item) {
+  if (!item)
     return null;
-  const index = mRawItems.indexOf(rawItem);
+  const index = mItems.indexOf(item);
   if (index < 0 ||
-      index > mRawItems.length - 1)
+      index > mItems.length - 1)
     return null;
-  return mRawItems[index + 1];
+  return mItems[index + 1];
 }
 
 export function getFirst() {
-  return mRawItems.length == 0 ? null : mRawItems[0];
+  return mItems.length == 0 ? null : mItems[0];
 }
 
 export function getLast() {
-  return mRawItems.length == 0 ? null : mRawItems[mRawItems.length - 1];
+  return mItems.length == 0 ? null : mItems[mItems.length - 1];
 }
 
 function clearActive() {
-  if (mActiveRawItemId)
-    mDirtyRawItemIds.add(mActiveRawItemId);
-  for (const id of mHighlightedRawItemIds) {
-    mDirtyRawItemIds.add(id);
+  if (mActiveItemId)
+    mDirtyItemIds.add(mActiveItemId);
+  for (const id of mHighlightedItemIds) {
+    mDirtyItemIds.add(id);
   }
-  mActiveRawItemId = null;
-  mHighlightedRawItemIds.clear();
+  mActiveItemId = null;
+  mHighlightedItemIds.clear();
   reserveToRenderRows();
 }
 
-export function setActive(rawItem) {
-  if (!rawItem)
+export function setActive(item) {
+  if (!item)
     return;
 
   clearActive();
 
-  mActiveRawItemId = rawItem.id;
-  mHighlightedRawItemIds.add(rawItem.id);
-  mDirtyRawItemIds.add(rawItem.id);
+  mActiveItemId = item.id;
+  mHighlightedItemIds.add(item.id);
+  mDirtyItemIds.add(item.id);
 
   reserveToRenderRows();
 
   mOnRenderdCallbacks.add(() => {
-    const rowElement = getRowById(mActiveRawItemId);
+    const rowElement = getRowById(mActiveItemId);
     if (rowElement)
       rowElement.firstChild.focus();
   });
@@ -241,83 +241,83 @@ export function setActive(rawItem) {
 }
 
 export function getActive() {
-  return getById(mActiveRawItemId);
+  return getById(mActiveItemId);
 }
 
 export function clearMultiselected() {
-  mHighlightedRawItemIds.clear();
-  if (mActiveRawItemId)
-    mHighlightedRawItemIds.add(mActiveRawItemId);
+  mHighlightedItemIds.clear();
+  if (mActiveItemId)
+    mHighlightedItemIds.add(mActiveItemId);
   reserveToRenderRows();
 }
 
 export function getMultiselected() {
-  return Array.from(mHighlightedRawItemIds, getById);
+  return Array.from(mHighlightedItemIds, getById);
 }
 
-export function isMultiselected(rawItem) {
-  return rawItem && mHighlightedRawItemIds.has(rawItem.id);
+export function isMultiselected(item) {
+  return item && mHighlightedItemIds.has(item.id);
 }
 
-export function isReallyMultiselected(rawItem) {
-  return mHighlightedRawItemIds.size > 1 && isMultiselected(rawItem);
+export function isReallyMultiselected(item) {
+  return mHighlightedItemIds.size > 1 && isMultiselected(item);
 }
 
-export function addMultiselected(...rawItems) {
-  for (const rawItem of rawItems) {
-    mHighlightedRawItemIds.add(rawItem.id);
+export function addMultiselected(...items) {
+  for (const item of items) {
+    mHighlightedItemIds.add(item.id);
   }
   reserveToRenderRows();
 }
 
-export function removeMultiselected(...rawItems) {
-  for (const rawItem of rawItems) {
-    mHighlightedRawItemIds.delete(rawItem.id);
+export function removeMultiselected(...items) {
+  for (const item of items) {
+    mHighlightedItemIds.delete(item.id);
   }
   reserveToRenderRows();
 }
 
-export function isFolderOpen(rawItem) {
-  return rawItem.type == 'folder' && mOpenedFolderIds.has(rawItem.id);
+export function isFolderOpen(item) {
+  return item.type == 'folder' && mOpenedFolderIds.has(item.id);
 }
 
-export function isFolderCollapsed(rawItem) {
-  return rawItem.type == 'folder' && !mOpenedFolderIds.has(rawItem.id);
+export function isFolderCollapsed(item) {
+  return item.type == 'folder' && !mOpenedFolderIds.has(item.id);
 }
 
-export async function toggleOpenState(rawItem) {
-  if (isFolderOpen(rawItem))
-    mOpenedFolderIds.delete(rawItem.id);
+export async function toggleOpenState(item) {
+  if (isFolderOpen(item))
+    mOpenedFolderIds.delete(item.id);
   else
-    mOpenedFolderIds.add(rawItem.id);
+    mOpenedFolderIds.add(item.id);
   Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
       openedFolders: Array.from(mOpenedFolderIds)
     }
   });
-  await trackRawItemChildren(rawItem);
-  mDirtyRawItemIds.add(rawItem.id);
+  await trackItemChildren(item);
+  mDirtyItemIds.add(item.id);
   renderRows();
 }
 
 let mLastDropPositionHolderId = null;
 let mLastDropPosition         = null;
 
-export function setDropPosition(rawItem, position) {
+export function setDropPosition(item, position) {
   clearDropPosition();
-  if (!rawItem)
+  if (!item)
     return;
 
-  mLastDropPositionHolderId = rawItem.id;
+  mLastDropPositionHolderId = item.id;
   mLastDropPosition = position;
-  mDirtyRawItemIds.add(mLastDropPositionHolderId);
+  mDirtyItemIds.add(mLastDropPositionHolderId);
   reserveToRenderRows();
 }
 
 export function clearDropPosition() {
   if (mLastDropPositionHolderId)
-    mDirtyRawItemIds.add(mLastDropPositionHolderId);
+    mDirtyItemIds.add(mLastDropPositionHolderId);
   mLastDropPositionHolderId = mLastDropPosition = null;
   reserveToRenderRows();
 }
@@ -360,7 +360,7 @@ async function renderRows(scrollPosition) {
   }
 
   const rowSize                = getRowHeight();
-  const allRenderableItemsSize = rowSize * mRawItems.length;
+  const allRenderableItemsSize = rowSize * mItems.length;
   const viewPortSize           = mScrollBox.getBoundingClientRect().height;
   const renderablePaddingSize  = viewPortSize;
 
@@ -390,12 +390,12 @@ async function renderRows(scrollPosition) {
   const lastRenderableIndex = Math.max(
     0,
     Math.min(
-      mRawItems.length - 1,
+      mItems.length - 1,
       Math.ceil((scrollPosition + viewPortSize + renderablePaddingSize) / rowSize)
     )
   );
 
-  const toBeRenderedItemIds = mRawItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => getRowId(item));
+  const toBeRenderedItemIds = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => getRowId(item));
   const renderOperations = (new SequenceMatcher(mLastRenderedItemIds, toBeRenderedItemIds)).operations();
   /*
   console.log('renderRows ', {
@@ -416,7 +416,7 @@ async function renderRows(scrollPosition) {
           const rawId = id.replace(/^[^:]+:/, '');
           const rowElement = document.getElementById(id);
           if (rowElement &&
-              mDirtyRawItemIds.has(rawId))
+              mDirtyItemIds.has(rawId))
             renderRow(getById(rawId));
         }
         break;
@@ -482,32 +482,32 @@ export function getRowHeight() {
   return document.getElementById('dummy-row').getBoundingClientRect().height;
 }
 
-function renderRow(rawItem) {
-  switch (rawItem && rawItem.type) {
+function renderRow(item) {
+  switch (item && item.type) {
     case 'folder':
-      return renderFolderRow(rawItem);
+      return renderFolderRow(item);
       break;
 
     case 'bookmark':
-      return renderBookmarkRow(rawItem);
+      return renderBookmarkRow(item);
       break;
 
     case 'separator':
-      return renderSeparatorRow(rawItem);
+      return renderSeparatorRow(item);
       break;
   }
   return null;
 }
 
-function getRowId(rawItem) {
-  return `${rawItem.type}:${rawItem.id}`;
+function getRowId(item) {
+  return `${item.type}:${item.id}`;
 }
 
-function createRow(rawItem) {
+function createRow(item) {
   const itemElement = document.createElement('li');
-  itemElement.id         = getRowId(rawItem);
-  itemElement.raw        = rawItem;
-  itemElement.dataset.id = rawItem.id;
+  itemElement.id         = getRowId(item);
+  itemElement.raw        = item;
+  itemElement.dataset.id = item.id;
   const row = itemElement.appendChild(document.createElement('a'));
   row.classList.add('row');
   row.setAttribute('draggable', true);
@@ -515,25 +515,25 @@ function createRow(rawItem) {
   return itemElement;
 }
 
-function setRowStatus(rawItem, rowElement) {
-  rowElement.classList.toggle('active', mActiveRawItemId == rawItem.id);
-  rowElement.classList.toggle('highlighted', mHighlightedRawItemIds.has(rawItem.id) || (mActiveRawItemId == rawItem.id));
+function setRowStatus(item, rowElement) {
+  rowElement.classList.toggle('active', mActiveItemId == item.id);
+  rowElement.classList.toggle('highlighted', mHighlightedItemIds.has(item.id) || (mActiveItemId == item.id));
 
-  if (mLastDropPositionHolderId == rawItem.id)
+  if (mLastDropPositionHolderId == item.id)
     rowElement.dataset.dropPosition = mLastDropPosition;
   else
     delete rowElement.dataset.dropPosition;
 
-  rowElement.level = rawItem.level || 0;
-  rowElement.firstChild.style.paddingLeft = `calc((var(--indent-size) * ${rawItem.level + 1}) - var(--indent-offset-size))`;
+  rowElement.level = item.level || 0;
+  rowElement.firstChild.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
 }
 
-function renderFolderRow(rawItem) {
-  let rowElement = document.getElementById(getRowId(rawItem));
+function renderFolderRow(item) {
+  let rowElement = document.getElementById(getRowId(item));
   if (!rowElement) {
-    rowElement = createRow(rawItem);
+    rowElement = createRow(item);
     const row = rowElement.firstChild;
-    row.setAttribute('title', rawItem.title);
+    row.setAttribute('title', item.title);
     const twisty = row.appendChild(document.createElement('button'));
     twisty.classList.add('twisty');
     twisty.setAttribute('tabindex', -1);
@@ -543,20 +543,20 @@ function renderFolderRow(rawItem) {
     rowElement.classList.add('folder');
   }
 
-  setRowStatus(rawItem, rowElement);
-  rowElement.classList.toggle('blank', !!(rawItem.children && rawItem.children.length == 0));
-  rowElement.classList.toggle('collapsed', !isFolderOpen(rawItem));
-  rowElement.labelElement.textContent = rawItem.title || browser.i18n.getMessage('blankTitle');
+  setRowStatus(item, rowElement);
+  rowElement.classList.toggle('blank', !!(item.children && item.children.length == 0));
+  rowElement.classList.toggle('collapsed', !isFolderOpen(item));
+  rowElement.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
 
-  mDirtyRawItemIds.delete(rawItem.id);
+  mDirtyItemIds.delete(item.id);
 
   return rowElement;
 }
 
-function renderBookmarkRow(rawItem) {
-  let rowElement = document.getElementById(getRowId(rawItem));
+function renderBookmarkRow(item) {
+  let rowElement = document.getElementById(getRowId(item));
   if (!rowElement) {
-    rowElement = createRow(rawItem);
+    rowElement = createRow(item);
     const row = rowElement.firstChild;
     const label = row.appendChild(document.createElement('span'));
     label.classList.add('label');
@@ -566,26 +566,26 @@ function renderBookmarkRow(rawItem) {
     rowElement.classList.add('bookmark');
   }
 
-  setRowStatus(rawItem, rowElement);
-  rowElement.classList.toggle('unavailable', !Constants.LOADABLE_URL_MATCHER.test(rawItem.url));
-  rowElement.labelElement.textContent = rawItem.title || browser.i18n.getMessage('blankTitle');
-  rowElement.labelElement.setAttribute('title', `${rawItem.title}\n${rawItem.url}`);
+  setRowStatus(item, rowElement);
+  rowElement.classList.toggle('unavailable', !Constants.LOADABLE_URL_MATCHER.test(item.url));
+  rowElement.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
+  rowElement.labelElement.setAttribute('title', `${item.title}\n${item.url}`);
 
-  mDirtyRawItemIds.delete(rawItem.id);
+  mDirtyItemIds.delete(item.id);
 
   return rowElement;
 }
 
-function renderSeparatorRow(rawItem) {
-  let rowElement = document.getElementById(getRowId(rawItem));
+function renderSeparatorRow(item) {
+  let rowElement = document.getElementById(getRowId(item));
   if (!rowElement) {
-    rowElement = createRow(rawItem);
+    rowElement = createRow(item);
     rowElement.classList.add('separator');
   }
 
-  setRowStatus(rawItem, rowElement);
+  setRowStatus(item, rowElement);
 
-  mDirtyRawItemIds.delete(rawItem.id);
+  mDirtyItemIds.delete(item.id);
 
   return rowElement;
 }
@@ -595,111 +595,112 @@ function renderSeparatorRow(rawItem) {
 Connection.onMessage.addListener(async message => {
   switch (message.type) {
     case Constants.NOTIFY_BOOKMARK_CREATED: {
-      mRawItemsById.set(message.id, message.bookmark);
-      const parentRawItem = getById(message.bookmark.parentId);
-      if (parentRawItem) {
-        parentRawItem.children.splice(message.bookmark.index, 0, message.bookmark);
+      mItemsById.set(message.id, message.bookmark);
+      const parentItem = getById(message.bookmark.parentId);
+      if (parentItem) {
+        parentItem.children.splice(message.bookmark.index, 0, message.bookmark);
         let offset = 1;
-        for (const rawItem of parentRawItem.children.slice(message.bookmark.index + 1)) {
-          rawItem.index = message.bookmark.index + offset;
-          mDirtyRawItemIds.add(rawItem.id);
+        for (const item of parentItem.children.slice(message.bookmark.index + 1)) {
+          item.index = message.bookmark.index + offset;
+          mDirtyItemIds.add(item.id);
           offset++;
         }
-        mDirtyRawItemIds.add(message.id);
+        mDirtyItemIds.add(message.id);
         reserveToRenderRows();
       }
+      // TODO: WE NEED TO DO MORE THINGS FOR ADDED FOLDERS!!!
     }; break
 
     case Constants.NOTIFY_BOOKMARK_REMOVED: {
-      const rawItem = getById(message.id);
-      if (!rawItem)
+      const item = getById(message.id);
+      if (!item)
         return;
 
-      if (rawItem.active) {
-        const index = mRawItems.indexOf(rawItem);
-        const nextIndex = (index < mRawItems.length && mRawItems[index + 1].parentId == rawItem.parentId) ?
+      if (item.active) {
+        const index = mItems.indexOf(item);
+        const nextIndex = (index < mItems.length && mItems[index + 1].parentId == item.parentId) ?
           index + 1 : // next sibling
-          (index > -1 && mRawItems[index - 1].parentId == rawItem.parentId) ?
+          (index > -1 && mItems[index - 1].parentId == item.parentId) ?
             index - 1 : // previous sibling
-            mRawItems.indexOf(getParent(rawItem)); // parent
-        setActive(mRawItems[nextIndex]);
+            mItems.indexOf(getParent(item)); // parent
+        setActive(mItems[nextIndex]);
       }
-      untrackRawItem(rawItem);
+      untrackItem(item);
       reserveToRenderRows();
     }; break
 
     case Constants.NOTIFY_BOOKMARK_MOVED: {
-      const rawItem = getById(message.id);
-      if (!rawItem)
+      const item = getById(message.id);
+      if (!item)
         return;
 
-      const wasActive = mActiveRawItemId == message.id;;
+      const wasActive = mActiveItemId == message.id;;
 
-      const oldIndex = mRawItems.findIndex(item => item.id == message.id);
-      mRawItems.splice(oldIndex, 1);
+      const oldIndex = mItems.findIndex(item => item.id == message.id);
+      mItems.splice(oldIndex, 1);
 
       const oldParent = getById(message.moveInfo.oldParentId);
       if (oldParent) {
         const oldIndex = oldParent.children.findIndex(item => item.id == message.id);
         oldParent.children.splice(oldIndex, 1);
         let offset = 0;
-        for (const rawItem of oldParent.children.slice(oldIndex)) {
-          rawItem.index = oldIndex + offset;
-          mDirtyRawItemIds.add(rawItem.id);
+        for (const item of oldParent.children.slice(oldIndex)) {
+          item.index = oldIndex + offset;
+          mDirtyItemIds.add(item.id);
           offset++;
         }
-        mDirtyRawItemIds.add(oldParent.id);
+        mDirtyItemIds.add(oldParent.id);
       }
 
       const newParent = getById(message.moveInfo.parentId);
       if (newParent) {
-        mRawItems.splice(
+        mItems.splice(
           newParent.children && newParent.children.length > 0 ?
-            mRawItems.indexOf(newParent.children[message.moveInfo.index]) :
-            mRawItems.indexOf(newParent + 1),
+            mItems.indexOf(newParent.children[message.moveInfo.index]) :
+            mItems.indexOf(newParent + 1),
           0,
-          rawItem
+          item
         );
-        newParent.children.splice(message.moveInfo.index, 0, rawItem);
+        newParent.children.splice(message.moveInfo.index, 0, item);
         let offset = 0;
-        for (const rawItem of newParent.children.slice(message.moveInfo.index + 1)) {
-          rawItem.index = message.moveInfo.index + offset;
-          mDirtyRawItemIds.add(rawItem.id);
+        for (const item of newParent.children.slice(message.moveInfo.index + 1)) {
+          item.index = message.moveInfo.index + offset;
+          mDirtyItemIds.add(item.id);
           offset++;
         }
-        rawItem.level = newParent.level + 1;
-        mDirtyRawItemIds.add(newParent.id);
+        item.level = newParent.level + 1;
+        mDirtyItemIds.add(newParent.id);
       }
       else {
-        mRawItems.push(rawItem);
+        mItems.push(item);
       }
 
-      rawItem.parentId = message.moveInfo.parentId;
-      rawItem.index    = message.moveInfo.index;
-      mDirtyRawItemIds.add(message.id);
+      item.parentId = message.moveInfo.parentId;
+      item.index    = message.moveInfo.index;
+      mDirtyItemIds.add(message.id);
 
-      if (isFolderOpen(rawItem)) {
-        untrackRawItemDescendants(rawItem);
-        trackRawItemChildren(rawItem)
+      if (isFolderOpen(item)) {
+        untrackItemDescendants(item);
+        trackItemChildren(item)
       }
 
       if (wasActive)
         mOnRenderdCallbacks.add(() => {
-          setActive(rawItem);
+          setActive(item);
         });
 
       reserveToRenderRows();
     }; break
 
     case Constants.NOTIFY_BOOKMARK_CHANGED: {
-      const rawItem = getById(message.id);
-      if (!rawItem)
+      const item = getById(message.id);
+      if (!item)
         return;
 
       for (const property of Object.keys(message.changeInfo)) {
-        rawItem[property] = message.changeInfo[property];
+        item[property] = message.changeInfo[property];
       }
-      mDirtyRawItemIds.add(message.id);
+      mDirtyItemIds.add(message.id);
       reserveToRenderRows();
     }; break
   }

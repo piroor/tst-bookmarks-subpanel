@@ -67,16 +67,16 @@ function onConfigChange(key) {
 let mLastMouseDownTarget = null;
 
 mContent.addEventListener('mousedown', event => {
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (!rawItem)
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item)
     return;
 
-  mLastMouseDownTarget = rawItem.id;
+  mLastMouseDownTarget = item.id;
 
   const target = EventUtils.getElementTarget(event);
   if (!target.classList.contains('twisty'))
-    Bookmarks.setActive(rawItem, {
-      multiselect: Bookmarks.isReallyMultiselected(rawItem),
+    Bookmarks.setActive(item, {
+      multiselect: Bookmarks.isReallyMultiselected(item),
     });
 
   if (event.button == 1) {
@@ -93,11 +93,11 @@ mContent.addEventListener('mousedown', event => {
     // context menu
     if (target.closest('input, textarea'))
       return;
-    if (rawItem)
+    if (item)
       browser.runtime.sendMessage(Constants.TST_ID, {
         type:       'override-context',
         context:    'bookmark',
-        bookmarkId: rawItem.id,
+        bookmarkId: item.id,
         windowId:   mWindowId
       });
     return;
@@ -113,11 +113,11 @@ mContent.addEventListener('mouseup', async event => {
        event.ctrlKey))
     return;
 
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (!rawItem)
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item)
     return;
 
-  if (mLastMouseDownTarget != rawItem.id) {
+  if (mLastMouseDownTarget != item.id) {
     mLastMouseDownTarget = null;
     return;
   }
@@ -126,11 +126,11 @@ mContent.addEventListener('mouseup', async event => {
 
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
-  if (rawItem.type == 'folder') {
+  if (item.type == 'folder') {
     if (accel || event.shiftKey) {
-      const children = rawItem.children || await browser.runtime.sendMessage({
+      const children = item.children || await browser.runtime.sendMessage({
         type: Constants.COMMAND_GET_CHILDREN,
-        id:   rawItem.id,
+        id:   item.id,
       });
       const urls = children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       browser.runtime.sendMessage({
@@ -147,31 +147,31 @@ mContent.addEventListener('mouseup', async event => {
       });
     }
     else {
-      Bookmarks.toggleOpenState(rawItem);
+      Bookmarks.toggleOpenState(item);
       if (!EventUtils.getElementTarget(event).classList.contains('twisty'))
-        Bookmarks.setActive(rawItem);
+        Bookmarks.setActive(item);
     }
     return;
   }
 
-  if (rawItem.type == 'bookmark' &&
-      Constants.LOADABLE_URL_MATCHER.test(rawItem.url)) {
+  if (item.type == 'bookmark' &&
+      Constants.LOADABLE_URL_MATCHER.test(item.url)) {
     if (event.shiftKey)
       Connection.sendMessage({
         type:     Constants.COMMAND_OPEN_BOOKMARKS,
-        urls:     [rawItem.url],
+        urls:     [item.url],
         inWindow: true
       });
     else if (configs.openInTabAlways || event.button == 1)
       Connection.sendMessage({
         type:       Constants.COMMAND_OPEN_BOOKMARKS,
-        urls:       [rawItem.url],
+        urls:       [item.url],
         background: !configs.openAsActiveTab
       });
     else
       Connection.sendMessage({
         type: Constants.COMMAND_LOAD_BOOKMARK,
-        url:  rawItem.url
+        url:  item.url
       });
     return;
   }

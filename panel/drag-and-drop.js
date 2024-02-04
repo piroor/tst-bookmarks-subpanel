@@ -36,19 +36,19 @@ function isRootItem(id) {
 }
 
 function onDragStart(event) {
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (!rawItem)
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item)
     return;
 
-  const rawItems = [...new Set([Bookmarks.getActive(), ...Bookmarks.getMultiselected()])].filter(item => !!item);
+  const items = [...new Set([Bookmarks.getActive(), ...Bookmarks.getMultiselected()])].filter(item => !!item);
 
   const dragDataForExternals = {};
   const dt = event.dataTransfer;
-  dt.effectAllowed = rawItems.some(item => isRootItem(item.id)) ? 'copy' : 'copyMove';
-  dt.setData(TYPE_BOOKMARK_ITEMS, dragDataForExternals[TYPE_BOOKMARK_ITEMS] = rawItems.map(item => item.id).join(','));
-  dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = rawItems.map(item => `${item.url}\n${item.title}`).join('\n'));
-  dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = rawItems.map(item => `#${item.title}\n${item.url}`).join('\n'));
-  dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = rawItems.map(item => item.url).join('\n'));
+  dt.effectAllowed = items.some(item => isRootItem(item.id)) ? 'copy' : 'copyMove';
+  dt.setData(TYPE_BOOKMARK_ITEMS, dragDataForExternals[TYPE_BOOKMARK_ITEMS] = items.map(item => item.id).join(','));
+  dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = items.map(item => `${item.url}\n${item.title}`).join('\n'));
+  dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = items.map(item => `#${item.title}\n${item.url}`).join('\n'));
+  dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = items.map(item => item.url).join('\n'));
 
   const dragDataForExternalsId = `${parseInt(Math.random() * 65000)}-${Date.now()}`;
   dt.setData(`${kTYPE_ADDON_DRAG_DATA}${dragDataForExternalsId}`, JSON.stringify(dragDataForExternals));
@@ -59,7 +59,7 @@ function onDragStart(event) {
     data: dragDataForExternals
   });
 
-  const rowElement = Bookmarks.getRow(rawItem);
+  const rowElement = Bookmarks.getRow(item);
   if (rowElement) {
     const rowRect = rowElement.firstChild.getBoundingClientRect();
     dt.setDragImage(rowElement.firstChild, event.clientX - rowRect.left, event.clientY - rowRect.top);
@@ -72,11 +72,11 @@ const DROP_POSITION_BEFORE = 'before';
 const DROP_POSITION_AFTER  = 'after';
 
 function getDropPosition(event) {
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (!rawItem)
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item)
     return DROP_POSITION_NONE;
-  const areaCount  = rawItem.type == 'folder' ? 3 : 2;
-  const rowElement = Bookmarks.getRow(rawItem);
+  const areaCount  = item.type == 'folder' ? 3 : 2;
+  const rowElement = Bookmarks.getRow(item);
   const rect       = rowElement.firstChild.getBoundingClientRect();
   if (event.clientY <= (rect.y + (rect.height / areaCount)))
     return DROP_POSITION_BEFORE;
@@ -86,37 +86,37 @@ function getDropPosition(event) {
 }
 
 function getDropDestination(event) {
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (!rawItem)
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item)
     return null;
 
   const position = getDropPosition(event);
   let parentId;
   let index;
-  if (rawItem.type != 'folder') {
-    parentId = rawItem.parentId;
-    index = position == DROP_POSITION_BEFORE ? rawItem.index : rawItem.index + 1;
+  if (item.type != 'folder') {
+    parentId = item.parentId;
+    index = position == DROP_POSITION_BEFORE ? item.index : item.index + 1;
   }
   else {
     switch (position) {
       default:
       case DROP_POSITION_SELF:
-        parentId = rawItem.id;
+        parentId = item.id;
         index = null;
         break;
 
       case DROP_POSITION_BEFORE:
-        parentId = rawItem.parentId;
-        index = rawItem.index;
+        parentId = item.parentId;
+        index = item.index;
         break;
 
       case DROP_POSITION_AFTER:
-        if (Bookmarks.isFolderCollapsed(rawItem)) {
-          parentId = rawItem.parentId;
-          index = rawItem.index + 1;
+        if (Bookmarks.isFolderCollapsed(item)) {
+          parentId = item.parentId;
+          index = item.index + 1;
         }
         else {
-          parentId = rawItem.id;
+          parentId = item.id;
           index = 0;
         }
         break;
@@ -125,7 +125,7 @@ function getDropDestination(event) {
 
   const draggedItems = getDraggedItems(event);
   if (draggedItems.length > 0 &&
-      draggedItems.some(draggedItem => findAncestorById(rawItem, draggedItem.id)))
+      draggedItems.some(draggedItem => findAncestorById(item, draggedItem.id)))
     return null;
 
   if (parentId == Constants.ROOT_ID)
@@ -134,11 +134,11 @@ function getDropDestination(event) {
   return { parentId, index };
 }
 
-function findAncestorById(rawItem, id) {
-  while (rawItem) {
-    if (rawItem.id == id)
-      return rawItem;
-    rawItem = Bookmarks.getParent(rawItem);
+function findAncestorById(item, id) {
+  while (item) {
+    if (item.id == id)
+      return item;
+    item = Bookmarks.getParent(item);
   }
   return null;
 }
@@ -278,14 +278,14 @@ function onDragOver(event) {
     return;
   }
 
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (rawItem) {
-    if (draggedItems.some(draggedItem => findAncestorById(rawItem, draggedItem.id))) {
+  const item = EventUtils.getItemFromEvent(event);
+  if (item) {
+    if (draggedItems.some(draggedItem => findAncestorById(item, draggedItem.id))) {
       event.dataTransfer.effectAllowed = 'none';
       return;
     }
-    Bookmarks.setDropPosition(rawItem, getDropPosition(event))
-    event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(rawItem.id) ? 'copy' : 'move';
+    Bookmarks.setDropPosition(item, getDropPosition(event))
+    event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(item.id) ? 'copy' : 'move';
     event.preventDefault();
   }
 }
@@ -293,36 +293,36 @@ function onDragOver(event) {
 const mDelayedExpandTimer = new Map();
 
 function onDragEnter(event) {
-  const rawItem = EventUtils.getItemFromEvent(event);
-  if (!rawItem ||
-      rawItem.type != 'folder' ||
-      !Bookmarks.isFolderCollapsed(rawItem) ||
-      rawItem == EventUtils.getRelatedItemFromEvent(event))
+  const item = EventUtils.getItemFromEvent(event);
+  if (!item ||
+      item.type != 'folder' ||
+      !Bookmarks.isFolderCollapsed(item) ||
+      item == EventUtils.getRelatedItemFromEvent(event))
     return;
 
-  const timer = mDelayedExpandTimer.get(rawItem.id);
+  const timer = mDelayedExpandTimer.get(item.id);
   if (timer)
     clearTimeout(timer);
-  mDelayedExpandTimer.set(rawItem.id, setTimeout(() => {
-    mDelayedExpandTimer.delete(rawItem.id);
-    if (Bookmarks.isFolderCollapsed(rawItem))
-      Bookmarks.toggleOpenState(rawItem);
+  mDelayedExpandTimer.set(item.id, setTimeout(() => {
+    mDelayedExpandTimer.delete(item.id);
+    if (Bookmarks.isFolderCollapsed(item))
+      Bookmarks.toggleOpenState(item);
   }, configs.autoExpandDelay));
 }
 
 function onDragLeave(event) {
   Bookmarks.clearDropPosition();
-  const rawItem = EventUtils.getItemFromEvent(event);
-  const leftRawItem = EventUtils.getRelatedItemFromEvent(event);
-  if (!rawItem ||
-      !leftRawItem ||
-      rawItem == leftRawItem)
+  const item = EventUtils.getItemFromEvent(event);
+  const leftItem = EventUtils.getRelatedItemFromEvent(event);
+  if (!item ||
+      !leftItem ||
+      item == leftItem)
     return;
 
-  const timer = mDelayedExpandTimer.get(rawItem.id);
+  const timer = mDelayedExpandTimer.get(item.id);
   if (timer)
     clearTimeout(timer);
-  mDelayedExpandTimer.delete(rawItem.id);
+  mDelayedExpandTimer.delete(item.id);
 }
 
 function onDragEnd(_event) {
@@ -348,9 +348,9 @@ async function onDrop(event) {
   const draggedItems = getDraggedItems(event);
   if (draggedItems.length > 0) {
     event.preventDefault();
-    const rawItem = EventUtils.getItemFromEvent(event) || Bookmarks.getLast();
+    const item = EventUtils.getItemFromEvent(event) || Bookmarks.getLast();
     const ids  = draggedItems.map(draggedItem => draggedItem.id);
-    if (event.ctrlKey || isRootItem(rawItem.id)) {
+    if (event.ctrlKey || isRootItem(item.id)) {
       Connection.sendMessage({
         type: Constants.COMMAND_COPY_BOOKMARK,
         ids,
