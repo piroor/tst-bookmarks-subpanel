@@ -226,7 +226,7 @@ async function onShown(info) {
   const hasSeparator = contextItems.some(item => item.type == 'separator');
   const allBookmarks = hasBookmark && !hasFolder && !hasSeparator;
   const modifiable   = contextItems.every(item => !item.unmodifiable && !Constants.UNMODIFIABLE_ITEMS.has(item.id));
-  const multiselected = contextItems.length > 1;
+  const multiselected = (new Set(contextItems.map(item => item.id))).size > 1;
 
   if (contextItem.type == 'folder' &&
       !contextItem.children)
@@ -261,6 +261,13 @@ async function onClicked(info) {
   if (!contextItems || contextItems.length == 0)
     return;
 
+  const uniqueContextItemIds = new Set();
+  const uniqueContextItems = contextItems.filter(item => {
+    if (uniqueContextItemIds.has(item.id))
+      return false;
+    uniqueContextItemIds.add(item.id);
+    return true;
+  });
   const contextItem = contextItems[0];
   const destination = {
     parentId: contextItem.type == 'folder' ? contextItem.id : contextItem.parentId
@@ -274,7 +281,7 @@ async function onClicked(info) {
       break;
 
     case 'openTab':
-      Commands.openInTabs(contextItems.map(item => item.url));
+      Commands.openInTabs(uniqueContextItems.map(item => item.url));
       break;
 
     case 'openWindow':
@@ -286,7 +293,7 @@ async function onClicked(info) {
       break;
 
     case 'openAllInTabs': {
-      const urls = contextItems.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      const urls = uniqueContextItems.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       Dialogs.warnOnOpenTabs(urls.length).then(granted => {
         if (!granted)
           return;
@@ -337,13 +344,13 @@ async function onClicked(info) {
 
 
     case 'copy':
-      mCopiedItems = contextItems.slice(0);
+      mCopiedItems = uniqueContextItems.slice(0);
       break;
 
     case 'cut':
-      mCopiedItems = contextItems.slice(0);
+      mCopiedItems = uniqueContextItems.slice(0);
     case 'delete':
-      for (const item of contextItems) {
+      for (const item of uniqueContextItems) {
         if (item.type == 'folder')
           browser.bookmarks.removeTree(item.id);
         else
