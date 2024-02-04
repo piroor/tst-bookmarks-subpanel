@@ -93,10 +93,14 @@ async function trackRawItemChildren(rawItem) {
     return;
   }
 
-  rawItem.children = rawItem.children || await browser.runtime.sendMessage({
-    type: Constants.COMMAND_GET_CHILDREN,
-    id:   rawItem.id
-  }) || null;
+  if (!rawItem.children) {
+    rawItem.children = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_CHILDREN,
+      id:   rawItem.id
+    }) || null;
+    mDirtyRawItemIds.add(rawItem.id);
+    reserveToRenderRows();
+  }
   if (!rawItem.children)
     return;
   for (const child of rawItem.children) {
@@ -293,6 +297,7 @@ export async function toggleOpenState(rawItem) {
     }
   });
   await trackRawItemChildren(rawItem);
+  mDirtyRawItemIds.add(rawItem.id);
   renderRows();
 }
 
