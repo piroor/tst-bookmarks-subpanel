@@ -300,11 +300,11 @@ function onDragEnter(event) {
       item == EventUtils.getRelatedItemFromEvent(event))
     return;
 
-  const timer = mDelayedExpandTimer.get(item.id);
+  const timer = mDelayedExpandTimer.get(item.fullId);
   if (timer)
     clearTimeout(timer);
-  mDelayedExpandTimer.set(item.id, setTimeout(() => {
-    mDelayedExpandTimer.delete(item.id);
+  mDelayedExpandTimer.set(item.fullId, setTimeout(() => {
+    mDelayedExpandTimer.delete(item.fullId);
     if (Bookmarks.isFolderCollapsed(item))
       Bookmarks.toggleOpenState(item);
   }, configs.autoExpandDelay));
@@ -319,10 +319,10 @@ function onDragLeave(event) {
       item == leftItem)
     return;
 
-  const timer = mDelayedExpandTimer.get(item.id);
+  const timer = mDelayedExpandTimer.get(item.fullId);
   if (timer)
     clearTimeout(timer);
-  mDelayedExpandTimer.delete(item.id);
+  mDelayedExpandTimer.delete(item.fullId);
 }
 
 function onDragEnd(_event) {

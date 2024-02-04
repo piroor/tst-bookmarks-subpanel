@@ -221,7 +221,7 @@ function setActive(activeItem, options = {}) {
            currentIndex > firstItemIndex :
            currentIndex < firstItemIndex))) {
       firstItem = current;
-      mFirstMultiselectId = current.id;
+      mFirstMultiselectId = current.fullId;
     }
   }
 

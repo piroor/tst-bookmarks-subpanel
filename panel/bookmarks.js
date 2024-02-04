@@ -12,6 +12,7 @@ import * as Constants from '/common/constants.js';
 import * as Connection from './connection.js';
 
 let mItemsById = new Map();
+let mItemsByFullId = new Map();
 let mOpenedFolderIds;
 
 const mScrollBox = document.getElementById('content');
@@ -63,6 +64,7 @@ async function listAll() {
   mHighlightedItemIds.clear();
   mDirtyItemIds.clear();
   mItemsById.clear();
+  mItemsByFullId.clear();
   mItems = [];
   await Promise.all(rawRoot.children.map(trackItem));
   reserveToRenderRows(mLastMode == MODE_LIST_ALL && scrollPosition);
@@ -70,14 +72,20 @@ async function listAll() {
 
 async function trackItem(item) {
   const parentItem = getParent(item);
+  item.fullId = parentItem ? `${parentItem.fullId}_${item.id}` : item.id;
+  item.parentFlatId = parentItem && parentItem.fullId;
   item.level = (parentItem && parentItem.level + 1) || 0;
-  mItemsById.set(item.id, item);
+  mItemsByFullId.set(item.fullId, item);
+
+  const items = mItemsById.get(item.id) || new Set();
+  items.add(item);
+  mItemsById.set(item.id, items);
 
   if (item.parentId == 'root________') {
     mItems.push(item);
   }
   else {
-    const prevItemIndex = mItems.findLastIndex(another => another.id == item.parentId || another.parentId == item.parentId);
+    const prevItemIndex = mItems.findLastIndex(another => another.fullId == item.parentFlatId || another.parentFlatId == item.parentFlatId);
     mItems.splice(prevItemIndex + 1, 0, item);
   }
 
@@ -101,7 +109,7 @@ async function trackItemChildren(item) {
       id:   item.id
     }) || null;
     mInProgressTrackingCount--;
-    mDirtyItemIds.add(item.id);
+    mDirtyItemIds.add(item.fullId);
     reserveToRenderRows();
   }
   if (!item.children)
@@ -117,12 +125,19 @@ function untrackItem(item) {
 
   const parentItem = getParent(item);
   if (parentItem) {
-    parentItem.children.splice(parentItem.children.findIndex(another => another.id == item.id), 1);
-    mDirtyItemIds.add(parentItem.id);
+    parentItem.children.splice(parentItem.children.findIndex(another => another.fullId == item.fullId), 1);
+    mDirtyItemIds.add(parentItem.fullId);
   }
 
   mItems.splice(mItems.indexOf(item), 1);
-  mItemsById.delete(item.id);
+  mItemsByFullId.delete(item.fullId);
+
+  const items = mItemsById.get(item.id);
+  if (items) {
+    items.delete(item);
+    if (items.size == 0)
+      mItemsById.delete(item.id);
+  }
 }
 
 function untrackItemDescendants(item) {
@@ -150,12 +165,21 @@ export async function search(query) {
   mHighlightedItemIds.clear();
   mDirtyItemIds.clear();
   mItemsById.clear();
+  mItemsByFullId.clear();
 
   mItems = (await browser.runtime.sendMessage({
     type: Constants.COMMAND_SEARCH_BOOKMARKS,
     query,
   })).filter(item => item.type == 'bookmark');
-  mItemsById = new Map(mItems.map(item => {
+  mItemsByFullId = new Map(mItems.map(item => {
+    item.fullId       = item.id;
+    item.fullParentId = null;
+    item.level        = 0;
+
+    const items = mItemsById.get(item.id) || new Set();
+    items.add(item);
+    mItemsById.set(item.id, items);
+
     mDirtyItemIds.add(item.id);
     return [item.id, item];
   }));
@@ -166,7 +190,19 @@ export async function search(query) {
 // Utilities to operate bookmark items
 
 export function getById(id) {
-  return mItemsById.get(id);
+  if (mItemsByFullId.has(id))
+    return mItemsByFullId.get(id);
+
+  const items = mItemsById.get(id);
+  return items && items.size > 0 ? items[0] : null;
+}
+
+export function getAllById(id) {
+  if (mItemsByFullId.has(id))
+    return [mItemsByFullId.get(id)];
+
+  const items = mItemsById.get(id);
+  return items ? [...items] : [];
 }
 
 export function indexOf(item) {
@@ -239,9 +275,9 @@ export function setActive(item, { multiselect } = {}) {
 
   clearActive({ keepMultiselected: !!multiselect });
 
-  mActiveItemId = item.id;
-  mHighlightedItemIds.add(item.id);
-  mDirtyItemIds.add(item.id);
+  mActiveItemId = item.fullId;
+  mHighlightedItemIds.add(item.fullId);
+  mDirtyItemIds.add(item.fullId);
 
   reserveToRenderRows();
 
@@ -270,7 +306,7 @@ export function getMultiselected() {
 }
 
 export function isMultiselected(item) {
-  return item && mHighlightedItemIds.has(item.id);
+  return item && mHighlightedItemIds.has(item.fullId);
 }
 
 export function isReallyMultiselected(item) {
@@ -279,7 +315,7 @@ export function isReallyMultiselected(item) {
 
 export function addMultiselected(...items) {
   for (const item of items) {
-    mHighlightedItemIds.add(item.id);
+    mHighlightedItemIds.add(item.fullId);
   }
   pushMultiselectedItems();
   reserveToRenderRows();
@@ -293,31 +329,31 @@ function pushMultiselectedItems() {
       return;
     browser.runtime.sendMessage({
       type:     Constants.COMMAND_PUSH_MULTISELECTED_ITEMS,
-      items:    mItems.filter(item => mHighlightedItemIds.has(item.id)),
+      items:    mItems.filter(item => mHighlightedItemIds.has(item.fullId)),
     });
   });
 }
 
 export function removeMultiselected(...items) {
   for (const item of items) {
-    mHighlightedItemIds.delete(item.id);
+    mHighlightedItemIds.delete(item.fullId);
   }
   reserveToRenderRows();
 }
 
 export function isFolderOpen(item) {
-  return item.type == 'folder' && mOpenedFolderIds.has(item.id);
+  return item.type == 'folder' && mOpenedFolderIds.has(item.fullId);
 }
 
 export function isFolderCollapsed(item) {
-  return item.type == 'folder' && !mOpenedFolderIds.has(item.id);
+  return item.type == 'folder' && !mOpenedFolderIds.has(item.fullId);
 }
 
 export async function toggleOpenState(item) {
   if (isFolderOpen(item))
-    mOpenedFolderIds.delete(item.id);
+    mOpenedFolderIds.delete(item.fullId);
   else
-    mOpenedFolderIds.add(item.id);
+    mOpenedFolderIds.add(item.fullId);
   Connection.sendMessage({
     type:   Constants.COMMAND_SET_CONFIGS,
     values: {
@@ -325,7 +361,7 @@ export async function toggleOpenState(item) {
     }
   });
   await trackItemChildren(item);
-  mDirtyItemIds.add(item.id);
+  mDirtyItemIds.add(item.fullId);
   renderRows();
 }
 
@@ -337,7 +373,7 @@ export function setDropPosition(item, position) {
   if (!item)
     return;
 
-  mLastDropPositionHolderId = item.id;
+  mLastDropPositionHolderId = item.fullId;
   mLastDropPosition = position;
   mDirtyItemIds.add(mLastDropPositionHolderId);
   reserveToRenderRows();
@@ -368,8 +404,11 @@ export function reserveToRenderRows(scrollPosition) {
 const mVirtualScrollContainer = document.querySelector('.virtual-scroll-container');
 let mLastRenderedItemIds = [];
 let mLastRenderedItemIdsForDebug = [];
+let mInternalScrollCount = 0;
 
 mScrollBox.addEventListener('scroll', () => {
+  if (mInternalScrollCount > 0)
+    return;
   mOnRenderdCallbacks.add(() => {
     Connection.sendMessage({
       type:   Constants.COMMAND_SET_CONFIGS,
@@ -403,7 +442,7 @@ function renderRows(scrollPosition) {
   scrollPosition = Math.max(
     0,
     Math.min(
-      allRenderableItemsSize - rowSize,
+      allRenderableItemsSize - viewPortSize,
       typeof scrollPosition == 'number' ?
         scrollPosition :
         mScrollBox.scrollTop
@@ -423,6 +462,11 @@ function renderRows(scrollPosition) {
       Math.ceil((scrollPosition + viewPortSize + renderablePaddingSize) / rowSize)
     )
   );
+  mInternalScrollCount++;
+  mScrollBox.scrollPosition = scrollPosition;
+  window.requestAnimationFrame(() => {
+    mInternalScrollCount--;
+  });
 
   const toBeRenderedItemIds = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => getRowId(item));
   const toBeRenderedItemIdsForDebug = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => `${getRowId(item)} / ${item.title}`);
@@ -431,6 +475,10 @@ function renderRows(scrollPosition) {
   console.log('renderRows ', {
     firstRenderableIndex,
     lastRenderableIndex,
+    scrollPosition,
+    viewPortSize,
+    allRenderableItemsSize,
+    all: mItems,
     old: mLastRenderedItemIdsForDebug,
     new: toBeRenderedItemIdsForDebug,
     renderOperations,
@@ -543,7 +591,7 @@ function renderRow(item) {
 }
 
 function getRowId(item) {
-  return `${item.type}_${item.id}`;
+  return `${item.type}_${item.fullId}`;
 }
 
 function createRow(item) {
@@ -559,10 +607,10 @@ function createRow(item) {
 }
 
 function setRowStatus(item, row) {
-  row.classList.toggle('active', mActiveItemId == item.id);
-  row.classList.toggle('highlighted', mHighlightedItemIds.has(item.id) || (mActiveItemId == item.id));
+  row.classList.toggle('active', mActiveItemId == item.fullId);
+  row.classList.toggle('highlighted', mHighlightedItemIds.has(item.fullId) || (mActiveItemId == item.fullId));
 
-  if (mLastDropPositionHolderId == item.id)
+  if (mLastDropPositionHolderId == item.fullId)
     row.dataset.dropPosition = mLastDropPosition;
   else
     delete row.dataset.dropPosition;
@@ -591,7 +639,7 @@ function renderFolderRow(item) {
   row.classList.toggle('collapsed', !isFolderOpen(item));
   row.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
 
-  mDirtyItemIds.delete(item.id);
+  mDirtyItemIds.delete(item.fullId);
 
   return row;
 }
@@ -614,7 +662,7 @@ function renderBookmarkRow(item) {
   row.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
   row.labelElement.setAttribute('title', `${item.title}\n${item.url}`);
 
-  mDirtyItemIds.delete(item.id);
+  mDirtyItemIds.delete(item.fullId);
 
   return row;
 }
@@ -628,7 +676,7 @@ function renderSeparatorRow(item) {
 
   setRowStatus(item, row);
 
-  mDirtyItemIds.delete(item.id);
+  mDirtyItemIds.delete(item.fullId);
 
   return row;
 }
@@ -645,118 +693,127 @@ Connection.onMessage.addListener(async message => {
       if (isFolderOpen(parentItem)) {
         const item = {
           ...message.bookmark,
-          level: parentItem.level + 1,
+          fullId:       `${parentItem.fullId}_${message.bookmark.id}`,
+          fullParentId: parentItem.fullId,
+          level:        parentItem.level + 1,
         };
-        mItemsById.set(message.id, item);
+        mItemsByFullId.set(item.fullId, item);
         parentItem.children.splice(item.index, 0, item);
         const indexInAll = mItems.indexOf(item.index == 0 ? parentItem : parentItem.children[item.index - 1]) + 1;
         mItems.splice(indexInAll, 0, item);
         let offset = 1;
         for (const child of parentItem.children.slice(item.index + 1)) {
           child.index = item.index + offset;
-          mDirtyItemIds.add(child.id);
+          mDirtyItemIds.add(child.fullId);
           offset++;
         }
-        mDirtyItemIds.add(item.id);
+        mDirtyItemIds.add(item.fullId);
         reserveToRenderRows();
       }
       else {
         parentItem.children = null;
-        mDirtyItemIds.add(parentItem.id);
+        mDirtyItemIds.add(parentItem.fullId);
         reserveToRenderRows();
       }
     }; break
 
     case Constants.NOTIFY_BOOKMARK_REMOVED: {
-      const item = getById(message.id);
-      if (!item)
+      const items = getAllById(message.id);
+      if (items.length == 0)
         return;
 
-      if (item.active) {
-        const index = mItems.indexOf(item);
-        const nextIndex = (index < mItems.length && mItems[index + 1].parentId == item.parentId) ?
-          index + 1 : // next sibling
-          (index > -1 && mItems[index - 1].parentId == item.parentId) ?
-            index - 1 : // previous sibling
-            mItems.indexOf(getParent(item)); // parent
-        setActive(mItems[nextIndex]);
+      for (const item of items) {
+        if (mActiveItemId == item.fullId) {
+          const index = mItems.indexOf(item);
+          const nextIndex = (index < mItems.length && mItems[index + 1].fullParentId == item.fullParentId) ?
+            index + 1 : // next sibling
+            (index > -1 && mItems[index - 1].fullParentId == item.fullParentId) ?
+              index - 1 : // previous sibling
+              mItems.indexOf(getParent(item)); // parent
+          setActive(mItems[nextIndex]);
+        }
+        untrackItem(item);
       }
-      untrackItem(item);
       reserveToRenderRows();
     }; break
 
     case Constants.NOTIFY_BOOKMARK_MOVED: {
-      const item = getById(message.id);
-      if (!item)
+      const items = getAllById(message.id);
+      if (items.length == 0)
         return;
 
-      const wasActive = mActiveItemId == message.id;;
+      for (const item of items) {
+        const wasActive = mActiveItemId == item.fullId;
 
-      const oldIndex = mItems.findIndex(item => item.id == message.id);
-      mItems.splice(oldIndex, 1);
+        const oldIndex = mItems.findIndex(another => another.fullId == item.fullId);
+        mItems.splice(oldIndex, 1);
 
-      const oldParent = getById(message.moveInfo.oldParentId);
-      if (oldParent) {
-        const oldIndex = oldParent.children.findIndex(item => item.id == message.id);
-        oldParent.children.splice(oldIndex, 1);
-        let offset = 0;
-        for (const item of oldParent.children.slice(oldIndex)) {
-          item.index = oldIndex + offset;
-          mDirtyItemIds.add(item.id);
-          offset++;
+        const oldParent = getById(message.moveInfo.oldParentId);
+        if (oldParent) {
+          const oldIndex = oldParent.children.findIndex(child => child.fullId == item.fullId);
+          oldParent.children.splice(oldIndex, 1);
+          let offset = 0;
+          for (const item of oldParent.children.slice(oldIndex)) {
+            item.index = oldIndex + offset;
+            mDirtyItemIds.add(item.fullId);
+            offset++;
+          }
+          mDirtyItemIds.add(oldParent.fullId);
         }
-        mDirtyItemIds.add(oldParent.id);
-      }
 
-      const newParent = getById(message.moveInfo.parentId);
-      if (newParent) {
-        mItems.splice(
-          newParent.children && newParent.children.length > 0 ?
-            mItems.indexOf(newParent.children[message.moveInfo.index]) :
-            mItems.indexOf(newParent + 1),
-          0,
-          item
-        );
-        newParent.children.splice(message.moveInfo.index, 0, item);
-        let offset = 0;
-        for (const item of newParent.children.slice(message.moveInfo.index + 1)) {
-          item.index = message.moveInfo.index + offset;
-          mDirtyItemIds.add(item.id);
-          offset++;
+        const newParent = getById(message.moveInfo.parentId);
+        if (newParent) {
+          mItems.splice(
+            newParent.children && newParent.children.length > 0 ?
+              mItems.indexOf(newParent.children[message.moveInfo.index]) :
+              mItems.indexOf(newParent + 1),
+            0,
+            item
+          );
+          newParent.children.splice(message.moveInfo.index, 0, item);
+          let offset = 0;
+          for (const item of newParent.children.slice(message.moveInfo.index + 1)) {
+            item.index = message.moveInfo.index + offset;
+            mDirtyItemIds.add(item.fullId);
+            offset++;
+          }
+          item.parentId     = newParent.parentId;
+          item.fullParentId = newParent.fullParentId;
+          item.index        = message.moveInfo.index;
+          item.level        = newParent.level + 1;
+          mDirtyItemIds.add(newParent.fullId);
         }
-        item.level = newParent.level + 1;
-        mDirtyItemIds.add(newParent.id);
+        else {
+          mItems.push(item);
+        }
+
+        mDirtyItemIds.add(message.fullId);
+
+        if (isFolderOpen(item)) {
+          untrackItemDescendants(item);
+          trackItemChildren(item)
+        }
+
+        if (wasActive)
+          mOnRenderdCallbacks.add(() => {
+            setActive(item);
+          });
+
       }
-      else {
-        mItems.push(item);
-      }
-
-      item.parentId = message.moveInfo.parentId;
-      item.index    = message.moveInfo.index;
-      mDirtyItemIds.add(message.id);
-
-      if (isFolderOpen(item)) {
-        untrackItemDescendants(item);
-        trackItemChildren(item)
-      }
-
-      if (wasActive)
-        mOnRenderdCallbacks.add(() => {
-          setActive(item);
-        });
-
       reserveToRenderRows();
     }; break
 
     case Constants.NOTIFY_BOOKMARK_CHANGED: {
-      const item = getById(message.id);
-      if (!item)
+      const items = getAllById(message.id);
+      if (items.length == 0)
         return;
 
-      for (const property of Object.keys(message.changeInfo)) {
-        item[property] = message.changeInfo[property];
+      for (const item of items) {
+        for (const property of Object.keys(message.changeInfo)) {
+          item[property] = message.changeInfo[property];
+        }
+        mDirtyItemIds.add(item.fullId);
       }
-      mDirtyItemIds.add(message.id);
       reserveToRenderRows();
     }; break
   }

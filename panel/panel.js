@@ -121,7 +121,7 @@ mContent.addEventListener('mouseup', async event => {
   if (!item)
     return;
 
-  if (mLastMouseDownTarget != item.id) {
+  if (mLastMouseDownTarget != item.fullId) {
     mLastMouseDownTarget = null;
     return;
   }
