@@ -367,6 +367,7 @@ export function reserveToRenderRows(scrollPosition) {
 
 const mVirtualScrollContainer = document.querySelector('.virtual-scroll-container');
 let mLastRenderedItemIds = [];
+let mLastRenderedItemIdsForDebug = [];
 
 mScrollBox.addEventListener('scroll', () => {
   mOnRenderdCallbacks.add(() => {
@@ -380,7 +381,7 @@ mScrollBox.addEventListener('scroll', () => {
   renderRows();
 });
 
-async function renderRows(scrollPosition) {
+function renderRows(scrollPosition) {
   renderRows.lastStartedAt = null;
   if (typeof scrollPosition != 'number' &&
       typeof renderRows.expectedScrollPosition == 'number') {
@@ -424,13 +425,14 @@ async function renderRows(scrollPosition) {
   );
 
   const toBeRenderedItemIds = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => getRowId(item));
+  const toBeRenderedItemIdsForDebug = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => `${getRowId(item)} / ${item.title}`);
   const renderOperations = (new SequenceMatcher(mLastRenderedItemIds, toBeRenderedItemIds)).operations();
   /*
   console.log('renderRows ', {
     firstRenderableIndex,
     lastRenderableIndex,
-    old: mLastRenderedItemIds,
-    new: toBeRenderedItemIds,
+    old: mLastRenderedItemIdsForDebug,
+    new: toBeRenderedItemIdsForDebug,
     renderOperations,
   });
   */
@@ -477,8 +479,8 @@ async function renderRows(scrollPosition) {
             continue;
           row.parentNode.removeChild(row);
         }
-        const referenceItem = fromStart < mLastRenderedItemIds.length ?
-          getById(mLastRenderedItemIds[fromStart].replace(/^[^_]+_/, '')) :
+        const referenceItem = fromEnd < mLastRenderedItemIds.length ?
+          getById(mLastRenderedItemIds[fromEnd].replace(/^[^_]+_/, '')) :
           null;
         for (const rowId of insertIds) {
           const row = renderRow(getById(rowId.replace(/^[^_]+_/, '')));
@@ -498,6 +500,7 @@ async function renderRows(scrollPosition) {
     containerStyle.transform = transform;
 
   mLastRenderedItemIds = toBeRenderedItemIds;
+  mLastRenderedItemIdsForDebug = toBeRenderedItemIdsForDebug;
 
   window.requestAnimationFrame(async () => {
     if (renderRows.lastStartedAt) // someone requested while rendering!
