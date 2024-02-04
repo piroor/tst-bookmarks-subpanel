@@ -603,17 +603,23 @@ function renderSeparatorRow(item) {
 Connection.onMessage.addListener(async message => {
   switch (message.type) {
     case Constants.NOTIFY_BOOKMARK_CREATED: {
-      mItemsById.set(message.id, message.bookmark);
       const parentItem = getById(message.bookmark.parentId);
       if (parentItem) {
-        parentItem.children.splice(message.bookmark.index, 0, message.bookmark);
+        const item = {
+          ...message.bookmark,
+          level: parentItem.level + 1,
+        };
+        mItemsById.set(message.id, item);
+        parentItem.children.splice(item.index, 0, item);
+        const indexInAll = mItems.indexOf(item.index == 0 ? parentItem : parentItem.children[item.index - 1]) + 1;
+        mItems.splice(indexInAll, 0, item);
         let offset = 1;
-        for (const item of parentItem.children.slice(message.bookmark.index + 1)) {
-          item.index = message.bookmark.index + offset;
-          mDirtyItemIds.add(item.id);
+        for (const child of parentItem.children.slice(item.index + 1)) {
+          child.index = item.index + offset;
+          mDirtyItemIds.add(child.id);
           offset++;
         }
-        mDirtyItemIds.add(message.id);
+        mDirtyItemIds.add(item.id);
         reserveToRenderRows();
       }
       // TODO: WE NEED TO DO MORE THINGS FOR ADDED FOLDERS!!!
