@@ -4,11 +4,11 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
-#dummy-root {
+#dummy-rows {
   position: fixed;
 }
-#dummy-root,
-#dummy-root * {
+#dummy-rows,
+#dummy-rows * {
   opacity: 0;
   pointer-events: none;
 }
@@ -133,7 +133,7 @@ input:focus {
 :root.left-scrollbar #content {
   direction: rtl;
 }
-:root.left-scrollbar ul#root {
+:root.left-scrollbar ul#rows {
   direction: ltr;
 }
 
@@ -143,23 +143,23 @@ input:focus {
 }
 
 #content,
-ul#root,
-ul#root ul,
-ul#dummy-root {
+ul#rows,
+ul#rows ul,
+ul#dummy-rows {
   margin: 0;
   max-width: 100%;
   padding: 0;
   width: 100%;
 }
 
-ul#root li,
-ul#dummy-root li {
+ul#rows li,
+ul#dummy-rows li {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.row {
+.focusable {
   border: 1px solid transparent;
   border-width: 1px;
   color: inherit;
@@ -171,70 +171,70 @@ ul#dummy-root li {
   white-space: pre;
 }
 
-ul#root li[data-drop-position="self"] > .row {
+ul#rows li[data-drop-position="self"] > .focusable {
   color: var(--in-content-selected-text);
   background: var(--in-content-item-selected);
 }
 
-ul#root li[data-drop-position="before"] > .row {
+ul#rows li[data-drop-position="before"] > .focusable {
   border-top-color: currentColor;
 }
 
-ul#root li[data-drop-position="after"] > .row {
+ul#rows li[data-drop-position="after"] > .focusable {
   border-bottom-color: currentColor;
 }
 
-.row:hover,
-.row:hover * {
+.focusable:hover,
+.focusable:hover * {
   color: var(--text-color);
 }
-.row:hover {
+.focusable:hover {
   background: var(--in-content-button-background);
 }
 
-.row:focus {
+.focusable:focus {
   outline: none;
 }
 
-.active > .row,
-.active > .row *,
-.highlighted > .row,
-.highlighted > .row * {
+.active > .focusable,
+.active > .focusable *,
+.highlighted > .focusable,
+.highlighted > .focusable * {
   color: var(--text-color);
 }
-.active > .row,
-.highlighted > .row {
+.active > .focusable,
+.highlighted > .focusable {
   background: var(--in-content-button-background);
 }
 
-#root.active .active > .row,
-#root.active .active > .row *,
-#root.active .highlighted > .row,
-#root.active .highlighted > .row * {
+#rows.active .active > .focusable,
+#rows.active .active > .focusable *,
+#rows.active .highlighted > .focusable,
+#rows.active .highlighted > .focusable * {
   color: var(--in-content-selected-text);
 }
-#root.active .active > .row,
-#root.active .highlighted > .row {
+#rows.active .active > .focusable,
+#rows.active .highlighted > .focusable {
   background: var(--in-content-item-selected);
 }
 
-.folder > .row {
+.folder > .focusable {
   --indent-offset-size: calc(var(--twisty-size) * 1.3);
 }
 
-.folder.blank > .row > .twisty {
+.folder.blank > .focusable > .twisty {
   visibility: hidden;
 }
 
-.bookmark > .row {
+.bookmark > .focusable {
   cursor: pointer;
 }
 
-.bookmark.unavailable > .row {
+.bookmark.unavailable > .focusable {
   cursor: default;
 }
 
-.bookmark.unavailable > .row > * {
+.bookmark.unavailable > .focusable > * {
   opacity: 0.65;
 }
 
@@ -242,12 +242,12 @@ ul#root li[data-drop-position="after"] > .row {
   line-height: 0;
 }
 
-.separator > .row {
+.separator > .focusable {
   padding-bottom: 0.4em;
   padding-top: 0.4em;
 }
 
-.separator > .row::before {
+.separator > .focusable::before {
   border-top: 1px solid var(--in-content-deemphasized-text);
   content: " ";
   display: block;
@@ -285,20 +285,20 @@ ul#root li[data-drop-position="after"] > .row {
   mask-image: url("/resources/Globe.svg");
 }
 
-.folder > .row > .label::before {
+.folder > .focusable > .label::before {
   background: url("/resources/places/folder.svg") no-repeat center / 100%;
   mask: none;
 }
 
-.folder[data-id="menu________"] > .row > .label::before {
+.folder[data-id="menu________"] > .focusable > .label::before {
   background-image: url("/resources/places/bookmarksMenu.svg");
 }
 
-.folder[data-id="toolbar_____"] > .row > .label::before {
+.folder[data-id="toolbar_____"] > .focusable > .label::before {
   background-image: url("/resources/places/bookmarksToolbar.svg");
 }
 
-.folder[data-id="unfiled_____"] > .row > .label::before {
+.folder[data-id="unfiled_____"] > .focusable > .label::before {
   background-image: url("/resources/places/unfiledBookmarks.svg");
 }
 
@@ -306,7 +306,7 @@ ul#root li[data-drop-position="after"] > .row {
   mask-image: url("/resources/ArrowheadDown.svg");
 }
 
-.folder.collapsed > .row > .twisty::before {
+.folder.collapsed > .focusable > .twisty::before {
   mask-image: url("/resources/ArrowheadRight.svg");
 }
 
@@ -319,25 +319,25 @@ ul#root li[data-drop-position="after"] > .row {
     scrollbar-color: var(--in-content-border-hover) var(--in-content-page-background);
   }
 
-  #root.active .active > .row,
-  #root.active .highlighted > .row {
+  #rows.active .active > .focusable,
+  #rows.active .highlighted > .focusable {
     background: var(--in-content-button-background);
   }
 
-  .folder > .row > .label::before {
+  .folder > .focusable > .label::before {
     background: url("/resources/places/folder-dark.svg") no-repeat center / 100%;
     mask: none;
   }
 
-  .folder[data-id="menu________"] > .row > .label::before {
+  .folder[data-id="menu________"] > .focusable > .label::before {
     background-image: url("/resources/places/bookmarksMenu-dark.svg");
   }
 
-  .folder[data-id="toolbar_____"] > .row > .label::before {
+  .folder[data-id="toolbar_____"] > .focusable > .label::before {
     background-image: url("/resources/places/bookmarksToolbar-dark.svg");
   }
 
-  .folder[data-id="unfiled_____"] > .row > .label::before {
+  .folder[data-id="unfiled_____"] > .focusable > .label::before {
     background-image: url("/resources/places/unfiledBookmarks-dark.svg");
   }
 }

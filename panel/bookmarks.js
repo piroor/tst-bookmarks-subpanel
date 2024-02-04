@@ -15,7 +15,7 @@ let mItemsById = new Map();
 let mOpenedFolderIds;
 
 const mScrollBox = document.getElementById('content');
-const mRoot      = document.getElementById('root');
+const mRowsContainer      = document.getElementById('rows');
 let mItems = [];
 let mActiveItemId;
 const mHighlightedItemIds = new Set();
@@ -178,6 +178,14 @@ export function getRow(item) {
   return item && document.getElementById(getRowId(item)) || null;
 }
 
+export function getFocusableById(id) {
+  return getFocusable(getById(id));
+}
+
+export function getFocusable(item) {
+  return item && document.querySelector(`#${getRowId(item)} .focusable`) || null;
+}
+
 export function getParent(item) {
   return item && getById(item.parentId);
 }
@@ -233,11 +241,11 @@ export function setActive(item) {
   reserveToRenderRows();
 
   mOnRenderdCallbacks.add(() => {
-    const rowElement = getRowById(mActiveItemId);
-    if (rowElement)
-      rowElement.firstChild.focus();
+    const focusable = getFocusableById(mActiveItemId);
+    if (focusable)
+      focusable.focus();
   });
-  mRoot.classList.add('active');
+  mRowsContainer.classList.add('active');
 }
 
 export function getActive() {
@@ -413,9 +421,9 @@ async function renderRows(scrollPosition) {
     switch (tag) {
       case 'equal':
         for (const id of toBeRenderedItemIds.slice(toStart, toEnd)) {
-          const rawId = id.replace(/^[^:]+:/, '');
-          const rowElement = document.getElementById(id);
-          if (rowElement &&
+          const rawId = id.replace(/^[^_]+_/, '');
+          const row = document.getElementById(id);
+          if (row &&
               mDirtyItemIds.has(rawId))
             renderRow(getById(rawId));
         }
@@ -424,14 +432,14 @@ async function renderRows(scrollPosition) {
       case 'delete': {
         const ids = mLastRenderedItemIds.slice(fromStart, fromEnd);
         for (const id of ids) {
-          const rowElement = document.getElementById(id);
+          const row = document.getElementById(id);
           // We don't need to remove already rendered item,
           // because it is automatically moved by insertBefore().
           if (toBeRenderedItemIdSet.has(id) ||
-              !rowElement ||
-              !mScrollBox.contains(rowElement))
+              !row ||
+              !mScrollBox.contains(row))
             continue;
-          rowElement.parentNode.removeChild(rowElement);
+          row.parentNode.removeChild(row);
         }
       }; break;
 
@@ -440,24 +448,24 @@ async function renderRows(scrollPosition) {
         const deleteIds = mLastRenderedItemIds.slice(fromStart, fromEnd);
         const insertIds = toBeRenderedItemIds.slice(toStart, toEnd);
         for (const id of deleteIds) {
-          const rowElement = document.getElementById(id);
+          const row = document.getElementById(id);
           // We don't need to remove already rendered tab,
           // because it is automatically moved by insertBefore().
           if (toBeRenderedItemIdSet.has(id) ||
-              !rowElement ||
-              !mScrollBox.contains(rowElement))
+              !row ||
+              !mScrollBox.contains(row))
             continue;
-          rowElement.parentNode.removeChild(rowElement);
+          row.parentNode.removeChild(row);
         }
         const referenceItem = fromStart < mLastRenderedItemIds.length ?
-          getById(mLastRenderedItemIds[fromStart].replace(/^[^:]+:/, '')) :
+          getById(mLastRenderedItemIds[fromStart].replace(/^[^_]+_/, '')) :
           null;
         for (const id of insertIds) {
-          const rowElement = renderRow(getById(id.replace(/^[^:]+:/, '')));
-          if (!rowElement)
+          const row = renderRow(getById(id.replace(/^[^_]+_/, '')));
+          if (!row)
             continue;
-          const nextElement = getRow(referenceItem);
-          mRoot.insertBefore(rowElement, nextElement);
+          const nextRow = getRow(referenceItem);
+          mRowsContainer.insertBefore(row, nextRow);
         }
       }; break;
     }
@@ -465,7 +473,7 @@ async function renderRows(scrollPosition) {
 
   const renderedOffset = rowSize * firstRenderableIndex;
   const transform      = `translateY(${renderedOffset}px)`;
-  const containerStyle = mRoot.style;
+  const containerStyle = mRowsContainer.style;
   if (containerStyle.transform != transform)
     containerStyle.transform = transform;
 
@@ -500,94 +508,94 @@ function renderRow(item) {
 }
 
 function getRowId(item) {
-  return `${item.type}:${item.id}`;
+  return `${item.type}_${item.id}`;
 }
 
 function createRow(item) {
-  const itemElement = document.createElement('li');
-  itemElement.id         = getRowId(item);
-  itemElement.raw        = item;
-  itemElement.dataset.id = item.id;
-  const row = itemElement.appendChild(document.createElement('a'));
-  row.classList.add('row');
-  row.setAttribute('draggable', true);
-  row.setAttribute('tabindex', -1);
-  return itemElement;
+  const row = document.createElement('li');
+  row.id         = getRowId(item);
+  row.raw        = item;
+  row.dataset.id = item.id;
+  const focusable = row.appendChild(document.createElement('a'));
+  focusable.classList.add('focusable');
+  focusable.setAttribute('draggable', true);
+  focusable.setAttribute('tabindex', -1);
+  return row;
 }
 
-function setRowStatus(item, rowElement) {
-  rowElement.classList.toggle('active', mActiveItemId == item.id);
-  rowElement.classList.toggle('highlighted', mHighlightedItemIds.has(item.id) || (mActiveItemId == item.id));
+function setRowStatus(item, row) {
+  row.classList.toggle('active', mActiveItemId == item.id);
+  row.classList.toggle('highlighted', mHighlightedItemIds.has(item.id) || (mActiveItemId == item.id));
 
   if (mLastDropPositionHolderId == item.id)
-    rowElement.dataset.dropPosition = mLastDropPosition;
+    row.dataset.dropPosition = mLastDropPosition;
   else
-    delete rowElement.dataset.dropPosition;
+    delete row.dataset.dropPosition;
 
-  rowElement.level = item.level || 0;
-  rowElement.firstChild.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
+  row.level = item.level || 0;
+  row.firstChild.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
 }
 
 function renderFolderRow(item) {
-  let rowElement = document.getElementById(getRowId(item));
-  if (!rowElement) {
-    rowElement = createRow(item);
-    const row = rowElement.firstChild;
-    row.setAttribute('title', item.title);
-    const twisty = row.appendChild(document.createElement('button'));
+  let row = document.getElementById(getRowId(item));
+  if (!row) {
+    row = createRow(item);
+    const focusable = row.firstChild;
+    focusable.setAttribute('title', item.title);
+    const twisty = focusable.appendChild(document.createElement('button'));
     twisty.classList.add('twisty');
     twisty.setAttribute('tabindex', -1);
-    const label = row.appendChild(document.createElement('span'));
+    const label = focusable.appendChild(document.createElement('span'));
     label.classList.add('label');
-    rowElement.labelElement = label;
-    rowElement.classList.add('folder');
+    row.labelElement = label;
+    row.classList.add('folder');
   }
 
-  setRowStatus(item, rowElement);
-  rowElement.classList.toggle('blank', !!(item.children && item.children.length == 0));
-  rowElement.classList.toggle('collapsed', !isFolderOpen(item));
-  rowElement.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
+  setRowStatus(item, row);
+  row.classList.toggle('blank', !!(item.children && item.children.length == 0));
+  row.classList.toggle('collapsed', !isFolderOpen(item));
+  row.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
 
   mDirtyItemIds.delete(item.id);
 
-  return rowElement;
+  return row;
 }
 
 function renderBookmarkRow(item) {
-  let rowElement = document.getElementById(getRowId(item));
-  if (!rowElement) {
-    rowElement = createRow(item);
-    const row = rowElement.firstChild;
-    const label = row.appendChild(document.createElement('span'));
+  let row = document.getElementById(getRowId(item));
+  if (!row) {
+    row = createRow(item);
+    const focusable = row.firstChild;
+    const label = focusable.appendChild(document.createElement('span'));
     label.classList.add('label');
-    rowElement.labelElement = label;
+    row.labelElement = label;
     //const icon = label.appendChild(document.createElement('img'));
     //icon.src = bookmark.favIconUrl;
-    rowElement.classList.add('bookmark');
+    row.classList.add('bookmark');
   }
 
-  setRowStatus(item, rowElement);
-  rowElement.classList.toggle('unavailable', !Constants.LOADABLE_URL_MATCHER.test(item.url));
-  rowElement.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
-  rowElement.labelElement.setAttribute('title', `${item.title}\n${item.url}`);
+  setRowStatus(item, row);
+  row.classList.toggle('unavailable', !Constants.LOADABLE_URL_MATCHER.test(item.url));
+  row.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
+  row.labelElement.setAttribute('title', `${item.title}\n${item.url}`);
 
   mDirtyItemIds.delete(item.id);
 
-  return rowElement;
+  return row;
 }
 
 function renderSeparatorRow(item) {
-  let rowElement = document.getElementById(getRowId(item));
-  if (!rowElement) {
-    rowElement = createRow(item);
-    rowElement.classList.add('separator');
+  let row = document.getElementById(getRowId(item));
+  if (!row) {
+    row = createRow(item);
+    row.classList.add('separator');
   }
 
-  setRowStatus(item, rowElement);
+  setRowStatus(item, row);
 
   mDirtyItemIds.delete(item.id);
 
-  return rowElement;
+  return row;
 }
 
 

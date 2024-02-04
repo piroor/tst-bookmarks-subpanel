@@ -7,8 +7,8 @@
 
 export function getItemFromEvent(event) {
   const target = getElementTarget(event);
-  const row = target && target.closest('.row');
-  return row && row.parentNode && row.parentNode.raw;
+  const row = target && target.closest('li');
+  return row.raw;
 }
 
 export function getElementTarget(event) {
@@ -24,6 +24,6 @@ export function getRelatedItemFromEvent(event) {
     return null;
   if (!(target instanceof Element))
     target = target.parentNode;
-  const row = target && target.closest('.row');
-  return row && row.parentNode && row.parentNode.raw;
+  const row = target && target.closest('li');
+  return row && row.raw;
 }

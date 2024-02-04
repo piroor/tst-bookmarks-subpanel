@@ -15,14 +15,14 @@ const configs = Connection.getConfigs([
   'autoExpandDelay'
 ]);
 
-const mRoot = document.getElementById('root');
+const mRowsContainer = document.getElementById('rows');
 
-mRoot.addEventListener('dragstart', onDragStart);
-mRoot.addEventListener('dragover', onDragOver);
-mRoot.addEventListener('dragenter', onDragEnter);
-mRoot.addEventListener('dragleave', onDragLeave);
-mRoot.addEventListener('dragend', onDragEnd);
-mRoot.addEventListener('drop', onDrop);
+mRowsContainer.addEventListener('dragstart', onDragStart);
+mRowsContainer.addEventListener('dragover', onDragOver);
+mRowsContainer.addEventListener('dragenter', onDragEnter);
+mRowsContainer.addEventListener('dragleave', onDragLeave);
+mRowsContainer.addEventListener('dragend', onDragEnd);
+mRowsContainer.addEventListener('drop', onDrop);
 
 
 const TYPE_BOOKMARK_ITEMS = 'application/x-tst-bookmarks-subpanel-bookmark-items';
@@ -59,10 +59,10 @@ function onDragStart(event) {
     data: dragDataForExternals
   });
 
-  const rowElement = Bookmarks.getRow(item);
-  if (rowElement) {
-    const rowRect = rowElement.firstChild.getBoundingClientRect();
-    dt.setDragImage(rowElement.firstChild, event.clientX - rowRect.left, event.clientY - rowRect.top);
+  const focusable = Bookmarks.getFocusable(item);
+  if (focusable) {
+    const focusableRect = focusable.getBoundingClientRect();
+    dt.setDragImage(focusable, event.clientX - focusableRect.left, event.clientY - focusableRect.top);
   }
 }
 
@@ -76,8 +76,8 @@ function getDropPosition(event) {
   if (!item)
     return DROP_POSITION_NONE;
   const areaCount  = item.type == 'folder' ? 3 : 2;
-  const rowElement = Bookmarks.getRow(item);
-  const rect       = rowElement.firstChild.getBoundingClientRect();
+  const focusable  = Bookmarks.getFocusable(item);
+  const rect       = focusable.getBoundingClientRect();
   if (event.clientY <= (rect.y + (rect.height / areaCount)))
     return DROP_POSITION_BEFORE;
   if (event.clientY >= (rect.y + rect.height - (rect.height / areaCount)))

@@ -11,7 +11,8 @@ import * as Bookmarks from './bookmarks.js';
 import * as EventUtils from './event-utils.js';
 
 const mSearchBox = document.getElementById('searchbox');
-const mRoot = document.getElementById('root');
+const mContent = document.getElementById('content');
+const mRowsContainer = document.getElementById('rows');
 
 const configs = Connection.getConfigs([
   'openInTabAlways',
@@ -27,7 +28,7 @@ function onKeyDown(event) {
   const target = EventUtils.getElementTarget(event);
   const onSearchBox = target.closest('#searchbar');
   const onTree = !target.closest('#searchbar');
-  const hasItem = mRoot.hasChildNodes();
+  const hasItem = mRowsContainer.hasChildNodes();
   const activeItem = Bookmarks.getActive();
   const accel = event.ctrlKey || event.metaKey || event.button == 1;
 
@@ -123,7 +124,7 @@ function onKeyDown(event) {
     case 'Tab':
       if (event.shiftKey) {
         if (event.target == document.documentElement ||
-            event.target == mRoot ||
+            event.target == mRowsContainer ||
             event.target == mSearchBox) {
           return;
         }
@@ -248,5 +249,5 @@ function setActive(activeItem, options = {}) {
 }
 
 function getRowsCount() {
-  return Math.floor(mRoot.getBoundingClientRect().height / mRoot.firstChild.firstChild.getBoundingClientRect().height) - 1;
+  return Math.floor(mContent.getBoundingClientRect().height / Bookmarks.getRowHeight()) - 1;
 }

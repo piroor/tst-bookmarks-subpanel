@@ -25,7 +25,7 @@ const configs = Connection.getConfigs([
 
 const mSearchBox = document.getElementById('searchbox');
 const mContent = document.getElementById('content');
-const mRoot = document.getElementById('root');
+const mRowsContainer = document.getElementById('rows');
 let mWindowId;
 
 async function init() {
@@ -180,10 +180,10 @@ mContent.addEventListener('mouseup', async event => {
 window.addEventListener('focus', () => {
   setTimeout(() => {
     if (!mSearchBox.matches(':focus'))
-      mRoot.classList.add('active');
+      mRowsContainer.classList.add('active');
   }, 0);
 });
 
 window.addEventListener('blur', () => {
-  mRoot.classList.remove('active');
+  mRowsContainer.classList.remove('active');
 });

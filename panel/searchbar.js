@@ -10,11 +10,11 @@ import * as Bookmarks from './bookmarks.js';
 const mSearchBar = document.getElementById('searchbar');
 const mSearchBox = document.getElementById('searchbox');
 const mClearButton = document.getElementById('searchbox-clear');
-const mRoot = document.getElementById('root');
+const mRowsContainer = document.getElementById('rows');
 
 mSearchBox.addEventListener('focus', () => {
   mSearchBar.classList.add('active');
-  mRoot.classList.remove('active');
+  mRowsContainer.classList.remove('active');
 });
 
 mSearchBox.addEventListener('blur', () => {
