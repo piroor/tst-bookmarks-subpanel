@@ -8,7 +8,7 @@
 export function getItemFromEvent(event) {
   const target = getElementTarget(event);
   const row = target && target.closest('li');
-  return row.raw;
+  return row && row.raw;
 }
 
 export function getElementTarget(event) {
