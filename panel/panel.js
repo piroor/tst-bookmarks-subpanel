@@ -66,6 +66,15 @@ function onConfigChange(key) {
 
 let mLastMouseDownTarget = null;
 
+function isContextMenuTriggerEvent(event) {
+  return (
+    event.button == 2 ||
+    (/^Mac/i.test(navigator.platform) &&
+     event.button == 0 &&
+     event.ctrlKey)
+  );
+}
+
 mContent.addEventListener('mousedown', event => {
   const item = EventUtils.getItemFromEvent(event);
   if (!item)
@@ -74,7 +83,7 @@ mContent.addEventListener('mousedown', event => {
   mLastMouseDownTarget = item.id;
 
   const target = EventUtils.getElementTarget(event);
-  if (event.button != 2 &&
+  if (!isContextMenuTriggerEvent(event) &&
       !target.classList.contains('twisty'))
     Bookmarks.setActive(item, {
       multiselect: Bookmarks.isReallyMultiselected(item),
@@ -87,10 +96,7 @@ mContent.addEventListener('mousedown', event => {
     event.preventDefault();
   }
 
-  if (event.button == 2 ||
-      (/^Mac/i.test(navigator.platform) &&
-       event.button == 0 &&
-       event.ctrlKey)) {
+  if (isContextMenuTriggerEvent(event)) {
     // context menu
     if (target.closest('input, textarea'))
       return;
@@ -108,10 +114,7 @@ mContent.addEventListener('mousedown', event => {
 // We need to handle mouseup instead of click to bypass the "auto scroll"
 // behavior of Firefox itself.
 mContent.addEventListener('mouseup', async event => {
-  if (event.button == 2 ||
-      (/^Mac/i.test(navigator.platform) &&
-       event.button == 0 &&
-       event.ctrlKey))
+  if (isContextMenuTriggerEvent(event))
     return;
 
   const item = EventUtils.getItemFromEvent(event);
