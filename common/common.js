@@ -7,6 +7,28 @@
 
 import Configs from '/extlib/Configs.js';
 
+const RTL_LANGUAGES = new Set([
+  'ar',
+  'he',
+  'fa',
+  'ur',
+  'ps',
+  'sd',
+  'ckb',
+  'prs',
+  'rhg',
+]);
+
+export function isRTL() {
+  const lang = (
+    navigator.language ||
+    navigator.userLanguage ||
+    //(new Intl.DateTimeFormat()).resolvedOptions().locale ||
+    ''
+  ).split('-')[0];
+  return RTL_LANGUAGES.has(lang);
+}
+
 export const configs = new Configs({
   openInTabAlways: false,
   openAsActiveTab: true,
@@ -19,9 +41,11 @@ export const configs = new Configs({
   autoExpandDelay: 1000,
 
   scrollPosition: 0,
-  openedFolders: []
+  openedFolders: [],
+  rtl: isRTL(),
 }, {
   localKeys: [
-    'openedFolders'
+    'openedFolders',
+    'rtl',
   ]
 });

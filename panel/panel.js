@@ -20,7 +20,8 @@ let mInitiaized = false;
 const configs = Connection.getConfigs([
   'openInTabAlways',
   'openAsActiveTab',
-  'showScrollbarLeft'
+  'showScrollbarLeft',
+  'rtl',
 ]);
 
 const mSearchBox = document.getElementById('searchbox');
@@ -36,6 +37,7 @@ async function init() {
       Bookmarks.init(),
       configs.$loaded
     ]);
+    document.documentElement.classList.toggle('rtl', configs.rtl);
 
     configs.$addObserver(onConfigChange);
     onConfigChange('showScrollbarLeft');

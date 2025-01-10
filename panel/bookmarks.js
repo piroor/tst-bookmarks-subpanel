@@ -621,7 +621,7 @@ function setRowStatus(item, row) {
     delete row.dataset.dropPosition;
 
   row.level = item.level || 0;
-  row.firstChild.style.paddingLeft = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
+  row.firstChild.style.paddingInlineStart = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
 }
 
 function renderFolderRow(item) {

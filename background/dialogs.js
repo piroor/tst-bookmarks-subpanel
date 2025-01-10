@@ -6,7 +6,8 @@
 'use strict';
 
 import {
-  configs
+  configs,
+  isRTL,
 } from '/common/common.js';
 
 import * as Constants from '/common/constants.js';
@@ -48,9 +49,11 @@ function sanitizeForHTMLText(text) {
 
 export async function showBookmarkDialog(params) {
   // Don't use "__MSG_XXX__" way because they can be modified by RichConfirm.js itself automatically.
+  const direction = isRTL() ? 'direction: rtl;' : '';
   const urlField = `
         <div style="display: flex;
-                    flex-direction: column;"
+                    flex-direction: column;
+                    ${direction}"
             ><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_url_accessKey'))}
                     style="display: flex;
                            flex-direction: row;"
@@ -69,7 +72,8 @@ export async function showBookmarkDialog(params) {
       url:  '/resources/blank.html',
       content: `
         <div style="display: flex;
-                    flex-direction: column;"
+                    flex-direction: column;
+                    ${direction}"
             ><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
                     style="display: flex;
                            flex-direction: row;"

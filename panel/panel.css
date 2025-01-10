@@ -24,6 +24,10 @@
   --twisty-size: 0.8em;
 }
 
+:root.rtl {
+  direction: rtl;
+}
+
 :root,
 body {
   margin: 0;
@@ -308,6 +312,9 @@ ul#rows li[data-drop-position="after"] > .focusable {
 
 .folder.collapsed > .focusable > .twisty::before {
   mask-image: url("/resources/ArrowheadRight.svg");
+}
+:root.rtl .folder.collapsed > .focusable > .twisty::before {
+  transform: rotatez(180deg);
 }
 
 

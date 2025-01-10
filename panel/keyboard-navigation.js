@@ -16,7 +16,8 @@ const mRowsContainer = document.getElementById('rows');
 
 const configs = Connection.getConfigs([
   'openInTabAlways',
-  'openAsActiveTab'
+  'openAsActiveTab',
+  'rtl',
 ]);
 
 document.addEventListener('keydown', onKeyDown);
@@ -50,20 +51,20 @@ function onKeyDown(event) {
     case 'ArrowRight':
       if (!onTree || !hasItem || !activeItem)
         return;
-      if (Bookmarks.isFolderCollapsed(activeItem))
-        Bookmarks.toggleOpenState(activeItem);
+      if (configs.rtl)
+        digOutOrCollapse(activeItem);
       else
-        setActive(activeItem.children && activeItem.children[0] || activeItem);
+        digInOrExpand(activeItem);
       event.preventDefault();
       return;
 
     case 'ArrowLeft':
       if (!onTree || !hasItem || !activeItem)
         return;
-      if (Bookmarks.isFolderOpen(activeItem))
-        Bookmarks.toggleOpenState(activeItem);
+      if (configs.rtl)
+        digInOrExpand(activeItem);
       else
-        setActive(Bookmarks.getParent(activeItem) || activeItem);
+        digOutOrCollapse(activeItem);
       event.preventDefault();
       return;
 
@@ -170,6 +171,20 @@ function onKeyDown(event) {
       event.preventDefault();
       return;
   }
+}
+
+function digInOrExpand(activeItem) {
+  if (Bookmarks.isFolderCollapsed(activeItem))
+    Bookmarks.toggleOpenState(activeItem);
+  else
+    setActive(activeItem.children && activeItem.children[0] || activeItem);
+}
+
+function digOutOrCollapse(activeItem) {
+  if (Bookmarks.isFolderOpen(activeItem))
+    Bookmarks.toggleOpenState(activeItem);
+  else
+    setActive(Bookmarks.getParent(activeItem) || activeItem);
 }
 
 let mFirstMultiselectId = null;
