@@ -76,8 +76,8 @@ const rules = {
 };
 
 const ESModuleFiles = [
-  "common/*.js",
   "background/*.js",
+  "common/*.js",
   "options/*.js",
   "panel/*.js",
 ];
