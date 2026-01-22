@@ -147,7 +147,7 @@ mContent.addEventListener('mouseup', async event => {
         if (!granted)
           return;
         Connection.sendMessage({
-          type: Constants.COMMAND_OPEN_BOOKMARKS,
+          type:     Constants.COMMAND_OPEN_BOOKMARKS,
           urls,
           inWindow: event.shiftKey
         });

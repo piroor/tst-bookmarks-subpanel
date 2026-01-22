@@ -19,9 +19,9 @@ import './context-menu.js';
 async function registerToTST() {
   try {
     await browser.runtime.sendMessage(Constants.TST_ID, {
-      type: 'register-self',
-      name: browser.i18n.getMessage('extensionName'),
-      icons: browser.runtime.getManifest().icons,
+      type:           'register-self',
+      name:           browser.i18n.getMessage('extensionName'),
+      icons:          browser.runtime.getManifest().icons,
       listeningTypes: [
         'wait-for-shutdown',
         'contextMenu-shown',

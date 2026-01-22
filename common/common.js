@@ -33,7 +33,7 @@ export const configs = new Configs({
   openInTabAlways: false,
   openAsActiveTab: true,
 
-  warnOnOpen: true,
+  warnOnOpen:        true,
   maxOpenBeforeWarn: 15,
 
   showScrollbarLeft: false,
@@ -41,11 +41,14 @@ export const configs = new Configs({
   autoExpandDelay: 1000,
 
   scrollPosition: 0,
-  openedFolders: [],
-  rtl: isRTL(),
+  openedFolders:  [],
+  rtl:            isRTL(),
+
+  debug: false,
 }, {
   localKeys: [
     'openedFolders',
     'rtl',
+    'debug',
   ]
 });

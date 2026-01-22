@@ -31,7 +31,7 @@ export async function warnOnOpenTabs(count) {
       browser.i18n.getMessage('tabs_openWarningMultiple_cancel')
     ],
     checkMessage: browser.i18n.getMessage('tabs_openWarningPromptMeBranded', [brandName]),
-    checked: true
+    checked:      true
   });
   switch (result.buttonIndex) {
     case 0:
@@ -68,8 +68,8 @@ export async function showBookmarkDialog(params) {
   `.trim();
   try {
     const result = await RichConfirm.showInPopup({
-      type: 'dialog',
-      url:  '/resources/blank.html',
+      type:    'dialog',
+      url:     '/resources/blank.html',
       content: `
         <div style="display: flex;
                     flex-direction: column;
@@ -84,7 +84,7 @@ export async function showBookmarkDialog(params) {
                            style="display: flex;
                                   flex-grow: 1;
                                   flex-shrink: 1;"></label></div
-       >${params.type == 'bookmark' ? urlField: ''}
+       >${params.type == 'bookmark' ? urlField : ''}
       `.trim(),
       onShown(container) {
         container.classList.add('bookmark-dialog');

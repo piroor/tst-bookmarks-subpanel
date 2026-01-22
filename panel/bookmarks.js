@@ -11,6 +11,8 @@ import * as Constants from '/common/constants.js';
 
 import * as Connection from './connection.js';
 
+let debug = false;
+
 const mItemsById = new Map();
 let mItemsByFullId = new Map();
 let mOpenedFolderIds;
@@ -48,10 +50,12 @@ async function listAll() {
         keys: [
           'openedFolders',
           'scrollPosition',
+          'debug',
         ]
       });
       mOpenedFolderIds = new Set(configs.openedFolders);
       scrollPosition = configs.scrollPosition;
+      debug = configs.debug;
     })(),
   ]);
 
@@ -329,8 +333,8 @@ function pushMultiselectedItems() {
     if (pushMultiselectedItems.lastStartedAt != startAt)
       return;
     browser.runtime.sendMessage({
-      type:     Constants.COMMAND_PUSH_MULTISELECTED_ITEMS,
-      items:    mItems.filter(item => mHighlightedItemIds.has(item.fullId)),
+      type:  Constants.COMMAND_PUSH_MULTISELECTED_ITEMS,
+      items: mItems.filter(item => mHighlightedItemIds.has(item.fullId)),
     });
   });
 }
@@ -476,19 +480,19 @@ function renderRows(scrollPosition) {
   const toBeRenderedItemIds = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => getRowId(item));
   const toBeRenderedItemIdsForDebug = mItems.slice(firstRenderableIndex, lastRenderableIndex + 1).map(item => `${getRowId(item)} / ${item.title}`);
   const renderOperations = (new SequenceMatcher(mLastRenderedItemIds, toBeRenderedItemIds)).operations();
-  /*
-  console.log('renderRows ', {
-    firstRenderableIndex,
-    lastRenderableIndex,
-    scrollPosition,
-    viewPortSize,
-    allRenderableItemsSize,
-    all: mItems,
-    old: mLastRenderedItemIdsForDebug,
-    new: toBeRenderedItemIdsForDebug,
-    renderOperations,
-  });
-  */
+  if (debug) {
+    console.log('renderRows ', {
+      firstRenderableIndex,
+      lastRenderableIndex,
+      scrollPosition,
+      viewPortSize,
+      allRenderableItemsSize,
+      all: mItems,
+      old: mLastRenderedItemIdsForDebug,
+      new: toBeRenderedItemIdsForDebug,
+      renderOperations,
+    });
+  }
 
   const toBeRenderedItemIdSet = new Set(toBeRenderedItemIds);
   for (const operation of renderOperations) {

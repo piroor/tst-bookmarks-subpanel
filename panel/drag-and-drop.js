@@ -373,9 +373,9 @@ async function onDrop(event) {
     Connection.sendMessage({
       type:    Constants.COMMAND_CREATE_BOOKMARK,
       details: {
-        type:  'bookmark',
-        title: places[0].title,
-        url:   places[0].url,
+        type:     'bookmark',
+        title:    places[0].title,
+        url:      places[0].url,
         parentId: destination.parentId,
         index:    destination.index
       }

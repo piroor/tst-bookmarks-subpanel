@@ -149,7 +149,7 @@ function createItems() {
       info.parentId = item.parentId;
     const createInfo = {
       ...info,
-      contexts: ['bookmark'],
+      contexts:  ['bookmark'],
       viewTypes: ['sidebar'],
       //documentUrlPatterns: SIDEBAR_URL_PATTERN
     };
@@ -312,7 +312,7 @@ async function onClicked(info) {
         if (!details)
           return;
         Commands.create({
-          type:  'bookmark',
+          type: 'bookmark',
           ...details,
           ...destination
         });
@@ -328,7 +328,7 @@ async function onClicked(info) {
         if (!details)
           return;
         Commands.create({
-          type:  'folder',
+          type: 'folder',
           ...details,
           ...destination
         });
