@@ -1,6 +1,9 @@
 # History
 
  - master/HEAD
+ - 2.1 (2026.7.15)
+   * Fix breakage of custom dialogs on recent Firefox.
+   * Drop support of Firefox 139 and olders.
  - 2.0 (2024.2.4)
    * Improved performance on cases with large number of visible bookmarks. Now rows only in the viewport are rendered.
    * Fix unavailability of properties dialog for bookmark items.

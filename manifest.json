@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "__MSG_extensionName__",
-  "version": "2.0",
+  "version": "2.1",
   "author": "YUKI \"Piro\" Hiroshi",
   "description": "__MSG_extensionDescription__",
   "permissions": [
@@ -29,7 +29,7 @@
   "applications": {
     "gecko": {
       "id": "tst-bookmarks-subpanel@piro.sakura.ne.jp",
-      "strict_min_version": "67.0"
+      "strict_min_version": "140.0"
     }
   }
 }
