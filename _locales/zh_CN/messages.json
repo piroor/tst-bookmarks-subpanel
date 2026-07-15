@@ -78,6 +78,9 @@
         "message": "取消",
         "hash": "17aa19f18a894459ab6ff21156e8a341"
     },
+    "blank_allUrlsPermissionRequiredMessage": {
+      "message": "出现此消息的原因是 Firefox 试图还原一个由附加组件 TST Bookmarks Subpanel 提供的对话框。如果不想再出现此消息，请在附加组件管理器中进入 TST Bookmarks Subpanel 的详细信息页面，在 \"权限\" 一栏中授予 \"存取您在所有网站的数据\" 权限。"
+    },
     "menu_open_label": {
         "message": "打开(&O)",
         "hash": "b6df66effabb781b108ffb75aac958d3"

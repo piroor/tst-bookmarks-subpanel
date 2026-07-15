@@ -7,12 +7,14 @@
 
 import {
   configs,
-  isRTL,
 } from '/common/common.js';
 
 import * as Constants from '/common/constants.js';
 
 import RichConfirm from '/extlib/RichConfirm.js';
+import BookmarkProperty from '/resources/dialog/BookmarkProperty.js';
+
+RichConfirm.init('/extlib/RichConfirmDialog.html');
 
 export async function warnOnOpenTabs(count) {
   if (!configs.warnOnOpen ||
@@ -43,57 +45,15 @@ export async function warnOnOpenTabs(count) {
   }
 }
 
-function sanitizeForHTMLText(text) {
-  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
 export async function showBookmarkDialog(params) {
-  // Don't use "__MSG_XXX__" way because they can be modified by RichConfirm.js itself automatically.
-  const direction = isRTL() ? 'direction: rtl;' : '';
-  const urlField = `
-        <div style="display: flex;
-                    flex-direction: column;
-                    ${direction}"
-            ><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_url_accessKey'))}
-                    style="display: flex;
-                           flex-direction: row;"
-                   ><span>${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_url'))}</span
-                   ><input type="text"
-                           name="url"
-                           value=${JSON.stringify(params.url)}
-                           style="display: flex;
-                                  flex-grow: 1;
-                                  flex-shrink: 1;
-                                  min-width: 20em;"></label></div>
-  `.trim();
   try {
-    const result = await RichConfirm.showInPopup({
-      type:    'dialog',
-      url:     '/resources/blank.html',
-      content: `
-        <div style="display: flex;
-                    flex-direction: column;
-                    ${direction}"
-            ><label accesskey=${JSON.stringify(browser.i18n.getMessage('bookmarkDialog_title_accessKey'))}
-                    style="display: flex;
-                           flex-direction: row;"
-                   ><span>${sanitizeForHTMLText(browser.i18n.getMessage('bookmarkDialog_title'))}</span
-                   ><input type="text"
-                           name="title"
-                           value=${JSON.stringify(params.title)}
-                           style="display: flex;
-                                  flex-grow: 1;
-                                  flex-shrink: 1;"></label></div
-       >${params.type == 'bookmark' ? urlField : ''}
-      `.trim(),
-      onShown(container) {
-        container.classList.add('bookmark-dialog');
-        container.querySelector('[name="title"]').select();
+    const result = await BookmarkProperty.showInPopup({
+      bookmarkItemType: params.type,
+      mode:             params.mode,
+      values:           {
+        title: params.title,
+        url:   params.url,
       },
-      buttons: [
-        browser.i18n.getMessage(`bookmarkDialog_${params.mode}`),
-        browser.i18n.getMessage('bookmarkDialog_cancel')
-      ]
     });
     if (result.buttonIndex != 0)
       return null;

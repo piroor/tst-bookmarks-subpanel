@@ -30,6 +30,8 @@
   "bookmarkDialog_add":    { "message": "Add" },
   "bookmarkDialog_cancel": { "message": "Cancel" },
 
+  "blank_allUrlsPermissionRequiredMessage": { "message": "This message is here due to Firefox tried to restore a dialog which is provided by TST Bookmarks Subpanel extension. Please grant the \"Access your data for all websites\" permission via the \"Permissions\" tab of TST Bookmarks Subpanel's details page in the Add-on Manager, if you don't want this message to appear anymore." },
+
   "menu_open_label": { "message": "&Open" },
   "menu_openTab_label": { "message": "Open in a Ne&w Tab" },
   "menu_openWindow_label": { "message": "Open in &New Window" },
