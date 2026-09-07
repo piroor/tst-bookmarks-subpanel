@@ -270,8 +270,7 @@ ul#rows li[data-drop-position="after"] > .focusable {
 }
 
 .separator > .focusable {
-  padding-bottom: 0.4em;
-  padding-top: 0.4em;
+  padding: 0;
 }
 
 .separator > .focusable::before {
@@ -279,6 +278,10 @@ ul#rows li[data-drop-position="after"] > .focusable {
   content: " ";
   display: block;
   font-size: 1px;
+  inset-inline-end: 5px;
+  inset-inline-start: calc(var(--row-indent) + 5px);
+  position: absolute;
+  top: 50%;
 }
 
 .collapsed ul {
@@ -286,13 +289,14 @@ ul#rows li[data-drop-position="after"] > .focusable {
 }
 
 .twisty {
+  --icon-size: var(--twisty-size);
   background: none;
   border: none;
   height: var(--twisty-size);
-  margin: 0 4px 0 0;
+  margin: 0 5px 0 1px;
   min-width: 0;
   padding: 0;
-  vertical-align: -1px;
+  vertical-align: -2px;
   width: var(--twisty-size);
 }
 .twisty:focus,

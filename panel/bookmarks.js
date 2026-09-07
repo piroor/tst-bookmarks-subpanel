@@ -674,7 +674,8 @@ function setRowStatus(item, row) {
 
   row.level = item.level || 0;
   row.setAttribute('aria-level', row.level + 1);
-  row.firstChild.style.paddingInlineStart = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
+  row.style.setProperty('--row-indent', `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`);
+  row.firstChild.style.paddingInlineStart = 'var(--row-indent)';
 }
 
 function renderFolderRow(item) {
