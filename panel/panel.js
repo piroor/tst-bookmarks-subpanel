@@ -29,6 +29,9 @@ const mContent = document.getElementById('content');
 const mRowsContainer = document.getElementById('rows');
 let mWindowId;
 
+const mBrowserThemeDefinition = document.head.appendChild(document.createElement('style'));
+mBrowserThemeDefinition.id = 'browser-theme-definition';
+
 async function init() {
   if (mInitiaized)
     return;
@@ -46,11 +49,30 @@ async function init() {
       type: Constants.COMMAND_GET_CURRENT_WINDOW_ID
     });
 
+    applyBrowserTheme(await browser.runtime.sendMessage({
+      type:     Constants.COMMAND_GET_THEME_DECLARATIONS,
+      windowId: mWindowId,
+    }));
+
     mInitiaized = true;
   }
   catch(_error) {
   }
 }
+
+function applyBrowserTheme({ declarations, hasTheme } = {}) {
+  mBrowserThemeDefinition.textContent = declarations || '';
+  document.documentElement.classList.toggle('lwtheme-applied', !!hasTheme);
+}
+
+Connection.onMessage.addListener(message => {
+  switch (message.type) {
+    case Constants.NOTIFY_BROWSER_THEME_UPDATED:
+      if (!message.windowId || message.windowId == mWindowId)
+        applyBrowserTheme(message);
+      break;
+  }
+});
 
 init();
 
@@ -135,11 +157,11 @@ mContent.addEventListener('mouseup', async event => {
 
   if (item.type == 'folder') {
     if (accel || event.shiftKey) {
-      const children = item.children || await browser.runtime.sendMessage({
-        type: Constants.COMMAND_GET_CHILDREN,
-        id:   item.id,
+      const urls = await browser.runtime.sendMessage({
+        type:        Constants.COMMAND_GET_BOOKMARK_URLS,
+        id:          item.id,
+        recursively: true,
       });
-      const urls = children.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
       browser.runtime.sendMessage({
         type:  Constants.COMMAND_CONFIRM_TO_OPEN_TABS,
         count: urls.length

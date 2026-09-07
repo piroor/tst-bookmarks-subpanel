@@ -16,6 +16,8 @@ let debug = false;
 const mItemsById = new Map();
 let mItemsByFullId = new Map();
 let mOpenedFolderIds;
+const mKnownFolderHasChildren = new Map();
+const mCheckingFolderIds = new Set();
 
 const mScrollBox = document.getElementById('content');
 const mRowsContainer      = document.getElementById('rows');
@@ -37,6 +39,8 @@ export async function init() {
 const MODE_LIST_ALL = 0;
 const MODE_SEARCH   = 1;
 let mLastMode = MODE_LIST_ALL;
+let mLastSearchQuery = '';
+let mReservedReloadTimer = null;
 
 async function listAll() {
   let scrollPosition = 0;
@@ -67,14 +71,17 @@ async function listAll() {
   }
   mHighlightedItemIds.clear();
   mDirtyItemIds.clear();
+  mKnownFolderHasChildren.clear();
   mItemsById.clear();
   mItemsByFullId.clear();
   mItems = [];
-  await Promise.all(rawRoot.children.map(trackItem));
+  await Promise.all(rawRoot.children.map(item => trackItem(item, {
+    render: false
+  })));
   reserveToRenderRows(mLastMode == MODE_LIST_ALL && scrollPosition);
 }
 
-async function trackItem(item) {
+async function trackItem(item, { render = true } = {}) {
   const parentItem = getParent(item);
   item.fullId = parentItem ? `${parentItem.fullId}_${item.id}` : item.id;
   item.parentFlatId = parentItem && parentItem.fullId;
@@ -93,16 +100,20 @@ async function trackItem(item) {
     mItems.splice(prevItemIndex + 1, 0, item);
   }
 
-  if (!isFolderOpen(item))
+  if (!isFolderOpen(item)) {
+    if (render)
+      reserveToRenderRows();
     return;
+  }
 
-  return trackItemChildren(item);
+  return trackItemChildren(item, { render });
 }
 
-async function trackItemChildren(item) {
+async function trackItemChildren(item, { render = true } = {}) {
   if (!isFolderOpen(item)) {
     untrackItemDescendants(item);
-    reserveToRenderRows();
+    if (render)
+      reserveToRenderRows();
     return;
   }
 
@@ -111,18 +122,21 @@ async function trackItemChildren(item) {
     item.children = await browser.runtime.sendMessage({
       type: Constants.COMMAND_GET_CHILDREN,
       id:   item.id
-    }) || null;
+    }) || [];
+    mKnownFolderHasChildren.set(item.id, item.children.length > 0);
     mInProgressTrackingCount--;
     mDirtyItemIds.add(item.fullId);
-    reserveToRenderRows();
+    if (render)
+      reserveToRenderRows();
   }
   if (!item.children)
     return;
-  for (const child of item.children) {
+  await Promise.all(item.children.map(child => {
     child.fullParentId = item.fullId;
-    trackItem(child);
-  }
-  reserveToRenderRows();
+    return trackItem(child, { render: false });
+  }));
+  if (render)
+    reserveToRenderRows();
 }
 
 function untrackItem(item) {
@@ -157,6 +171,7 @@ function untrackItemDescendants(item) {
 
 
 export async function search(query) {
+  mLastSearchQuery = query || '';
   if (!query)
     return listAll();
 
@@ -199,7 +214,7 @@ export function getById(id) {
     return mItemsByFullId.get(id);
 
   const items = mItemsById.get(id);
-  return items && items.size > 0 ? items[0] : null;
+  return items && items.size > 0 ? items.values().next().value : null;
 }
 
 export function getAllById(id) {
@@ -266,10 +281,10 @@ function clearActive({ keepMultiselected } = {}) {
     mDirtyItemIds.add(mActiveItemId);
   mActiveItemId = null;
   if (!keepMultiselected) {
-    mHighlightedItemIds.clear();
     for (const id of mHighlightedItemIds) {
       mDirtyItemIds.add(id);
     }
+    mHighlightedItemIds.clear();
   }
   reserveToRenderRows();
 }
@@ -378,9 +393,14 @@ let mLastDropPositionHolderId = null;
 let mLastDropPosition         = null;
 
 export function setDropPosition(item, position) {
-  clearDropPosition();
   if (!item)
+    return clearDropPosition();
+
+  if (mLastDropPositionHolderId == item.fullId &&
+      mLastDropPosition == position)
     return;
+
+  clearDropPosition();
 
   mLastDropPositionHolderId = item.fullId;
   mLastDropPosition = position;
@@ -389,10 +409,26 @@ export function setDropPosition(item, position) {
 }
 
 export function clearDropPosition() {
+  if (!mLastDropPositionHolderId &&
+      !mLastDropPosition)
+    return;
+
   if (mLastDropPositionHolderId)
     mDirtyItemIds.add(mLastDropPositionHolderId);
   mLastDropPositionHolderId = mLastDropPosition = null;
   reserveToRenderRows();
+}
+
+function reserveToReloadAll() {
+  if (mReservedReloadTimer)
+    clearTimeout(mReservedReloadTimer);
+  mReservedReloadTimer = setTimeout(() => {
+    mReservedReloadTimer = null;
+    if (mLastMode == MODE_SEARCH)
+      search(mLastSearchQuery);
+    else
+      listAll();
+  }, 100);
 }
 
 
@@ -414,20 +450,30 @@ const mVirtualScrollContainer = document.querySelector('.virtual-scroll-containe
 let mLastRenderedItemIds = [];
 let mLastRenderedItemIdsForDebug = [];
 let mInternalScrollCount = 0;
+let mReservedScrollPosition = null;
+let mScrollPositionSaveTimer = null;
 
 mScrollBox.addEventListener('scroll', () => {
   if (mInternalScrollCount > 0)
     return;
-  mOnRenderdCallbacks.add(() => {
+  reserveToSaveScrollPosition(mScrollBox.scrollTop);
+  renderRows();
+});
+
+function reserveToSaveScrollPosition(position) {
+  mReservedScrollPosition = position;
+  if (mScrollPositionSaveTimer)
+    clearTimeout(mScrollPositionSaveTimer);
+  mScrollPositionSaveTimer = setTimeout(() => {
+    mScrollPositionSaveTimer = null;
     Connection.sendMessage({
       type:   Constants.COMMAND_SET_CONFIGS,
       values: {
-        scrollPosition: mScrollBox.scrollTop,
+        scrollPosition: mReservedScrollPosition,
       }
     });
-  });
-  renderRows();
-});
+  }, 250);
+}
 
 function renderRows(scrollPosition) {
   renderRows.lastStartedAt = null;
@@ -608,6 +654,7 @@ function createRow(item) {
   row.id         = getRowId(item);
   row.raw        = item;
   row.dataset.id = item.id;
+  row.setAttribute('role', 'treeitem');
   const focusable = row.appendChild(document.createElement('a'));
   focusable.classList.add('focusable');
   focusable.setAttribute('draggable', true);
@@ -618,6 +665,7 @@ function createRow(item) {
 function setRowStatus(item, row) {
   row.classList.toggle('active', mActiveItemId == item.fullId);
   row.classList.toggle('highlighted', mHighlightedItemIds.has(item.fullId) || (mActiveItemId == item.fullId));
+  row.setAttribute('aria-selected', mHighlightedItemIds.has(item.fullId) || (mActiveItemId == item.fullId));
 
   if (mLastDropPositionHolderId == item.fullId)
     row.dataset.dropPosition = mLastDropPosition;
@@ -625,6 +673,7 @@ function setRowStatus(item, row) {
     delete row.dataset.dropPosition;
 
   row.level = item.level || 0;
+  row.setAttribute('aria-level', row.level + 1);
   row.firstChild.style.paddingInlineStart = `calc((var(--indent-size) * ${item.level + 1}) - var(--indent-offset-size))`;
 }
 
@@ -644,13 +693,42 @@ function renderFolderRow(item) {
   }
 
   setRowStatus(item, row);
-  row.classList.toggle('blank', !!(item.children && item.children.length == 0));
+  if (mKnownFolderHasChildren.has(item.id))
+    item.hasChildren = mKnownFolderHasChildren.get(item.id);
+  else
+    requestFolderHasChildren(item);
+  row.classList.toggle('blank', item.hasChildren === false || !!(item.children && item.children.length == 0));
   row.classList.toggle('collapsed', !isFolderOpen(item));
+  row.setAttribute('aria-expanded', isFolderOpen(item));
   row.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
 
   mDirtyItemIds.delete(item.fullId);
 
   return row;
+}
+
+async function requestFolderHasChildren(item) {
+  if (mCheckingFolderIds.has(item.id))
+    return;
+
+  mCheckingFolderIds.add(item.id);
+  let children = [];
+  try {
+    children = await browser.runtime.sendMessage({
+      type: Constants.COMMAND_GET_CHILDREN,
+      id:   item.id
+    }) || [];
+  }
+  finally {
+    mCheckingFolderIds.delete(item.id);
+  }
+  mKnownFolderHasChildren.set(item.id, children.length > 0);
+
+  for (const trackedItem of getAllById(item.id)) {
+    trackedItem.hasChildren = children.length > 0;
+    mDirtyItemIds.add(trackedItem.fullId);
+  }
+  reserveToRenderRows();
 }
 
 function renderBookmarkRow(item) {
@@ -668,6 +746,7 @@ function renderBookmarkRow(item) {
 
   setRowStatus(item, row);
   row.classList.toggle('unavailable', !Constants.LOADABLE_URL_MATCHER.test(item.url));
+  row.removeAttribute('aria-expanded');
   row.labelElement.textContent = item.title || browser.i18n.getMessage('blankTitle');
   row.labelElement.setAttribute('title', `${item.title}\n${item.url}`);
 
@@ -684,6 +763,7 @@ function renderSeparatorRow(item) {
   }
 
   setRowStatus(item, row);
+  row.removeAttribute('aria-expanded');
 
   mDirtyItemIds.delete(item.fullId);
 
@@ -692,138 +772,16 @@ function renderSeparatorRow(item) {
 
 
 // handling of messages sent from the background page
-Connection.onMessage.addListener(async message => {
+Connection.onMessage.addListener(message => {
   switch (message.type) {
-    case Constants.NOTIFY_BOOKMARK_CREATED: {
-      const parentItem = getById(message.bookmark.parentId);
-      if (!parentItem)
-        break;
-
-      if (isFolderOpen(parentItem)) {
-        const item = {
-          ...message.bookmark,
-          fullId:       `${parentItem.fullId}_${message.bookmark.id}`,
-          fullParentId: parentItem.fullId,
-          level:        parentItem.level + 1,
-        };
-        mItemsByFullId.set(item.fullId, item);
-        parentItem.children.splice(item.index, 0, item);
-        const indexInAll = mItems.indexOf(item.index == 0 ? parentItem : parentItem.children[item.index - 1]) + 1;
-        mItems.splice(indexInAll, 0, item);
-        let offset = 1;
-        for (const child of parentItem.children.slice(item.index + 1)) {
-          child.index = item.index + offset;
-          mDirtyItemIds.add(child.fullId);
-          offset++;
-        }
-        mDirtyItemIds.add(item.fullId);
-        reserveToRenderRows();
-      }
-      else {
-        parentItem.children = null;
-        mDirtyItemIds.add(parentItem.fullId);
-        reserveToRenderRows();
-      }
-    }; break
-
-    case Constants.NOTIFY_BOOKMARK_REMOVED: {
-      const items = getAllById(message.id);
-      if (items.length == 0)
-        return;
-
-      for (const item of items) {
-        if (mActiveItemId == item.fullId) {
-          const index = mItems.indexOf(item);
-          const nextIndex = (index < mItems.length && mItems[index + 1].fullParentId == item.fullParentId) ?
-            index + 1 : // next sibling
-            (index > -1 && mItems[index - 1].fullParentId == item.fullParentId) ?
-              index - 1 : // previous sibling
-              mItems.indexOf(getParent(item)); // parent
-          setActive(mItems[nextIndex]);
-        }
-        untrackItem(item);
-      }
-      reserveToRenderRows();
-    }; break
-
-    case Constants.NOTIFY_BOOKMARK_MOVED: {
-      const items = getAllById(message.id);
-      if (items.length == 0)
-        return;
-
-      for (const item of items) {
-        const wasActive = mActiveItemId == item.fullId;
-
-        const oldIndex = mItems.findIndex(another => another.fullId == item.fullId);
-        mItems.splice(oldIndex, 1);
-
-        const oldParent = getById(message.moveInfo.oldParentId);
-        if (oldParent) {
-          const oldIndex = oldParent.children.findIndex(child => child.fullId == item.fullId);
-          oldParent.children.splice(oldIndex, 1);
-          let offset = 0;
-          for (const item of oldParent.children.slice(oldIndex)) {
-            item.index = oldIndex + offset;
-            mDirtyItemIds.add(item.fullId);
-            offset++;
-          }
-          mDirtyItemIds.add(oldParent.fullId);
-        }
-
-        const newParent = getById(message.moveInfo.parentId);
-        if (newParent) {
-          mItems.splice(
-            newParent.children && newParent.children.length > 0 ?
-              mItems.indexOf(newParent.children[message.moveInfo.index]) :
-              mItems.indexOf(newParent + 1),
-            0,
-            item
-          );
-          newParent.children.splice(message.moveInfo.index, 0, item);
-          let offset = 0;
-          for (const item of newParent.children.slice(message.moveInfo.index + 1)) {
-            item.index = message.moveInfo.index + offset;
-            mDirtyItemIds.add(item.fullId);
-            offset++;
-          }
-          item.parentId     = newParent.parentId;
-          item.fullParentId = newParent.fullParentId;
-          item.index        = message.moveInfo.index;
-          item.level        = newParent.level + 1;
-          mDirtyItemIds.add(newParent.fullId);
-        }
-        else {
-          mItems.push(item);
-        }
-
-        mDirtyItemIds.add(message.fullId);
-
-        if (isFolderOpen(item)) {
-          untrackItemDescendants(item);
-          trackItemChildren(item)
-        }
-
-        if (wasActive)
-          mOnRenderdCallbacks.add(() => {
-            setActive(item);
-          });
-
-      }
-      reserveToRenderRows();
-    }; break
-
-    case Constants.NOTIFY_BOOKMARK_CHANGED: {
-      const items = getAllById(message.id);
-      if (items.length == 0)
-        return;
-
-      for (const item of items) {
-        for (const property of Object.keys(message.changeInfo)) {
-          item[property] = message.changeInfo[property];
-        }
-        mDirtyItemIds.add(item.fullId);
-      }
-      reserveToRenderRows();
-    }; break
+    case Constants.NOTIFY_BOOKMARK_CREATED:
+    case Constants.NOTIFY_BOOKMARK_REMOVED:
+    case Constants.NOTIFY_BOOKMARK_MOVED:
+    case Constants.NOTIFY_BOOKMARK_CHANGED:
+      // Batch Places notifications. A drag/drop or bookmark-tree save can emit
+      // many events, and rebuilding once is cheaper and more reliable than
+      // patching the flattened tree for every single item.
+      reserveToReloadAll();
+      break;
   }
 });

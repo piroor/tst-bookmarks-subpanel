@@ -12,7 +12,10 @@ import * as Connection from './connection.js';
 import * as Dialogs from './dialogs.js';
 
 const mMultiselectedItemsInWindow = new Map();
-let mCopiedItems = [];
+let mClipboard = {
+  items: [],
+  cut:   false,
+};
 
 Connection.onDisconnected.addListener(windowId => {
   mMultiselectedItemsInWindow.delete(windowId);
@@ -33,6 +36,9 @@ const mItemsById = {
   },
   'openAllInTabs': {
     title: browser.i18n.getMessage('menu_openAllInTabs_label')
+  },
+  'openAllAsTree': {
+    title: browser.i18n.getMessage('menu_openAllBookmarksWithStructure_label')
   },
   'separator:afterOpen': {
     type: 'separator'
@@ -238,9 +244,11 @@ async function onShown(info) {
   updateVisible('openPrivateWindow', !multiselected && hasBookmark);
   updateVisible('openAllInTabs', multiselected ? allBookmarks : hasFolder);
   updateEnabled('openAllInTabs', multiselected ? allBookmarks : (hasFolder && contextItem.children.length > 0));
+  updateVisible('openAllAsTree', !multiselected && hasFolder);
+  updateEnabled('openAllAsTree', hasFolder && contextItem.children.length > 0);
 
   updateEnabled('cut', modifiable);
-  updateEnabled('paste', !multiselected && mCopiedItems.length > 0);
+  updateEnabled('paste', !multiselected && mClipboard.items.length > 0);
 
   updateEnabled('delete', modifiable);
 
@@ -293,13 +301,22 @@ async function onClicked(info) {
       break;
 
     case 'openAllInTabs': {
-      const urls = uniqueContextItems.map(item => item.url).filter(url => url && Constants.LOADABLE_URL_MATCHER.test(url));
+      const urls = (await Promise.all(uniqueContextItems.map(item => Commands.getBookmarkUrls(item.id)))).flat();
+      if (urls.length == 0)
+        break;
       Dialogs.warnOnOpenTabs(urls.length).then(granted => {
         if (!granted)
           return;
         Commands.openInTabs(urls);
       });
     }; break;
+
+    case 'openAllAsTree':
+      browser.runtime.sendMessage(Constants.TST_ID, {
+        type:       'open-all-bookmarks-with-structure',
+        bookmarkId: contextItem.id
+      }).catch(_error => {});
+      break;
 
 
     case 'createBookmark':
@@ -344,27 +361,45 @@ async function onClicked(info) {
 
 
     case 'copy':
-      mCopiedItems = uniqueContextItems.slice(0);
+      mClipboard = {
+        items: uniqueContextItems.slice(0),
+        cut:   false,
+      };
       break;
 
     case 'cut':
-      mCopiedItems = uniqueContextItems.slice(0);
+      mClipboard = {
+        items: uniqueContextItems.slice(0),
+        cut:   true,
+      };
+      break;
+
     case 'delete':
       for (const item of uniqueContextItems) {
         if (item.type == 'folder')
-          browser.bookmarks.removeTree(item.id);
+          await browser.bookmarks.removeTree(item.id);
         else
-          browser.bookmarks.remove(item.id);
+          await browser.bookmarks.remove(item.id);
       }
       break;
 
     case 'paste':
-      Commands.copy(mCopiedItems, destination);
+      if (mClipboard.cut) {
+        for (const item of mClipboard.items) {
+          await browser.bookmarks.move(item.id, destination);
+          if (typeof destination.index == 'number')
+            destination.index++;
+        }
+        mClipboard = { items: [], cut: false };
+      }
+      else {
+        await Commands.copy(mClipboard.items, destination);
+      }
       break;
 
 
     case 'sortByName':
-      contextItem.children.sort((a, b) => a.title > b.title);
+      contextItem.children.sort((a, b) => a.title.localeCompare(b.title));
       for (let i = 0, maxi = contextItem.children.length; i < maxi; i++) {
         const child = contextItem.children[i];
         await browser.bookmarks.move(child.id, { index: i });

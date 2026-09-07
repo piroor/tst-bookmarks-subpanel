@@ -10,6 +10,7 @@ import {
 } from '/common/common.js';
 
 import * as Constants from '/common/constants.js';
+import * as BrowserTheme from '/common/browser-theme.js';
 
 import * as Connection from './connection.js';
 import * as Commands from './commands.js';
@@ -56,6 +57,26 @@ const promisedUnloaded = new Promise((resolve, _reject) => {
 
 let mCurrentDragDataForExternalsId = null;
 let mCurrentDragDataForExternals = null;
+
+async function getThemeDeclarations(windowId) {
+  if (!browser.theme || typeof browser.theme.getCurrent != 'function')
+    return BrowserTheme.generateThemeDeclarations(null);
+
+  const theme = await browser.theme.getCurrent(windowId).catch(_error => null);
+  return BrowserTheme.generateThemeDeclarations(theme);
+}
+
+async function notifyThemeUpdated(updateInfo = {}) {
+  const details = await getThemeDeclarations(updateInfo.windowId);
+  Connection.broadcastMessage({
+    type:     Constants.NOTIFY_BROWSER_THEME_UPDATED,
+    windowId: updateInfo.windowId || null,
+    ...details
+  });
+}
+
+if (browser.theme && browser.theme.onUpdated)
+  browser.theme.onUpdated.addListener(notifyThemeUpdated);
 
 browser.runtime.onMessageExternal.addListener((message, sender) => {
   switch (sender.id) {
@@ -112,6 +133,9 @@ browser.runtime.onMessage.addListener((message, _sender) => {
     case Constants.COMMAND_GET_CURRENT_WINDOW_ID:
       return browser.windows.getCurrent({}).then(window => window.id);
 
+    case Constants.COMMAND_GET_THEME_DECLARATIONS:
+      return getThemeDeclarations(message.windowId);
+
     case Constants.COMMAND_GET_ALL_BOOKMARKS:
       return browser.bookmarks.getTree();
 
@@ -149,6 +173,11 @@ browser.runtime.onMessage.addListener((message, _sender) => {
     case Constants.COMMAND_SEARCH_BOOKMARKS:
       return browser.bookmarks.search(message.query);
 
+    case Constants.COMMAND_GET_BOOKMARK_URLS:
+      return Commands.getBookmarkUrls(message.id, {
+        recursively: message.recursively !== false
+      });
+
     case Constants.COMMAND_GET_BROWSER_NAME:
       return browser.runtime.getBrowserInfo().then(info => info.name);
 
@@ -177,8 +206,19 @@ Connection.onMessage.addListener(async message => {
         Commands.openInTabs(message.urls, message);
       break;
 
+    case Constants.COMMAND_OPEN_BOOKMARKS_AS_TREE:
+      browser.runtime.sendMessage(Constants.TST_ID, {
+        type:       'open-all-bookmarks-with-structure',
+        bookmarkId: message.id,
+        discarded:  message.discarded
+      }).catch(_error => {});
+      break;
+
     case Constants.COMMAND_CREATE_BOOKMARK:
-      Commands.create(message.details);
+      if (Array.isArray(message.details))
+        await Commands.createMany(message.details);
+      else
+        await Commands.create(message.details);
       break;
 
     case Constants.COMMAND_MOVE_BOOKMARK: {
@@ -189,7 +229,7 @@ Connection.onMessage.addListener(async message => {
         destination.index = message.destination.index;
       const ids = message.ids || [message.id];
       for (const id of ids) {
-        browser.bookmarks.move(id, destination);
+        await browser.bookmarks.move(id, destination);
         if (typeof destination.index == 'number')
           destination.index++;
       }
@@ -201,8 +241,19 @@ Connection.onMessage.addListener(async message => {
       };
       if (typeof message.destination.index == 'number')
         destination.index = message.destination.index;
-      Commands.copy(message.ids || [message.id], destination);
+      await Commands.copy(message.ids || [message.id], destination);
     }; break;
+
+    case Constants.COMMAND_REMOVE_BOOKMARK:
+      for (const item of message.items || []) {
+        if (Constants.UNMODIFIABLE_ITEMS.has(item.id))
+          continue;
+        if (item.type == 'folder')
+          await browser.bookmarks.removeTree(item.id);
+        else
+          await browser.bookmarks.remove(item.id);
+      }
+      break;
 
     case Constants.COMMAND_UPDATE_DRAG_DATA:
       mCurrentDragDataForExternalsId = message.id || null;

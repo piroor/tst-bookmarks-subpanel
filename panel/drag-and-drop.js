@@ -31,6 +31,9 @@ const TYPE_URI_LIST       = 'text/uri-list';
 const TYPE_TEXT_PLAIN     = 'text/plain';
 const kTYPE_ADDON_DRAG_DATA = `application/x-treestyletab-drag-data;provider=${browser.runtime.id}&id=`;
 
+let mDraggedFolderIdsForTreeOpen = [];
+let mDroppedOnSelf = false;
+
 function isRootItem(id) {
   return Constants.ROOT_ITEMS.includes(id);
 }
@@ -41,17 +44,28 @@ function onDragStart(event) {
     return;
 
   const items = [...new Set([Bookmarks.getActive(), ...Bookmarks.getMultiselected()])].filter(item => !!item);
+  const hasFolder = items.some(item => item.type == 'folder');
+  mDraggedFolderIdsForTreeOpen = hasFolder && items.every(item => item.type == 'folder') ?
+    items.map(item => item.id) :
+    [];
+  mDroppedOnSelf = false;
 
   const dragDataForExternals = {};
   const dt = event.dataTransfer;
   dt.effectAllowed = items.some(item => isRootItem(item.id)) ? 'copy' : 'copyMove';
   dt.setData(TYPE_BOOKMARK_ITEMS, dragDataForExternals[TYPE_BOOKMARK_ITEMS] = items.map(item => item.id).join(','));
-  dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = items.map(item => `${item.url}\n${item.title}`).join('\n'));
-  dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = items.map(item => `#${item.title}\n${item.url}`).join('\n'));
-  dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = items.map(item => item.url).join('\n'));
+
+  if (!hasFolder) {
+    const places = items.filter(item => item.type == 'bookmark' && Constants.LOADABLE_URL_MATCHER.test(item.url));
+    if (places.length > 0) {
+      dt.setData(TYPE_X_MOZ_URL, dragDataForExternals[TYPE_X_MOZ_URL] = places.map(item => `${item.url}\n${item.title}`).join('\n'));
+      dt.setData(TYPE_URI_LIST, dragDataForExternals[TYPE_URI_LIST] = places.map(item => `#${item.title}\n${item.url}`).join('\n'));
+      dt.setData(TYPE_TEXT_PLAIN, dragDataForExternals[TYPE_TEXT_PLAIN] = places.map(item => item.url).join('\n'));
+    }
+  }
 
   const dragDataForExternalsId = `${parseInt(Math.random() * 65000)}-${Date.now()}`;
-  dt.setData(`${kTYPE_ADDON_DRAG_DATA}${dragDataForExternalsId}`, JSON.stringify(dragDataForExternals));
+  dt.setData(`${kTYPE_ADDON_DRAG_DATA}${dragDataForExternalsId}`, '');
 
   Connection.sendMessage({
     type: Constants.COMMAND_UPDATE_DRAG_DATA,
@@ -154,6 +168,12 @@ const ACCEPTABLE_DRAG_DATA_TYPES = [
   TYPE_TEXT_PLAIN
 ];
 
+function hasAcceptableDragData(event) {
+  const dt = event.dataTransfer;
+  return ACCEPTABLE_DRAG_DATA_TYPES.some(type => dt.types.includes(type) || dt.getData(type)) ||
+    Array.from(dt.types).some(type => /^application\/x-treestyletab-drag-data;/.test(type));
+}
+
 function retrievePlacesFromDragEvent(event) {
   const dt   = event.dataTransfer;
   let places = [];
@@ -164,6 +184,9 @@ function retrievePlacesFromDragEvent(event) {
     if (places.length > 0)
       break;
   }
+  if (places.length > 0)
+    return places;
+
   for (const type of dt.types) {
     if (!/^application\/x-treestyletab-drag-data;(.+)$/.test(type))
       continue;
@@ -204,15 +227,19 @@ function retrievePlacesFromData(data, type) {
       let lastComment = null;
       const places = [];
       for (const line of lines) {
+        if (!line)
+          continue;
         if (line.startsWith('#')) {
           lastComment = line.replace(/^#\s*/, '');
           continue;
         }
         const url = fixupURIFromText(line);
-        places.push({
-          title: lastComment || url,
-          url
-        });
+        if (Constants.LOADABLE_URL_MATCHER.test(url)) {
+          places.push({
+            title: lastComment || url,
+            url
+          });
+        }
         lastComment = null;
       }
       return places;
@@ -226,10 +253,12 @@ function retrievePlacesFromData(data, type) {
       const places = [];
       for (let i = 0, maxi = lines.length; i < maxi; i += 2) {
         const url = fixupURIFromText(lines[i]);
-        places.push({
-          title: lines[i + 1] || url,
-          url
-        });
+        if (Constants.LOADABLE_URL_MATCHER.test(url)) {
+          places.push({
+            title: lines[i + 1] || url,
+            url
+          });
+        }
       }
       return places;
     }
@@ -240,20 +269,21 @@ function retrievePlacesFromData(data, type) {
         .replace(/\n\n+/g, '\n')
         .trim()
         .split('\n')
-        .filter(line => /^\w+:.+/.test(line))
+        .filter(line => /^(ext\+)?\w+:.+/.test(line))
         .map(url => {
           url = fixupURIFromText(url);
           return {
             title: url,
             url
           };
-        });
+        })
+        .filter(place => Constants.LOADABLE_URL_MATCHER.test(place.url));
   }
   return [];
 }
 
 function fixupURIFromText(maybeURI) {
-  if (/^\w+:/.test(maybeURI))
+  if (/^(ext\+)?\w+:/.test(maybeURI))
     return maybeURI;
 
   if (/^([^\.\s]+\.)+[^\.\s]{2}/.test(maybeURI))
@@ -263,29 +293,30 @@ function fixupURIFromText(maybeURI) {
 }
 
 function onDragOver(event) {
-  Bookmarks.clearDropPosition();
   const draggedItems = getDraggedItems(event);
-  const places       = draggedItems.length > 0 ? [] : retrievePlacesFromDragEvent(event);
   if (draggedItems.length == 0 &&
-      places.length == 0) {
-    event.dataTransfer.effectAllowed = 'none';
+      !hasAcceptableDragData(event)) {
+    Bookmarks.clearDropPosition();
+    event.dataTransfer.dropEffect = 'none';
     return;
   }
 
   const destination = getDropDestination(event);
   if (!destination) {
-    event.dataTransfer.effectAllowed = 'none';
+    Bookmarks.clearDropPosition();
+    event.dataTransfer.dropEffect = 'none';
     return;
   }
 
   const item = EventUtils.getItemFromEvent(event);
   if (item) {
     if (draggedItems.some(draggedItem => findAncestorById(item, draggedItem.id))) {
-      event.dataTransfer.effectAllowed = 'none';
+      Bookmarks.clearDropPosition();
+      event.dataTransfer.dropEffect = 'none';
       return;
     }
-    Bookmarks.setDropPosition(item, getDropPosition(event))
-    event.dataTransfer.effectAllowed = event.ctrlKey || isRootItem(item.id) ? 'copy' : 'move';
+    Bookmarks.setDropPosition(item, getDropPosition(event));
+    event.dataTransfer.dropEffect = event.ctrlKey || isRootItem(item.id) ? 'copy' : 'move';
     event.preventDefault();
   }
 }
@@ -325,8 +356,20 @@ function onDragLeave(event) {
   mDelayedExpandTimer.delete(item.fullId);
 }
 
-function onDragEnd(_event) {
+function onDragEnd(event) {
   Bookmarks.clearDropPosition();
+  if (!mDroppedOnSelf &&
+      mDraggedFolderIdsForTreeOpen.length > 0 &&
+      event.dataTransfer.dropEffect != 'none') {
+    for (const id of mDraggedFolderIdsForTreeOpen) {
+      Connection.sendMessage({
+        type: Constants.COMMAND_OPEN_BOOKMARKS_AS_TREE,
+        id
+      });
+    }
+  }
+  mDraggedFolderIdsForTreeOpen = [];
+  mDroppedOnSelf = false;
   setTimeout(() => {
     Connection.sendMessage({
       type: Constants.COMMAND_UPDATE_DRAG_DATA,
@@ -338,6 +381,7 @@ function onDragEnd(_event) {
 
 async function onDrop(event) {
   Bookmarks.clearDropPosition();
+  mDroppedOnSelf = true;
 
   const destination = getDropDestination(event);
   if (!destination) {
@@ -370,15 +414,20 @@ async function onDrop(event) {
   const places = (await Promise.all(retrievePlacesFromDragEvent(event))).flat();
   if (places.length > 0) {
     event.preventDefault();
-    Connection.sendMessage({
-      type:    Constants.COMMAND_CREATE_BOOKMARK,
-      details: {
+    const details = places.map((place, offset) => {
+      const details = {
         type:     'bookmark',
-        title:    places[0].title,
-        url:      places[0].url,
+        title:    place.title,
+        url:      place.url,
         parentId: destination.parentId,
-        index:    destination.index
-      }
+      };
+      if (typeof destination.index == 'number')
+        details.index = destination.index + offset;
+      return details;
+    });
+    Connection.sendMessage({
+      type: Constants.COMMAND_CREATE_BOOKMARK,
+      details
     });
     return;
   }
