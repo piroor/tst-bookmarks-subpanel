@@ -10,10 +10,8 @@ This has started mainly for demonstration of [TST's SubPanel API](https://github
 
 ## Known restrictions
 
-* Impossible to open non-regular URLs like `about:config`. This is due to a restriction of WebExtensions API.
-* Impossible to drag anything from elsewhere to the bookmarks subpanel.
-* Impossible to drag bookmarks from the bookmarks subpanel to TST's sidebar.
-* Impossible to open native context menu on bookmarks, and extra context menu items added by bookmark related addons are unavailable. This is due to a restriction of WebExtensions API.
+* Impossible to open some privileged internal URLs like `about:config`. This is due to a restriction of WebExtensions API.
+* Impossible to open Firefox's native bookmarks context menu on bookmarks, and extra context menu items added by bookmark related addons are unavailable. This is due to a restriction of WebExtensions API.
 * All bookmarks are shown with same icon. [This is due to a restriction of WebExtensions API.](https://bugzilla.mozilla.org/show_bug.cgi?id=1315616 "Bug 1315616 - Give extensions access to cached favicon URLs")
 
 ## Privacy Policy
@@ -23,4 +21,3 @@ Any data you input to options may be sent to Mozilla's Sync server, if you confi
 
 このソフトウェアはいかなるプライバシー情報も自動的に収集しませんが、Firefox Syncを介して自動的に設定情報をデバイス間で同期する機能を含みます。
 Firefox Syncを有効化している場合、設定画面に入力されたデータは、Mozillaが運用するSyncサーバーに送信される場合があります。
-

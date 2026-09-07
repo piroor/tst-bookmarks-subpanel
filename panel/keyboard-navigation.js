@@ -151,6 +151,8 @@ function onKeyDown(event) {
         event.preventDefault();
         return;
       }
+      if (!Constants.LOADABLE_URL_MATCHER.test(activeItem.url))
+        return;
       if (event.shiftKey)
         Connection.sendMessage({
           type:     Constants.COMMAND_OPEN_BOOKMARKS,
@@ -170,6 +172,24 @@ function onKeyDown(event) {
         });
       event.preventDefault();
       return;
+
+    case 'Delete':
+    case 'Backspace': {
+      if (!onTree ||
+          onSearchBox ||
+          !activeItem ||
+          accel)
+        return;
+      const items = Bookmarks.getMultiselected()
+        .filter(item => item && !Constants.UNMODIFIABLE_ITEMS.has(item.id));
+      if (items.length == 0)
+        return;
+      Connection.sendMessage({
+        type: Constants.COMMAND_REMOVE_BOOKMARK,
+        items
+      });
+      event.preventDefault();
+    } return;
   }
 }
 

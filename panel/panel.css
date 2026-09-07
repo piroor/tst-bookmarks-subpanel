@@ -14,14 +14,28 @@
 }
 
 :root {
-  background: var(--in-content-box-background);
+  background: transparent;
   color: var(--text-color);
   cursor: default;
   font: message-box;
-  --icon-size: 1.3em;
-  --indent-size: 1.3em;
+  --icon-size: 16px;
+  --indent-size: 16px;
   --indent-offset-size: 0px;
-  --twisty-size: 0.8em;
+  --sidebar-background-color: var(--browser-sidebar-background-color, transparent);
+  --sidebar-focus-color: var(--browser-tab-highlighter, AccentColor);
+  --sidebar-highlight-background-color: var(--browser-selected-tab-bg, AccentColor);
+  --sidebar-highlight-text-color: var(--browser-selected-tab-text, AccentColorText);
+  --sidebar-text-color: var(--browser-sidebar-text-color, var(--text-color));
+  --row-height: 24px;
+  --twisty-size: 12px;
+  --in-content-border-focus: var(--sidebar-focus-color);
+  --in-content-item-selected: var(--sidebar-highlight-background-color);
+  --in-content-selected-text: var(--sidebar-highlight-text-color);
+}
+
+:root.lwtheme-applied {
+  background: var(--sidebar-background-color);
+  color: var(--sidebar-text-color);
 }
 
 :root.rtl {
@@ -40,6 +54,7 @@ body {
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: flex-start;
+  min-width: 0;
 }
 
 .flexible {
@@ -68,23 +83,26 @@ body {
 
 
 #searchbar {
-  background: var(--in-content-box-background);
-  border: 1px solid var(--in-content-box-border-color);
-  color: var(--in-content-text-color);
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: inherit;
   display: flex;
   flex-direction: row;
   margin: 0;
+  max-width: 100%;
   min-width: 0;
-  padding: 0.2em;
+  padding: 8px;
   --icon-size: 1em;
 }
 
 #searchbar:hover {
-  border-color: currentColor;
+  border-color: transparent;
 }
 
 #searchbar.active {
-  border-color: var(--in-content-border-highlight);
+  border-color: transparent;
 }
 
 input:focus {
@@ -93,20 +111,27 @@ input:focus {
 
 #searchbar::before,
 #searchbox-clear::before  {
+  align-self: center;
   background: GrayText;
   margin: 0.25em;
   mask-image: url("/resources/SearchWindows.svg");
 }
 
 #searchbox {
-  background: transparent;
-  border: none transparent 0;
+  background: var(--in-content-box-background);
+  border: 1px solid var(--in-content-box-border-color);
+  border-radius: 4px;
   box-shadow: none;
-  color: var(--in-content-text-color);
+  color: inherit;
   flex-grow: 1;
+  min-width: 0;
   margin: 0;
   outline: none;
-  padding: 0;
+  padding: 4px 8px;
+}
+
+#searchbox:focus {
+  border-color: var(--in-content-border-focus);
 }
 
 #searchbar.blank #searchbox-clear {
@@ -128,7 +153,6 @@ input:focus {
 
 
 #content {
-  line-height: 1.6;
   flex-grow: 1;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -168,10 +192,12 @@ ul#dummy-rows li {
   border-width: 1px;
   color: inherit;
   display: block;
+  line-height: calc(var(--row-height) - 2px);
+  min-height: calc(var(--row-height) - 2px);
   overflow: hidden;
   position: relative;
   text-decoration: none;
-  text-overflow: ".."; /* ellipsis */
+  text-overflow: ellipsis;
   white-space: pre;
 }
 
@@ -193,7 +219,7 @@ ul#rows li[data-drop-position="after"] > .focusable {
   color: var(--text-color);
 }
 .focusable:hover {
-  background: var(--in-content-button-background);
+  background: var(--in-content-button-background-hover-mixed);
 }
 
 .focusable:focus {
@@ -208,7 +234,7 @@ ul#rows li[data-drop-position="after"] > .focusable {
 }
 .active > .focusable,
 .highlighted > .focusable {
-  background: var(--in-content-button-background);
+  background: var(--in-content-button-background-hover-mixed);
 }
 
 #rows.active .active > .focusable,
@@ -247,8 +273,7 @@ ul#rows li[data-drop-position="after"] > .focusable {
 }
 
 .separator > .focusable {
-  padding-bottom: 0.4em;
-  padding-top: 0.4em;
+  padding: 0;
 }
 
 .separator > .focusable::before {
@@ -256,6 +281,10 @@ ul#rows li[data-drop-position="after"] > .focusable {
   content: " ";
   display: block;
   font-size: 1px;
+  inset-inline-end: 5px;
+  inset-inline-start: calc(var(--row-indent) + 5px);
+  position: absolute;
+  top: 50%;
 }
 
 .collapsed ul {
@@ -263,14 +292,15 @@ ul#rows li[data-drop-position="after"] > .focusable {
 }
 
 .twisty {
+  --icon-size: var(--twisty-size);
   background: none;
   border: none;
-  height: var(--icon-size);
-  margin: 0 calc(var(--icon-size) / 5) 0 0;
+  height: var(--twisty-size);
+  margin: 0 5px 0 1px;
   min-width: 0;
   padding: 0;
-  width: var(--icon-size);
-  --icon-size: var(--twisty-size);
+  vertical-align: -2px;
+  width: var(--twisty-size);
 }
 .twisty:focus,
 .twisty:hover,
@@ -282,6 +312,10 @@ ul#rows li[data-drop-position="after"] > .focusable {
 
 .label {
   pointer-events: none;
+}
+
+.label::before {
+  vertical-align: -3px;
 }
 
 .label::before {
@@ -324,6 +358,11 @@ ul#rows li[data-drop-position="after"] > .focusable {
     --text-color: var(--grey-20);
     background: var(--bg-color);
     scrollbar-color: var(--in-content-border-hover) var(--in-content-page-background);
+  }
+
+  :root.lwtheme-applied {
+    background: var(--sidebar-background-color);
+    color: var(--sidebar-text-color);
   }
 
   #rows.active .active > .focusable,

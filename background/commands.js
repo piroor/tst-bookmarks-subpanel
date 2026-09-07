@@ -5,45 +5,85 @@
 */
 'use strict';
 
+import * as Constants from '/common/constants.js';
+
 export async function load(url) {
+  if (!Constants.LOADABLE_URL_MATCHER.test(url))
+    return null;
   const window    = await browser.windows.getCurrent({ populate: true });
   const activeTab = window.tabs.find(tab => tab.active);
-  browser.tabs.update(activeTab.id, {
+  return browser.tabs.update(activeTab.id, {
     url
   });
 }
 
 export async function openInTabs(urls, options = {}) {
+  urls = urls.filter(url => Constants.LOADABLE_URL_MATCHER.test(url));
+  if (urls.length == 0)
+    return [];
   const window = await browser.windows.getCurrent({ populate: true });
   let index   = window.tabs.length;
   let isFirst = true;
+  const tabs = [];
   for (const url of urls) {
-    browser.tabs.create({
+    tabs.push(await browser.tabs.create({
       active: !options.background && isFirst,
       url,
       index
-    });
+    }));
     isFirst = false;
     index++;
   }
+  return tabs;
 }
 
 export async function openInWindow(urls, options = {}) {
   if (!Array.isArray(urls))
     urls = [urls];
+  urls = urls.filter(url => Constants.LOADABLE_URL_MATCHER.test(url));
+  if (urls.length == 0)
+    return null;
   const window = await browser.windows.create({
     url:       urls[0],
     incognito: !!options.incognito
   });
   if (urls.length > 1)
     for (let i = 1, maxi = urls.length; i < maxi; i++) {
-      browser.tabs.create({
+      await browser.tabs.create({
         windowId: window.id,
         url:      urls[i],
         index:    i,
         active:   false
       });
     }
+  return window;
+}
+
+export async function getBookmarkUrls(id, { recursively = true } = {}) {
+  const item = await getOne(id);
+  if (!item)
+    return [];
+  return collectBookmarkUrls(item, { recursively });
+}
+
+async function collectBookmarkUrls(item, { recursively } = {}) {
+  if (item.type == 'bookmark')
+    return Constants.LOADABLE_URL_MATCHER.test(item.url) ? [item.url] : [];
+  if (item.type != 'folder')
+    return [];
+
+  const children = await browser.bookmarks.getChildren(item.id);
+  const urls = [];
+  for (const child of children) {
+    if (child.type == 'bookmark') {
+      if (Constants.LOADABLE_URL_MATCHER.test(child.url))
+        urls.push(child.url);
+    }
+    else if (recursively && child.type == 'folder') {
+      urls.push(...await collectBookmarkUrls(child, { recursively }));
+    }
+  }
+  return urls;
 }
 
 export async function create(params = {}) {
@@ -63,8 +103,16 @@ export async function create(params = {}) {
   return browser.bookmarks.create(details);
 }
 
+export async function createMany(items = []) {
+  const created = [];
+  for (const params of items) {
+    created.push(await create(params));
+  }
+  return created;
+}
+
 export async function update(id, params = {}) {
-  const bookmark = await browser.bookmarks.get(id);
+  const bookmark = await getOne(id);
   const changes = {
     title: params.title
   };
@@ -77,16 +125,14 @@ export async function copy(originals, destination) {
   if (!Array.isArray(originals))
     originals = [originals];
   for (const original of originals) {
-    copyOne(original, destination);
+    await copyOne(original, destination);
     if (typeof destination.index == 'number')
       destination.index++;
   }
 }
 async function copyOne(original, destination) {
   if (typeof original == 'string') {
-    original = await browser.bookmarks.get(original);
-    if (Array.isArray(original))
-      original = original[0];
+    original = await getOne(original);
     if (original.type == 'folder')
       original = await browser.bookmarks.getSubTree(original.id);
   }
@@ -104,11 +150,16 @@ async function copyOne(original, destination) {
   if (original.children && original.children.length > 0) {
     let index = 0;
     for (const child of original.children) {
-      copy(child, {
+      await copy(child, {
         parentId: created.id,
         index
       });
       index++;
     }
   }
+}
+
+async function getOne(id) {
+  const items = await browser.bookmarks.get(id);
+  return Array.isArray(items) ? items[0] : items;
 }

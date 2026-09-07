@@ -7,7 +7,8 @@
   "permissions": [
     "bookmarks",
     "browserSettings",
-    "storage"
+    "storage",
+    "theme"
   ],
   "background": {
     "page": "/background/background.html"
