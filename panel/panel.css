@@ -54,6 +54,7 @@ body {
   flex-direction: column;
   flex-wrap: nowrap;
   justify-content: flex-start;
+  min-width: 0;
 }
 
 .flexible {
@@ -90,6 +91,7 @@ body {
   display: flex;
   flex-direction: row;
   margin: 0;
+  max-width: 100%;
   min-width: 0;
   padding: 8px;
   --icon-size: 1em;
@@ -122,6 +124,7 @@ input:focus {
   box-shadow: none;
   color: inherit;
   flex-grow: 1;
+  min-width: 0;
   margin: 0;
   outline: none;
   padding: 4px 8px;
